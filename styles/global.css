@@ -1,0 +1,94 @@
+@import url('fonts.css');
+:root{
+--main-font-inter: 'Inter' ;
+--title-font-manrope:'Manrope';
+
+--off-white-background:#FFFFF8;
+--beige-background:#F5F6E8;
+--primary-teal:#0F3D4C;
+--secondary-mint:#267C93;
+--tertiary-mineral-blue:#39677C;
+--text-foreground:#2E2D37;
+
+--warning-red:#F4BCBC;
+--warning-red-outline:#BA3636;
+
+--reminder-yellow:#FFF1A3;
+--outline-reminder-yellow: #D58A11;
+
+--ok-green:#B4EAD5;
+--ok-green-outline:#209568;
+
+--light-gray: #CDD2D1;
+--search-bar-grey-teal:#AEBDB8;
+--selection-gray:#F0F1EA;
+--black:#000;
+
+--btn-radious: 10px;
+--btn-text-color:#FFFFFF;
+}
+
+body{
+    font-family: var(--main-font-inter);
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text-foreground);
+    background-color: var(--beige-background);
+}
+
+h1, .title-heading {
+  font-family: var(--title-font-manrope);
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+  color: var(--primary-teal);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--main-font-inter);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--btn-text-color);
+  padding: 12px 24px;
+  border-radius: var(--btn-radious);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background- 0.2s ease, transform 0.1s ease;
+}
+
+.btn:hover {
+    background-color: color-mix(
+    in srgb,
+    var(--primary-teal, #0F3D4C)
+    70%,
+    black);
+    transition: 0.5s;
+}
+
+.btn-primary {
+  background-color: var(--primary-teal);
+}
+
+.btn-filter{
+  background-color: var(--secondary-mint);
+}
+
+.btn-secondary{
+  background-color: var(--tertiary-mineral-blue);
+}
+
+.btn-tertiary{
+  background-color: var(--off-white-background);
+  color: var(--primary-teal);
+  border: 1.5px solid var(--primary-teal);
+}
+
+.btn-tertiary:hover {
+   color: var(--btn-text-color);
+}
