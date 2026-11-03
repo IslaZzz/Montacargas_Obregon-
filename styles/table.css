@@ -1,0 +1,64 @@
+@import url('fonts.css');
+@import url('global.css');
+
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    background-color: var(--table-background);
+    border: 1px solid var(--table-border);
+    border-radius: var(--table-radius);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--main-font-inter);
+    font-size: 13px;
+    color: var(--table-cell-text);
+}
+
+.data-table thead {
+    background-color: var(--table-header-background);
+}
+
+.data-table th {
+    height: var(--table-header-height);
+    padding: 10px 12px;
+    color: var(--table-header-text);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.data-table td {
+    height: var(--table-row-height);
+    padding: var(--table-cell-padding);
+    border-bottom: 1px solid var(--table-divider);
+    vertical-align: middle;
+    font-weight: 400;
+}
+
+.data-table tbody tr:nth-child(even) {
+    background-color: var(--table-row-alternate);
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--selection-gray);
+    transition: background-color 0.2s ease;
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table .cell-primary {
+    font-weight: 600;
+    color: var(--primary-teal);
+}
+
+.data-table .cell-actions {
+    text-align: left;
+    white-space: nowrap;
+}

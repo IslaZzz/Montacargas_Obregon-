@@ -1,0 +1,136 @@
+ @import url('fonts.css');
+ @import url('global.css');
+
+ .table-toolbar {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     gap: 20px;
+     width: 100%;
+     margin-bottom: 20px;
+ }
+
+ .filters-row {
+     display: flex;
+     align-items: center;
+     flex-wrap: wrap;
+     gap: 8px;
+ }
+
+ .filter-label {
+     font-family: var(--main-font-inter);
+     font-size: 13px;
+     font-weight: 600;
+     color: var(--primary-teal);
+     white-space: nowrap;
+     margin-right: 2px;
+ }
+
+ .filter-chip {
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+
+     padding: 7px 13px;
+
+     border: 1px solid var(--tertiary-mineral-blue);
+     border-radius: 20px;
+
+     background-color: var(--off-white-background);
+     color: var(--primary-teal);
+
+     font-family: var(--main-font-inter);
+     font-size: 12px;
+     font-weight: 600;
+
+     white-space: nowrap;
+     cursor: pointer;
+     transition: background-color 0.2s ease;
+ }
+
+ .filter-chip:hover,
+ .filter-chip.active {
+     background-color: var(--primary-teal);
+     color: white;
+ }
+
+ .dropdown-row {
+     display: flex;
+     align-items: center;
+     gap: 10px;
+ }
+
+ .dropdown {
+     position: relative;
+ }
+
+ .dropdown-trigger {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     gap: 10px;
+     transition: 0.3s;
+
+     padding: 9px 12px;
+
+     background-color: var(--secondary-mint);
+     color: white;
+
+     border: none;
+     border-radius: 6px;
+
+     font-family: var(--main-font-inter);
+     font-size: 12px;
+     font-weight: 600;
+
+     white-space: nowrap;
+     cursor: pointer;
+ }
+
+ .dropdown-trigger:hover {
+     background-color: var(--primary-teal);
+ }
+
+ .dropdown-arrow {
+     font-size: 15px;
+ }
+
+ .dropdown-menu {
+     display: none;
+     position: absolute;
+     top: calc(100% + 6px);
+     right: 0;
+
+     min-width: 190px;
+     padding: 6px;
+
+     background-color: var(--off-white-background);
+     border: 1px solid var(--light-gray);
+     border-radius: 8px;
+     box-shadow: 0 4px 12px rgba(15, 61, 76, 0.12);
+     z-index: 10;
+ }
+
+ .dropdown:hover .dropdown-menu {
+     display: flex;
+     flex-direction: column;
+ }
+
+ .dropdown-menu button {
+     padding: 10px 12px;
+     border: none;
+     border-radius: 5px;
+     background: transparent;
+     color: var(--text-foreground);
+
+     font-family: var(--main-font-inter);
+     font-size: 12px;
+     text-align: left;
+
+     cursor: pointer;
+ }
+
+ .dropdown-menu button:hover {
+     background-color: var(--beige-background);
+     color: var(--primary-teal);
+ }

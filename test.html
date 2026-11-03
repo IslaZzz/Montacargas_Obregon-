@@ -5,22 +5,151 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CSS Test</title>
       <link rel="stylesheet" href="styles/global.css">
+      <link rel="stylesheet" href="styles/buttons-chips.css">
+      <link rel="stylesheet" href="styles/table.css">
+      <link rel="stylesheet" href="styles/filters.css">
   </head>
-<body>
+  <body>
 
-  <div class="card">
-    <h1 class="title-heading">UI Test</h1>
-    <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-    </p>
+  <main class="showcase">
 
-    <div class="button-container">
-      <button class="btn btn-primary">Primary Action</button>
-      <button class="btn btn-filter">Filter Option</button>
-      <button class="btn btn-secondary">Secondary Action</button>
-      <button class="btn btn-tertiary">Tertiary Action</button>
-    </div>
-  </div>
+      <h1 class="title-heading">UI Component Showcase</h1>
+      <p>Visualización de componentes del sistema de gestión de maquinaria.</p>
 
-</body>
-</html>
+      <section class="component-section">
+          <h2 class="title-subtitl">Botones</h2>
+
+          <div class="demo-card">
+              <div class="button-container">
+                  <button class="btn btn-primary">Primary Action</button>
+                  <button class="btn btn-filter">Filter Option</button>
+                  <button class="btn btn-secondary">Secondary Action</button>
+                  <button class="btn btn-tertiary">Tertiary Action</button>
+              </div>
+          </div>
+      </section>
+
+
+      <!-- CHIPS -->
+      <section class="component-section">
+          <h3 class="section-subtitle ">Chips</h3>
+
+          <div class="demo-card">
+              <h3>Rentas</h3>
+              <div class="component-group">
+                  <span class="chip chip-programado">Programada</span>
+                  <span class="chip chip-en-curso">En curso</span>
+              </div>
+
+              <h3>Equipos</h3>
+              <div class="component-group">
+                  <span class="chip chip-equipo-disponible">Disponible</span>
+                  <span class="chip chip-equipo-mantenimiento">Mantenimiento</span>
+                  <span class="chip chip-equipo-preparacion">En preparación</span>
+                  <span class="chip chip-equipo-fuera-servicio">Fuera de servicio</span>
+              </div>
+
+              <h3>Cartas</h3>
+              <div class="component-group">
+                  <span class="chip chip-carta-enviada">Enviada</span>
+                  <span class="chip chip-carta-generada">Generada</span>
+                  <span class="chip chip-borrador">Borrador</span>
+              </div>
+
+              <h3>Traslados</h3>
+              <div class="component-group">
+                  <span class="chip chip-pendiente">Pendiente</span>
+                  <span class="chip chip-translado">En traslado</span>
+              </div>
+
+              <h3 class="section-subtitle ">Otros</h3>
+              <div class="component-group">
+                  <span class="chip chip-ok">Okay</span>
+              </div>
+
+          </div>
+      </section>
+
+
+      <section class="component-section">
+          <h2 class="title-subtitl">Filtros</h2>
+
+
+          <section class="table-toolbar">
+
+              <div class="filters-row">
+                  <span class="filter-label">Filtrar por:</span>
+
+                  <button class="filter-chip active">Todas</button>
+                  <button class="filter-chip">Apartados próximos</button>
+                  <button class="filter-chip">Por vencer</button>
+                  <button class="filter-chip">Pendientes de recolección</button>
+              </div>
+
+              <div class="dropdown-row">
+
+                  <div class="dropdown">
+                      <button class="dropdown-trigger">
+                          Fecha: Todas
+                          <span class="dropdown-arrow">⌄</span>
+                      </button>
+
+                      <div class="dropdown-menu">
+                          <button>Todas las fechas</button>
+                          <button>Hoy</button>
+                          <button>Esta semana</button>
+                          <button>Este mes</button>
+                      </div>
+                  </div>
+              </div>
+          </section>
+
+      <h2 class="title-subtitl">Tabla</h2>
+      <section class="component-section">
+
+          <div class="table-container">
+              <table class="data-table">
+
+                  <thead>
+                      <tr>
+                          <th>Renta</th>
+                          <th>Información general</th>
+                          <th>Fecha</th>
+                          <th>Estado</th>
+                          <th>Acción</th>
+                      </tr>
+                  </thead>
+
+                  <tbody>
+                      <tr>
+                          <td class="cell-primary">Constructora Valle Yaqui</td>
+                          <td>3 equipos</td>
+                          <td>03/11/2026</td>
+                          <td>
+                              <span class="chip chip-en-curso">En curso</span>
+                          </td>
+                          <td class="cell-actions">
+                              <button class="btn btn-secondary">Ver renta →</button>
+                          </td>
+                      </tr>
+
+                      <tr>
+                          <td class="cell-primary">Maquinaria del Norte</td>
+                          <td>5 equipos</td>
+                          <td>04/11/2026</td>
+                          <td>
+                              <span class="chip chip-programado">Programada</span>
+                          </td>
+                          <td class="cell-actions">
+                              <button class="btn btn-secondary">Ver renta →</button>
+                          </td>
+                      </tr>
+
+                  </tbody>
+              </table>
+          </div>
+      </section>
+
+  </main>
+  </body>
+  </html>

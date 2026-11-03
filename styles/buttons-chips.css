@@ -1,0 +1,135 @@
+@import url('fonts.css');
+@import url('global.css');
+
+/*botones*/
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--main-font-inter);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--btn-text-color);
+  padding: 12px 24px;
+  border-radius: var(--btn-radious);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background- 0.2s ease, transform 0.1s ease;
+}
+
+.btn:hover {
+    background-color: color-mix(
+    in srgb,
+    var(--primary-teal, #0F3D4C)
+    70%,
+    black);
+    transition: 0.5s;
+}
+
+.btn-primary {
+  background-color: var(--primary-teal);
+}
+
+.btn-filter{
+  background-color: var(--secondary-mint);
+}
+
+.btn-secondary{
+  background-color: var(--tertiary-mineral-blue);
+}
+
+.btn-tertiary{
+  background-color: var(--off-white-background);
+  color: var(--primary-teal);
+  border: 1.5px solid var(--primary-teal);
+}
+
+.btn-tertiary:hover {
+   color: var(--btn-text-color);
+}
+
+/*chips*/
+.chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    padding: 5px 10px;
+    border-radius: 20px;
+
+    font-family: var(--main-font-inter);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.chip::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+/*estado renta*/
+.chip-programado {
+    background-color: var(--estado-chip-programado);
+    color: var(--estado-chip-programado-outline)
+}
+
+.chip-en-curso {
+    background-color: var(--estado-chip-en-curso);
+    color: var(--estado-chip-en-curso-outline);
+}
+
+
+/*chips estado equipo*/
+.chip-equipo-disponible {
+    background-color: #DBF6E9;
+    color: #086A75;
+}
+.chip-equipo-mantenimiento {
+    background-color: #F9EACC;
+    color: #BA3636;
+}
+.chip-equipo-preparacion {
+    background-color: #FFF1A3;
+    color:  #A66C0B;
+}
+.chip-equipo-fuera-servicio {
+    background-color: var(--warning-red);
+    color: var(--warning-red-outline);
+}
+
+/*chips estado carta*/
+.chip-carta-enviada {
+    background-color: #B7CFEE;
+    color: #0F3D4C;
+}
+.chip-carta-generada {
+    background-color: #FFF1A3;
+    color: #A66C0B;
+}
+
+.chip-borrador {
+    background-color: #CDD2D1;
+    color: var(--primary-teal);
+}
+
+/*chips estado translado*/
+.chip-pendiente {
+    background-color: #FFF1A3;
+    color: var(--primary-teal);
+}
+
+.chip-translado {
+    background-color: #A9B2ED;
+    color: var(--primary-teal);
+}
+
+.chip-ok {
+    background-color: #B4EAD5;
+    color: #209568;
+}
