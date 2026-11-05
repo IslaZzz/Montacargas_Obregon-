@@ -3,82 +3,44 @@
   --text-body: #2e2d37;
   --ancho-menu: 297px;
   --rojo-error: var(--warning-red-outline, #ba3636);
+  --zoom: 1;
+}
+
+/* Escala la página  en pantallas más chicas */
+html {
+  zoom: var(--zoom);
+}
+@media (max-width: 1800px) {
+  :root {
+    --zoom: 0.9;
+  }
+}
+@media (max-width: 1600px) {
+  :root {
+    --zoom: 0.8;
+  }
+}
+@media (max-width: 1450px) {
+  :root {
+    --zoom: 0.75;
+  }
+}
+@media (max-width: 1350px) {
+  :root {
+    --zoom: 0.7;
+  }
 }
 
 /* ===== Estructura general ===== */
 .app {
-  min-height: 100vh;
+  min-height: calc(100vh / var(--zoom));
   background: var(--beige-background);
 }
 .principal {
   margin-left: var(--ancho-menu);
-  min-height: 100vh;
+  min-height: calc(100vh / var(--zoom));
   display: flex;
   flex-direction: column;
-}
-
-/* ===== Menú lateral ===== */
-.menu {
-  position: fixed;
-  inset: 0 auto 0 0;
-  width: var(--ancho-menu);
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  background: var(--off-white-background);
-  box-shadow: 2px 0 8px rgba(15, 61, 76, 0.12);
-}
-.menu-marca {
-  height: 128px;
-  box-sizing: border-box;
-  padding: 32px 24px 0;
-  display: flex;
-  gap: 16px;
-  color: var(--primary-teal);
-  font:
-    800 24px/1.35 "Manrope",
-    sans-serif;
-}
-.menu-nav {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-.menu-link {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  height: 64px;
-  padding-left: 24px;
-  border: 0;
-  border-bottom: 1px solid var(--primary-teal);
-  background: var(--off-white-background);
-  color: var(--primary-teal);
-  font:
-    500 16px "Inter",
-    sans-serif;
-  text-decoration: none;
-  text-align: left;
-  cursor: pointer;
-}
-.menu-link:hover {
-  background: rgba(15, 61, 76, 0.08);
-}
-.menu-link.activo {
-  background: var(--primary-teal);
-  color: var(--off-white-background);
-  font-weight: 600;
-}
-.menu-usuario {
-  display: flex;
-  flex-direction: column;
-  padding: 16px 24px;
-  border-top: 1px solid rgba(15, 61, 76, 0.15);
-  color: var(--text-body);
-}
-.menu-usuario strong {
-  color: var(--primary-teal);
 }
 
 /* ===== Encabezado ===== */
@@ -367,18 +329,7 @@
 @media (max-width: 1100px) {
   :root {
     --ancho-menu: 80px;
-  }
-  .menu-marca span,
-  .menu-usuario,
-  .menu-link {
-    font-size: 0;
-  }
-  .menu-link {
-    justify-content: center;
-    padding-left: 0;
-  }
-  .menu-link .material-symbols-rounded {
-    font-size: 24px;
+    --zoom: 1;
   }
   .secciones {
     flex-direction: column;
