@@ -2,6 +2,7 @@
 
 /* ===== Botones del prototipo: 56 px de alto ===== */
 .btn-grande {
+  box-sizing: border-box; /* los enlaces con ancho completo no se salen de la tarjeta */
   gap: 8px;
   min-height: 56px;
   padding: 0 24px;
@@ -159,6 +160,7 @@
   color: var(--text-foreground);
 }
 .cotizacion-tarjeta .btn {
+  box-sizing: border-box;
   width: 100%;
   min-height: 48px;
   border-width: 2px;
