@@ -38,7 +38,7 @@ public class Cliente {
     @Column(name = "apellido_materno", length = 50)   // Opcional
     private String apellidoMaterno;
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     private String empresa;
 
     @Column(nullable = false, length = 10)
