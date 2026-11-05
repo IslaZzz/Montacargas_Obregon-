@@ -1,0 +1,295 @@
+/* Estructura de toda la aplicación: menú, encabezado, página y barra de acciones */
+/* Puntos de corte: más de 1100 px computadora, 701 a 1100 px tableta, 700 px o menos celular */
+
+:root {
+  --ancho-menu: 297px;
+  --text-body: var(--text-foreground);
+  --zoom: 1;
+}
+
+/* Base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+#root {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  text-align: left;
+}
+
+/* Escala la página en computadoras con pantalla más chicas*/
+html {
+  zoom: var(--zoom);
+}
+@media (max-width: 1800px) {
+  :root {
+    --zoom: 0.9;
+  }
+}
+@media (max-width: 1600px) {
+  :root {
+    --zoom: 0.8;
+  }
+}
+@media (max-width: 1450px) {
+  :root {
+    --zoom: 0.75;
+  }
+}
+@media (max-width: 1350px) {
+  :root {
+    --zoom: 0.7;
+  }
+}
+
+/* Contenedor general */
+.app {
+  min-height: 100vh;
+  min-height: calc(100dvh / var(--zoom));
+  background: var(--beige-background);
+}
+.principal {
+  margin-left: var(--ancho-menu);
+  min-width: 0;
+  min-height: 100vh;
+  min-height: calc(100dvh / var(--zoom));
+  display: flex;
+  flex-direction: column;
+}
+
+/* Encabezado */
+.encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 130px;
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+  padding: 39px 64px 0 73px;
+  background: var(--beige-background);
+  border-bottom: 2px solid var(--primary-teal);
+}
+.buscador {
+  display: flex;
+  align-items: center;
+  width: min(720px, 100%);
+  height: 56px;
+  padding: 0 12px 0 24px;
+  border-radius: 28px;
+  background: rgba(15, 61, 76, 0.31);
+  color: var(--primary-teal);
+}
+.buscador input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--primary-teal);
+  font:
+    400 16px "Inter",
+    sans-serif;
+}
+.buscador input::placeholder {
+  color: var(--primary-teal);
+  opacity: 1;
+}
+.espacio {
+  flex: 1;
+}
+.encabezado-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 56px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary-teal);
+  font:
+    500 16px "Inter",
+    sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Botón de menú, solo se ve en celular */
+.btn-menu {
+  display: none;
+}
+
+/* Contenido de una página: úselo en todas las pantallas */
+.pagina {
+  flex: 1;
+  width: 100%;
+  max-width: 1700px;
+  min-width: 0;
+  padding: 40px 64px 40px 97px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.pagina h1 {
+  margin: 0;
+  font:
+    800 48px/1.35 "Manrope",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.pagina p {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-body);
+}
+
+/* Pantalla de formulario con barra de acciones fija abajo */
+.pagina-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.barra-acciones {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 64px 16px 97px;
+  background: var(--off-white-background);
+  border-top: 2px solid var(--primary-teal);
+  box-shadow: 0 -4px 12px rgba(15, 61, 76, 0.08);
+}
+.barra-acciones p {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-body);
+}
+.barra-acciones .btn {
+  min-height: 56px;
+  font-size: 18px;
+}
+
+/* Tablas y filtros: se desplazan o se acomodan en pantallas angostas */
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-toolbar,
+.filters-row {
+  flex-wrap: wrap;
+}
+
+/* Tableta y celular */
+@media (max-width: 1100px) {
+  :root {
+    --ancho-menu: 80px;
+    --zoom: 1;
+  }
+  .encabezado {
+    height: auto;
+    gap: 16px;
+    align-items: center;
+    padding: 12px clamp(16px, 3vw, 32px);
+  }
+  .buscador {
+    flex: 1;
+    height: 48px;
+  }
+  .encabezado-btn {
+    height: 48px;
+  }
+  .pagina {
+    gap: 16px;
+    padding: clamp(16px, 3vw, 32px);
+  }
+  .pagina h1 {
+    font-size: clamp(28px, 5vw, 40px);
+  }
+  .pagina p {
+    font-size: 16px;
+  }
+  .barra-acciones {
+    min-height: 80px;
+    padding: 12px clamp(16px, 3vw, 32px);
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Celular */
+@media (max-width: 700px) {
+  :root {
+    --ancho-menu: 0px;
+  }
+  .encabezado {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .btn-menu {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--primary-teal);
+    cursor: pointer;
+  }
+  .buscador {
+    height: 44px;
+    padding: 0 12px 0 16px;
+  }
+  .espacio,
+  .encabezado-texto {
+    display: none;
+  }
+  .encabezado-btn {
+    flex-shrink: 0;
+    height: 44px;
+  }
+  .pagina h1 {
+    font-size: clamp(24px, 7vw, 28px);
+  }
+  .barra-acciones {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .barra-acciones p {
+    flex-basis: 100%;
+    font-size: 14px;
+  }
+  .barra-acciones .btn {
+    flex: 1;
+    min-height: 48px;
+    font-size: 16px;
+  }
+  .table-toolbar .filter-group,
+  .table-toolbar .dropdown,
+  .table-toolbar .filter-input {
+    width: 100%;
+  }
+
+  /* Títulos más chicos en toda la aplicación */
+  h1,
+  .title-heading {
+    font-size: clamp(24px, 7vw, 28px);
+  }
+  h2,
+  .title-subtitle {
+    font-size: 20px;
+  }
+}

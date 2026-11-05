@@ -13,6 +13,8 @@ interface MenuLateralProps {
   rol: Rol;
   nombreUsuario: string;
   puesto: string;
+  abierto?: boolean; // Solo se usa en celular
+  onCerrar?: () => void; // Cierra el menú al elegir una opción
   onCerrarSesion?: () => void;
 }
 
@@ -22,13 +24,27 @@ const opciones: Opcion[] = [
   { texto: "Rentas", ruta: "/rentas", icono: "calendar_month" },
   { texto: "Clientes", ruta: "/clientes", icono: "group" },
   { texto: "Equipos", ruta: "/equipos", icono: "local_shipping" },
-  { texto: "Disponibilidad", ruta: "/disponibilidad", icono: "event_available" },
+  {
+    texto: "Disponibilidad",
+    ruta: "/disponibilidad",
+    icono: "event_available",
+  },
   { texto: "Cotizaciones", ruta: "/cotizaciones", icono: "description" },
   { texto: "Traslados", ruta: "/traslados", icono: "swap_horiz" },
   { texto: "Mantenimientos", ruta: "/mantenimientos", icono: "build" },
   { texto: "Historial de rentas", ruta: "/historial-rentas", icono: "history" },
-  { texto: "Autorizaciones", ruta: "/autorizaciones", icono: "rule", soloGerencia: true },
-  { texto: "Ingresos", ruta: "/ingresos", icono: "attach_money", soloGerencia: true },
+  {
+    texto: "Autorizaciones",
+    ruta: "/autorizaciones",
+    icono: "rule",
+    soloGerencia: true,
+  },
+  {
+    texto: "Ingresos",
+    ruta: "/ingresos",
+    icono: "attach_money",
+    soloGerencia: true,
+  },
   { texto: "Modelos", ruta: "/modelos", icono: "sell" },
 ];
 
@@ -36,14 +52,18 @@ export default function MenuLateral({
   rol,
   nombreUsuario,
   puesto,
+  abierto,
+  onCerrar,
   onCerrarSesion,
 }: MenuLateralProps) {
   // Gerencia ve todas las opciones, auxiliar solo las generales
   // Cambiar esto cuando se implemente la autenticación de usuarios
-  const visibles = opciones.filter((o) => !o.soloGerencia || rol === "gerencia");
+  const visibles = opciones.filter(
+    (o) => !o.soloGerencia || rol === "gerencia",
+  );
 
   return (
-    <aside className="menu">
+    <aside className={"menu" + (abierto ? " abierto" : "")}>
       {/* Marca */}
       <div className="menu-marca">
         <span className="menu-emoji" aria-hidden="true">
@@ -59,7 +79,10 @@ export default function MenuLateral({
             key={o.ruta}
             to={o.ruta}
             title={o.texto}
-            className={({ isActive }) => "menu-link" + (isActive ? " activo" : "")}
+            onClick={onCerrar}
+            className={({ isActive }) =>
+              "menu-link" + (isActive ? " activo" : "")
+            }
           >
             <span className="material-symbols-rounded">{o.icono}</span>
             <span className="menu-texto">{o.texto}</span>
