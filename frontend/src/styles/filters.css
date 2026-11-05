@@ -134,3 +134,144 @@
      background-color: var(--beige-background);
      color: var(--primary-teal);
  }
+
+
+ /* Filter Factory */
+
+ .filter-factory {
+     width: 100%;
+     font-family: var(--main-font-inter);
+ }
+
+ .filter-group {
+     display: flex;
+     align-items: center;
+     flex-wrap: wrap;
+     gap: 8px;
+ }
+
+ .filter-results-info {
+     font-size: 12px;
+     color: var(--text-foreground);
+     margin-bottom: 12px;
+ }
+
+ .filter-reset {
+     background: transparent;
+     border: none;
+     color: var(--primary-teal);
+     font-family: var(--main-font-inter);
+     font-size: 12px;
+     font-weight: 600;
+     cursor: pointer;
+     white-space: nowrap;
+ }
+
+ .filter-reset:hover {
+     text-decoration: underline;
+ }
+
+ /* Dropdown  */
+
+ .dropdown.open .dropdown-menu {
+     display: flex;
+     flex-direction: column;
+ }
+
+ .dropdown-menu button:active {
+     background-color: var(--beige-background);
+ }
+
+ .filter-date,
+ .filter-input {
+     padding: 9px 12px;
+
+     background-color: var(--off-white-background);
+     color: var(--primary-teal);
+
+     border: 1px solid var(--tertiary-mineral-blue);
+     border-radius: 6px;
+
+     font-family: var(--main-font-inter);
+     font-size: 12px;
+     font-weight: 500;
+
+     outline: none;
+ }
+
+ .filter-date {
+     cursor: pointer;
+ }
+
+ .filter-date:focus,
+ .filter-input:focus {
+     border-color: var(--primary-teal);
+ }
+
+ .filter-input {
+     min-width: 160px;
+ }
+
+ .filter-input::placeholder {
+     color: var(--text-foreground);
+     opacity: 0.6;
+ }
+
+
+ /* Date Range */
+
+ .date-range-container {
+     display: inline-flex;
+     align-items: center;
+     gap: 8px;
+ }
+
+ .date-range-field {
+     display: flex;
+     flex-direction: column;
+     gap: 5px;
+ }
+
+ .date-range-field label {
+     font-family: var(--main-font-inter);
+     font-size: 11px;
+     font-weight: 600;
+     color: var(--primary-teal);
+ }
+
+ .date-range-separator {
+     color: var(--primary-teal);
+     font-size: 14px;
+     margin-top: 18px;
+ }
+
+ .date-range-container .filter-date {
+     min-width: 145px;
+ }
+
+ /* Responsive */
+
+ @media (max-width: 768px) {
+     .table-toolbar {
+         align-items: flex-start;
+         flex-direction: column;
+     }
+
+     .filters-row {
+         align-items: flex-start;
+     }
+
+     .filter-group {
+         width: 100%;
+     }
+ }
+
+ @media (max-width: 600px) {
+     .date-range-container {
+         flex-wrap: wrap;
+     }
+
+     .date-range-container .filter-date {
+         min-width: 130px;
+     }
+ }
