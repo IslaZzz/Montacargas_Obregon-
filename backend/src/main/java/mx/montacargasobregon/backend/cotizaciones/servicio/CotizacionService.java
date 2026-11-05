@@ -49,6 +49,10 @@ public class CotizacionService {
         if (!cotizacion.getEstado().puedeCambiarA(nuevoEstado)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "La cotización ya no puede cambiar a ese estado");
         }
+        // Sin equipos no hay PDF que mandar (HU-18)
+        if (nuevoEstado == EstadoCotizacion.ENVIADA && cotizacion.getPartidas().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Agrega al menos un equipo");
+        }
 
         cotizacion.cambiarEstado(nuevoEstado, LocalDate.now(Cotizacion.ZONA_HORARIA));
         return cotizacion; // Dentro de la transacción, JPA guarda el cambio solo
