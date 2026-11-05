@@ -5,6 +5,8 @@ import './styles/global.css'
 import './styles/buttons-chips.css'
 import './styles/table.css'
 import './styles/filters.css'
+import "./styles/menu-lateral.css";
+import './styles/clientes/registrar-cliente.css';
 import App from './App'
 
 createRoot(document.getElementById('root')!).render(

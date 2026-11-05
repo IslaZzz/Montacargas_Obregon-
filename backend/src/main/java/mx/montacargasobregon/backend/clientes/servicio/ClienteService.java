@@ -1,4 +1,4 @@
-package mx.montacargasobregon.backend.clientes;
+package mx.montacargasobregon.backend.clientes.servicio;
 
 import java.util.List;
 
@@ -8,6 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import mx.montacargasobregon.backend.clientes.dto.ClienteRequest;
+import mx.montacargasobregon.backend.clientes.modelo.RazonSocial;
+import mx.montacargasobregon.backend.clientes.repositorio.ClienteRepository;
+import mx.montacargasobregon.backend.clientes.modelo.DireccionFiscal;
+import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 import mx.montacargasobregon.backend.comun.dto.DireccionRequest;
 
 /**

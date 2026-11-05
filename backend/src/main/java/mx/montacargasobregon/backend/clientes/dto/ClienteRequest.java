@@ -26,8 +26,8 @@ public record ClienteRequest(
         // Opcional: puede no enviarse (null). Si se envía, debe cumplir el formato
         @Size(max = 50, message = "El apellido materno admite máximo 50 caracteres") @Pattern(regexp = "^[\\p{L} .'-]+$", message = "El apellido materno solo admite letras") String apellidoMaterno,
 
-        // Obligatorio, hasta 100 caracteres
-        @NotBlank @Size(max = 100, message = "La empresa admite máximo 100 caracteres") String empresa,
+        // Hasta 100 caracteres
+        @Size(max = 100, message = "La empresa admite máximo 100 caracteres") String empresa,
 
         // Obligatorio y con exactamente 10 dígitos
         @NotBlank @Pattern(regexp = "\\d{10}", message = "El teléfono debe tener 10 dígitos") String telefono,

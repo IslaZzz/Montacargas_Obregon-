@@ -2,7 +2,7 @@ package mx.montacargasobregon.backend.clientes.dto;
 
 import java.util.List;
 
-import mx.montacargasobregon.backend.clientes.Cliente;
+import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 
 /**
  * Cliente DTO de respuesta que el backend devuelve al front.

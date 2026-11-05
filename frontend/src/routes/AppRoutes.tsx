@@ -1,16 +1,24 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-import BuscarClientes from '../features/clientes/BuscarClientes'
-import Dashboard from '../features/dashboard/Dashboard'
+import { Navigate, Route, Routes } from "react-router-dom";
+import AppLayout from "../components/AppLayout";
+import Dashboard from "../features/dashboard/Dashboard";
+import BuscarClientes from "../features/clientes/BuscarClientes";
+import RegistrarCliente from "../features/clientes/RegistrarCliente";
 
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* La dirección raíz redirige a Dashboard */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={<Dashboard />} />
+      {/* Todo lo que esté dentro de esta ruta muestra el menú y el encabezado */}
+      <Route element={<AppLayout />}>
+        {/* La dirección raíz redirige a Dashboard */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<Dashboard />} />
 
-      <Route path="/clientes" element={<BuscarClientes />} />
-      {/* Aquí se agregarán las demás pantallas */}
+        {/*Clientes */}
+        <Route path="/clientes" element={<BuscarClientes />} />
+        <Route path="/clientes/registrar" element={<RegistrarCliente />} />
+
+        {/* Aquí se agregarán las demás pantallas */}
+      </Route>
     </Routes>
-  )
+  );
 }
