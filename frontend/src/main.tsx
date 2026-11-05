@@ -7,6 +7,8 @@ import './styles/table.css'
 import './styles/filters.css'
 import "./styles/menu-lateral.css";
 import "./styles/layout.css";
+import "./styles/modal.css";
+import "./styles/avisos.css";
 import './styles/clientes/registrar-cliente.css';
 import App from './App'
 
