@@ -1,4 +1,4 @@
-package mx.montacargasobregon.backend.clientes;
+package mx.montacargasobregon.backend.clientes.controlador;
 
 import java.util.List;
 
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import mx.montacargasobregon.backend.clientes.dto.ClienteRequest;
 import mx.montacargasobregon.backend.clientes.dto.ClienteResponse;
+import mx.montacargasobregon.backend.clientes.servicio.ClienteService;
 
 /**
  * Rutas HTTP de los clientes.

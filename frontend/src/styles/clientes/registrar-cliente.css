@@ -1,0 +1,347 @@
+:root {
+  --surface-card: #f0f1ea;
+  --text-body: #2e2d37;
+  --ancho-menu: 297px;
+  --rojo-error: var(--warning-red-outline, #ba3636);
+  --zoom: 1;
+}
+
+/* Escala la página  en pantallas más chicas */
+html {
+  zoom: var(--zoom);
+}
+@media (max-width: 1800px) {
+  :root {
+    --zoom: 0.9;
+  }
+}
+@media (max-width: 1600px) {
+  :root {
+    --zoom: 0.8;
+  }
+}
+@media (max-width: 1450px) {
+  :root {
+    --zoom: 0.75;
+  }
+}
+@media (max-width: 1350px) {
+  :root {
+    --zoom: 0.7;
+  }
+}
+
+/* ===== Estructura general ===== */
+.app {
+  min-height: calc(100vh / var(--zoom));
+  background: var(--beige-background);
+}
+.principal {
+  margin-left: var(--ancho-menu);
+  min-height: calc(100vh / var(--zoom));
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Encabezado ===== */
+.encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 130px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+  padding: 39px 64px 0 73px;
+  background: var(--beige-background);
+  border-bottom: 2px solid var(--primary-teal);
+}
+.buscador {
+  display: flex;
+  align-items: center;
+  width: min(720px, 100%);
+  height: 56px;
+  box-sizing: border-box;
+  padding: 0 12px 0 24px;
+  border-radius: 28px;
+  background: rgba(15, 61, 76, 0.31);
+  color: var(--primary-teal);
+}
+.buscador input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--primary-teal);
+  font:
+    400 16px "Inter",
+    sans-serif;
+}
+.buscador input::placeholder {
+  color: var(--primary-teal);
+  opacity: 1;
+}
+.espacio {
+  flex: 1;
+}
+.encabezado-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 56px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary-teal);
+  font:
+    500 16px "Inter",
+    sans-serif;
+  cursor: pointer;
+}
+
+/* ===== Página y tarjetas ===== */
+.pagina-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.pagina {
+  flex: 1;
+  padding: 40px 64px 40px 97px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.pagina h1 {
+  margin: 0;
+  font:
+    800 48px/1.35 "Manrope",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.pagina p {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-body);
+}
+
+.secciones {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+.tarjeta {
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px 32px 32px;
+  background: var(--surface-card);
+  border: 2px solid var(--secondary-mint);
+  border-radius: 10px;
+}
+.tarjeta h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font:
+    600 24px "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.paso {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary-teal);
+  color: #fff;
+  font:
+    700 18px "Inter",
+    sans-serif;
+}
+.pagina .ayuda {
+  font-size: 16px;
+}
+
+.razon {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 20px 20px;
+  background: var(--off-white-background);
+  border: 1px solid rgba(15, 61, 76, 0.2);
+  border-radius: 8px;
+}
+.razon h3 {
+  margin: 0;
+  font:
+    600 18px "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.direccion {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ===== Campos ===== */
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.campo-etiqueta {
+  font:
+    500 16px "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.campo-etiqueta small {
+  font-weight: 400;
+  font-size: 16px;
+  color: var(--text-body);
+}
+.campo-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 16px;
+  background: var(--off-white-background);
+  border: 1.5px solid var(--primary-teal);
+  border-radius: 8px;
+  font:
+    400 18px "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.campo-input::placeholder {
+  color: #5a6b71;
+}
+.campo-input:focus-visible {
+  outline: 2px solid var(--secondary-mint);
+  outline-offset: 1px;
+}
+
+/* ===== Errores ===== */
+.campo-input.con-error {
+  border-width: 2.5px;
+  border-color: var(--rojo-error);
+  padding: 13.5px 15.5px; /* compensa el borde más grueso: la altura no cambia */
+}
+.campo-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font:
+    500 16px/1.35 "Inter",
+    sans-serif;
+  color: var(--rojo-error);
+}
+.campo-error .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 20px;
+  font-variation-settings: "FILL" 1;
+}
+
+/* Aviso rojo superior */
+.aviso-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  background: rgba(186, 54, 54, 0.1);
+  border: 2px solid var(--rojo-error);
+  border-radius: 10px;
+}
+.aviso-error > .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 28px;
+  color: var(--rojo-error);
+  font-variation-settings: "FILL" 1;
+}
+.aviso-error strong {
+  display: block;
+  font:
+    600 20px/1.35 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.aviso-error p {
+  margin: 2px 0 0;
+  font-size: 16px;
+  line-height: 1.35;
+  color: var(--primary-teal);
+}
+
+/* Nota informativa (final de la tarjeta 1) */
+.pagina .nota {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 16px;
+  line-height: 1.35;
+}
+.nota .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: var(--primary-teal);
+  font-variation-settings: "FILL" 1;
+}
+
+/* ===== Botones extra y barra inferior ===== */
+.btn-ancho {
+  width: 100%;
+  min-height: 48px;
+}
+.barra-acciones {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  min-height: 96px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 64px 16px 97px;
+  background: var(--off-white-background);
+  border-top: 2px solid var(--primary-teal);
+  box-shadow: 0 -4px 12px rgba(15, 61, 76, 0.08);
+}
+.barra-acciones p {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-body);
+}
+.barra-acciones .btn {
+  min-height: 56px;
+  font-size: 18px;
+}
+
+/* ===== Pantallas pequeñas ===== */
+@media (max-width: 1100px) {
+  :root {
+    --ancho-menu: 80px;
+    --zoom: 1;
+  }
+  .secciones {
+    flex-direction: column;
+  }
+  .tarjeta {
+    width: 100%;
+  }
+  .pagina,
+  .barra-acciones {
+    padding-inline: 16px;
+  }
+  .encabezado {
+    padding-inline: 16px;
+  }
+}

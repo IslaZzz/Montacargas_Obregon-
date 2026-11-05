@@ -1,4 +1,4 @@
-package mx.montacargasobregon.backend.clientes;
+package mx.montacargasobregon.backend.clientes.modelo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,7 @@ public class Cliente {
     @Column(name = "apellido_materno", length = 50)   // Opcional
     private String apellidoMaterno;
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     private String empresa;
 
     @Column(nullable = false, length = 10)

@@ -1,6 +1,6 @@
 package mx.montacargasobregon.backend.clientes.dto;
 
-import mx.montacargasobregon.backend.clientes.RazonSocial;
+import mx.montacargasobregon.backend.clientes.modelo.RazonSocial;
 import mx.montacargasobregon.backend.comun.dto.DireccionResponse;
 
 /**
