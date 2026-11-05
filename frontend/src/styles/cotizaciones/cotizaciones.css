@@ -399,6 +399,10 @@
   .solo-laptop {
     display: none;
   }
+  .btn-grande {
+    padding: 0 16px;
+    font-size: 16px;
+  }
   .cotizaciones-titulo,
   .detalle-titulo {
     flex-direction: column;
