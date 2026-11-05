@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Campo from "../../components/CampoForm";
 import { registrarCliente } from "./clientesApi";
 import { ErrorApi } from "../../services/apiClient";
+import { useTitulo } from "../../hooks/useTitulo";
 
 // Razón social en blanco
 const razonVacia = () => ({
@@ -28,6 +29,7 @@ const soloRfc = (valor: string) =>
     .slice(0, 13);
 
 export default function RegistrarCliente() {
+  useTitulo("Registrar cliente");
   const navigate = useNavigate();
 
   // Datos de contacto
@@ -65,7 +67,8 @@ export default function RegistrarCliente() {
 
     // Razones sociales
     razones.forEach((r, i) => {
-      if (vacio(r.nombre)) e[`${i}.nombre`] = "Escribe el nombre o razón social.";
+      if (vacio(r.nombre))
+        e[`${i}.nombre`] = "Escribe el nombre o razón social.";
       if (vacio(r.rfc)) e[`${i}.rfc`] = "Escribe el RFC.";
       if (vacio(r.calle)) e[`${i}.calle`] = "Escribe la calle.";
       if (vacio(r.numero)) e[`${i}.numero`] = "Escribe el número.";
