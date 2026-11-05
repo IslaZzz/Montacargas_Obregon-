@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import Chip from "../../components/chips";
-import DialogoConfirmacion from "../../components/DialogoConfirmacion";
+import Modal from "../../components/Modal";
 import { useTitulo } from "../../hooks/useTitulo";
 import {
   formatoFecha,
@@ -55,6 +55,11 @@ export default function DetalleCotizacion() {
       .then(setCotizacion)
       .catch(() => setError("No fue posible cargar la cotización."));
   }, [id]);
+
+  // Mientras se guarda, la ventana no se cierra
+  const cerrarConfirmacion = () => {
+    if (!guardando) setConfirmando(null);
+  };
 
   // Guarda la respuesta del cliente después de confirmarla
   async function marcar(respuesta: Respuesta) {
@@ -246,26 +251,64 @@ export default function DetalleCotizacion() {
         </div>
       </div>
 
-      <DialogoConfirmacion
-        abierto={confirmando === "ACEPTADA"}
-        titulo={`¿El cliente aceptó la cotización ${c.folio}?`}
-        textoConfirmar="Sí, el cliente aceptó"
-        iconoConfirmar="check"
-        ocupado={guardando}
-        onConfirmar={() => marcar("ACEPTADA")}
-        onCancelar={() => setConfirmando(null)}
-      />
-      <DialogoConfirmacion
-        abierto={confirmando === "NO_ACEPTADA"}
-        titulo={`¿Marcar la cotización ${c.folio} como no aceptada?`}
-        puntos={["Ya no se podrá enviar ni marcar como aceptada."]}
-        textoConfirmar="Sí, el cliente no aceptó"
-        iconoConfirmar="close"
-        peligro
-        ocupado={guardando}
-        onConfirmar={() => marcar("NO_ACEPTADA")}
-        onCancelar={() => setConfirmando(null)}
-      />
+      {/* Confirmación de la respuesta del cliente */}
+      <Modal
+        abierto={confirmando !== null}
+        titulo={
+          confirmando === "NO_ACEPTADA"
+            ? `¿Marcar la cotización ${c.folio} como no aceptada?`
+            : `¿El cliente aceptó la cotización ${c.folio}?`
+        }
+        onCerrar={cerrarConfirmacion}
+        acciones={
+          // En celular se apilan, con el de confirmar arriba
+          <div className="confirmacion-botones">
+            <button
+              type="button"
+              className="btn btn-tertiary btn-grande"
+              disabled={guardando}
+              onClick={cerrarConfirmacion}
+            >
+              No, regresar
+            </button>
+            {confirmando === "NO_ACEPTADA" ? (
+              <button
+                type="button"
+                className="btn btn-peligro btn-grande"
+                disabled={guardando}
+                onClick={() => marcar("NO_ACEPTADA")}
+              >
+                <span className="material-symbols-rounded" aria-hidden="true">
+                  close
+                </span>
+                Sí, el cliente no aceptó
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-primary btn-grande"
+                disabled={guardando}
+                onClick={() => marcar("ACEPTADA")}
+              >
+                <span className="material-symbols-rounded" aria-hidden="true">
+                  check
+                </span>
+                Sí, el cliente aceptó
+              </button>
+            )}
+          </div>
+        }
+      >
+        <p className="confirmacion-subtitulo">Al confirmar:</p>
+        <p className="confirmacion-punto">
+          <span className="material-symbols-rounded" aria-hidden="true">
+            check
+          </span>
+          {confirmando === "NO_ACEPTADA"
+            ? "Ya no se podrá enviar ni marcar como aceptada."
+            : "Ya no se podrá marcar como no aceptada."}
+        </p>
+      </Modal>
     </div>
   );
 }

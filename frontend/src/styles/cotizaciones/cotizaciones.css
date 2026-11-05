@@ -347,6 +347,30 @@
   width: 100%;
 }
 
+/* Ventana de confirmación (usa el Modal del equipo) */
+.confirmacion-subtitulo {
+  font-weight: 600;
+  color: var(--primary-teal);
+}
+.confirmacion-punto {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--primary-teal);
+}
+.confirmacion-punto .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: var(--ok-green-outline);
+}
+
+.confirmacion-botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
 /* Totales */
 .totales-fila {
   display: flex;
@@ -398,6 +422,12 @@
 @media (max-width: 700px) {
   .solo-laptop {
     display: none;
+  }
+  .confirmacion-botones {
+    flex-direction: column-reverse;
+  }
+  .confirmacion-botones .btn {
+    width: 100%;
   }
   .btn-grande {
     padding: 0 16px;
