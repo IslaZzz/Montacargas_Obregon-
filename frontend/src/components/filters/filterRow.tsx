@@ -5,6 +5,7 @@ interface FilterRowProps {
   options: FilterOption[];
   selectedValue: string;
   allLabel: string;
+  allCount?: number; // Opcional: total de registros, se muestra junto a allLabel
   onChange: (value: string) => void;
 }
 
@@ -12,6 +13,7 @@ export default function FilterRow({
   options,
   selectedValue,
   allLabel,
+  allCount,
   onChange,
 }: FilterRowProps) {
 
@@ -26,6 +28,9 @@ export default function FilterRow({
         onClick={() => onChange('all')}
       >
         {allLabel}
+        {allCount !== undefined && (
+          <span className="filter-chip-count">{allCount}</span>
+        )}
       </button>
 
       {options.map(option => (
@@ -38,6 +43,9 @@ export default function FilterRow({
           onClick={() => onChange(option.value)}
         >
           {option.label}
+          {option.count !== undefined && (
+            <span className="filter-chip-count">{option.count}</span>
+          )}
         </button>
       ))}
 

@@ -1,5 +1,6 @@
 package mx.montacargasobregon.backend.clientes.modelo;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class Cliente {
 
     @Column(name = "apellido_paterno", nullable = false, length = 50)
     private String apellidoPaterno;
-
+ 
     @Column(name = "apellido_materno", length = 50)   // Opcional
     private String apellidoMaterno;
 
@@ -47,19 +48,24 @@ public class Cliente {
     @Column(nullable = false, length = 150)
     private String correo;
 
+    // La asigna el sistema al crear el cliente y no se puede modificar
+    @Column(name = "fecha_registro", updatable = false)
+    private LocalDate fechaRegistro = LocalDate.now();
+
     // Un cliente tiene una o varias razones sociales.
     @OneToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinColumn(name = "cliente_id")
     private List<RazonSocial> razonesSociales = new ArrayList<>();
 
     public Cliente(String nombre, String apellidoPaterno, String apellidoMaterno,
-                   String empresa, String telefono, String correo) {
+                   String empresa, String telefono, String correo, LocalDate fechaRegistro) {
         this.nombre = nombre;
         this.apellidoPaterno = apellidoPaterno;
         this.apellidoMaterno = apellidoMaterno;
         this.empresa = empresa;
         this.telefono = telefono;
         this.correo = correo;
+        this.fechaRegistro = fechaRegistro;
     }
 
     public void agregarRazonSocial(RazonSocial razonSocial) {

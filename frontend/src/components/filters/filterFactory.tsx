@@ -12,8 +12,6 @@ import DateRangePicker from './dateRangePicker';
 // Types
 import type {
   FilterDefinition,
-  FilterOption,
-  FilterType,
   DateRangeValue
 } from './filterTypes';
 

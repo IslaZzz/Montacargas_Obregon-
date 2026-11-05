@@ -14,9 +14,14 @@ export async function getApi<T>(
   return respuesta.json() as Promise<T>;
 }
 
-export async function postApi<T>(ruta: string, cuerpo: unknown): Promise<T> {
+// Envía datos al backend y convierte sus errores en ErrorApi
+async function enviarApi<T>(
+  metodo: "POST" | "PATCH",
+  ruta: string,
+  cuerpo: unknown,
+): Promise<T> {
   const respuesta = await fetch(`/api${ruta}`, {
-    method: "POST",
+    method: metodo,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(cuerpo),
   });
@@ -33,7 +38,21 @@ export async function postApi<T>(ruta: string, cuerpo: unknown): Promise<T> {
       datos.errores,
     );
   }
+
+  // 204: el backend respondió bien pero sin contenido
+  if (respuesta.status === 204) return undefined as T;
+
   return respuesta.json() as Promise<T>;
+}
+
+// Crea un registro
+export function postApi<T>(ruta: string, cuerpo: unknown): Promise<T> {
+  return enviarApi<T>("POST", ruta, cuerpo);
+}
+
+// Modifica parte de un registro, por ejemplo asignar o cambiar un estado
+export function patchApi<T>(ruta: string, cuerpo: unknown): Promise<T> {
+  return enviarApi<T>("PATCH", ruta, cuerpo);
 }
 
 // Error que trae el mensaje y los errores por campo que envía el backend

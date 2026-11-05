@@ -1,8 +1,6 @@
-import FilterFactory from '../../components/filters/filterfactory';
+import FilterFactory from '../../components/filters/filterFactory';
 import type {
-  FilterDefinition,
-  FilterOption,
-  DateRangeValue,
+  FilterDefinition
 } from '../../components/filters/filterTypes';
 
 interface Renta {
