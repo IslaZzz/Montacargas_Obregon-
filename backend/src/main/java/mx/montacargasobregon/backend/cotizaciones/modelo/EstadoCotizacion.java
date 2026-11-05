@@ -8,5 +8,14 @@ public enum EstadoCotizacion {
     BORRADOR,
     ENVIADA,
     ACEPTADA,
-    NO_ACEPTADA
+    NO_ACEPTADA;
+
+    /** Indica si desde este estado se puede pasar al estado destino. */
+    public boolean puedeCambiarA(EstadoCotizacion destino) {
+        return switch (this) {
+            case BORRADOR -> destino == ENVIADA;
+            case ENVIADA -> destino == ACEPTADA || destino == NO_ACEPTADA;
+            case ACEPTADA, NO_ACEPTADA -> false; // Son finales: ya no cambian
+        };
+    }
 }

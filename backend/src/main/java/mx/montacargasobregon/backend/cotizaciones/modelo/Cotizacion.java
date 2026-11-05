@@ -126,6 +126,16 @@ public class Cotizacion {
         partidas.add(partida);
     }
 
+    /** Cambia el estado y guarda la fecha del cambio. Quien llama revisa antes que el cambio se permita. */
+    public void cambiarEstado(EstadoCotizacion nuevoEstado, LocalDate fecha) {
+        this.estado = nuevoEstado;
+        if (nuevoEstado == EstadoCotizacion.ENVIADA) {
+            this.fechaEnvio = fecha;
+        } else {
+            this.fechaRespuesta = fecha;
+        }
+    }
+
     /** Días de renta, contando el de entrega y el de recolección: del 1 al 5 son 5 días (HU-13). */
     public long getDias() {
         return ChronoUnit.DAYS.between(fechaEntrega.toLocalDate(), fechaRecoleccion.toLocalDate()) + 1;
