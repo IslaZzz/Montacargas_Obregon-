@@ -7,6 +7,7 @@ import VerCotizaciones from "../features/cotizaciones/VerCotizaciones";
 import DetalleCotizacion from "../features/cotizaciones/DetalleCotizacion";
 import FilterTest from "../features/testComponentes/FilterTest";
 import StyleTest from "../features/testComponentes/StyleTest";
+import Mantenimientos from "../features/mantenimientos/Mantenimientos";
 
 export default function AppRoutes() {
   return (
@@ -24,6 +25,9 @@ export default function AppRoutes() {
         {/* Cotizaciones. HU-12 agrega aquí "/cotizaciones/nueva" */}
         <Route path="/cotizaciones" element={<VerCotizaciones />} />
         <Route path="/cotizaciones/:id" element={<DetalleCotizacion />} />
+        
+        {/* Mantenimientos */}
+        <Route path="/mantenimientos" element={<Mantenimientos />} />
 
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />
