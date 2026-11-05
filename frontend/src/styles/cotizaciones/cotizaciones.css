@@ -1,0 +1,438 @@
+/* Pantallas de cotizaciones: lista y detalle */
+
+/* ===== Botones del prototipo: 56 px de alto ===== */
+.btn-grande {
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 24px;
+  border-radius: 8px;
+  font-size: 18px;
+}
+.btn-grande.btn-tertiary {
+  border-width: 2px;
+}
+.btn-grande .material-symbols-rounded {
+  font-size: 22px;
+}
+
+/* Borde rojo: acción que no se puede deshacer */
+.btn-rojo {
+  color: var(--warning-red-outline);
+  border-color: var(--warning-red-outline);
+}
+.btn.btn-rojo:hover {
+  background-color: var(--warning-red-outline);
+  color: var(--btn-text-color);
+}
+
+/* ===== Lista ===== */
+.cotizaciones-titulo {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+}
+.cotizaciones-titulo > div {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Filtro por estado */
+.cotizaciones-filtro {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.cotizaciones-filtro-etiqueta {
+  font:
+    600 18px/1.35 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.cotizaciones-filtro .filters-row {
+  gap: 10px;
+}
+.cotizaciones-filtro .filter-chip {
+  height: 48px;
+  padding: 0 12px 0 18px;
+  border: 1.5px solid var(--primary-teal);
+  border-radius: 24px;
+  font-size: 16px;
+}
+
+/* Tabla */
+.cotizaciones-tabla .table-container {
+  border: 2px solid var(--secondary-mint);
+  border-radius: 10px;
+}
+.cotizaciones-tabla .data-table {
+  font-size: 18px;
+  color: var(--primary-teal);
+}
+.cotizaciones-tabla .data-table thead {
+  background-color: var(--selection-gray);
+}
+.cotizaciones-tabla .data-table th {
+  height: 72px;
+  padding: 12px 8px;
+  font-size: 16px;
+}
+.cotizaciones-tabla .data-table td {
+  height: 72px;
+  padding: 12px 8px;
+  border-bottom: 0;
+  border-top: 1px solid rgba(15, 61, 76, 0.12);
+}
+.cotizaciones-tabla .data-table tbody tr:nth-child(odd) {
+  background-color: var(--off-white-background);
+}
+.cotizaciones-tabla .data-table th:first-child,
+.cotizaciones-tabla .data-table td:first-child {
+  padding-left: 24px;
+}
+.cotizaciones-tabla .data-table th:last-child,
+.cotizaciones-tabla .data-table td:last-child {
+  padding-right: 24px;
+  text-align: right;
+}
+.cotizaciones-tabla .data-table td[colspan] {
+  text-align: center;
+}
+.cotizaciones-tabla .celda-folio {
+  font-weight: 700;
+}
+.cotizaciones-tabla .celda-total {
+  font-weight: 600;
+}
+.celda-cliente {
+  display: block;
+  font-weight: 600;
+}
+.celda-empresa {
+  display: block;
+  margin-top: 4px;
+  font-size: 16px;
+  color: var(--text-foreground);
+}
+.cotizaciones-tabla .btn {
+  min-height: 48px;
+  padding: 0 20px;
+  border-width: 2px;
+  border-radius: 8px;
+}
+
+/* Tarjetas: solo en celular */
+.cotizaciones-tarjetas {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cotizacion-tarjeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px;
+  background: var(--off-white-background);
+  border: 1.5px solid var(--secondary-mint);
+  border-radius: 10px;
+  color: var(--primary-teal);
+}
+.cotizacion-tarjeta-fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  font-size: 18px;
+}
+.cotizacion-tarjeta p {
+  font-size: 16px;
+  color: var(--primary-teal);
+}
+.cotizacion-tarjeta .cotizacion-tarjeta-fecha {
+  color: var(--text-foreground);
+}
+.cotizacion-tarjeta .btn {
+  width: 100%;
+  min-height: 48px;
+  border-width: 2px;
+  border-radius: 8px;
+}
+.cotizaciones-vacio {
+  padding: 24px;
+  text-align: center;
+}
+
+/* ===== Detalle ===== */
+.detalle-volver {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  min-height: 48px;
+  font:
+    600 16px/1.35 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+  text-decoration: none;
+}
+.detalle-volver .material-symbols-rounded {
+  font-size: 24px;
+}
+
+.detalle-titulo {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+}
+.detalle-titulo-texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.detalle-titulo-folio {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.detalle-titulo-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* Aviso verde, mismo formato que .aviso-error */
+.aviso-exito {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  background: rgba(32, 149, 104, 0.1);
+  border: 2px solid var(--ok-green-outline);
+  border-radius: 10px;
+}
+.aviso-exito > .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 28px;
+  color: var(--ok-green-outline);
+  font-variation-settings: "FILL" 1;
+}
+.aviso-exito strong {
+  display: block;
+  font:
+    600 20px/1.35 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.aviso-exito p {
+  margin: 2px 0 0;
+  font-size: 16px;
+  line-height: 1.35;
+  color: var(--primary-teal);
+}
+
+/* Aviso gris: ya no se puede modificar */
+.aviso-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: rgba(15, 61, 76, 0.06);
+  border: 1.5px solid rgba(15, 61, 76, 0.3);
+  border-radius: 10px;
+  color: var(--primary-teal);
+}
+.aviso-info .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 24px;
+  font-variation-settings: "FILL" 1;
+}
+.aviso-info p {
+  flex: 1;
+  color: var(--primary-teal);
+}
+
+/* Dos columnas: datos a la izquierda, respuesta y totales a la derecha */
+.detalle-cuerpo {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+}
+.detalle-principal {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.detalle-lateral {
+  flex-shrink: 0;
+  width: 540px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.detalle-cuerpo .tarjeta {
+  flex: none;
+  gap: 18px;
+}
+
+/* Datos de cliente y entrega */
+.datos {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+.dato {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(15, 61, 76, 0.15);
+}
+.dato:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.dato dt {
+  font:
+    500 16px/1.35 "Inter",
+    sans-serif;
+  color: var(--text-foreground);
+}
+.dato dd {
+  margin: 0;
+  font:
+    400 20px/1.35 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+
+/* Equipos */
+.equipo-cotizado {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  background: var(--off-white-background);
+  border: 1px solid rgba(15, 61, 76, 0.2);
+  border-radius: 8px;
+}
+.equipo-cotizado strong {
+  font:
+    600 18px/1.35 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.equipo-cotizado span {
+  font:
+    400 16px/1.35 "Inter",
+    sans-serif;
+  color: var(--text-foreground);
+}
+
+/* Respuesta del cliente */
+.detalle-respuesta .btn {
+  width: 100%;
+}
+
+/* Totales */
+.totales-fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  font:
+    400 18px/1.35 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.totales-fila span {
+  flex: 1;
+}
+.totales-fila strong {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.totales-total {
+  padding: 12px 0;
+  border-top: 2px solid rgba(15, 61, 76, 0.3);
+  font-weight: 700;
+}
+.totales-total span {
+  font-size: 22px;
+}
+.totales-total strong {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+/* ===== Tableta: una columna; la respuesta del cliente va primero ===== */
+@media (max-width: 1100px) {
+  .detalle-cuerpo {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+  }
+  .detalle-principal,
+  .detalle-lateral {
+    display: contents;
+  }
+  .detalle-respuesta {
+    order: -1;
+  }
+}
+
+/* ===== Celular ===== */
+@media (max-width: 700px) {
+  .solo-laptop {
+    display: none;
+  }
+  .cotizaciones-titulo,
+  .detalle-titulo {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .cotizaciones-tabla {
+    display: none;
+  }
+  .cotizaciones-tarjetas {
+    display: flex;
+  }
+  .cotizaciones-filtro .filter-chip {
+    height: 44px;
+  }
+  .detalle-titulo-folio {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .detalle-titulo-botones .btn {
+    flex: 1;
+  }
+  .detalle-cuerpo .tarjeta {
+    padding: 20px;
+  }
+  .detalle-cuerpo .tarjeta h2 {
+    font-size: 20px;
+  }
+  .dato dd {
+    font-size: 18px;
+  }
+  .totales-total span {
+    font-size: 20px;
+  }
+  .totales-total strong {
+    font-size: 22px;
+  }
+}
