@@ -23,7 +23,12 @@ const columnas: TableColumn<CotizacionResumen>[] = [
       </>
     ),
   },
-  { header: "Creada", accessor: (c) => formatoFecha(c.fechaCreacion) },
+  {
+    // Periodo de renta: de la entrega a la recolección
+    header: "Fechas",
+    accessor: (c) =>
+      `${formatoFecha(c.fechaEntrega)} – ${formatoFecha(c.fechaRecoleccion)}`,
+  },
   {
     header: "Total",
     accessor: (c) => formatoMoneda(c.total),
