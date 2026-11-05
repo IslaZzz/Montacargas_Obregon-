@@ -10,6 +10,7 @@ import {
   formatoMoneda,
   formatoTelefono,
 } from "../../utils/formato";
+import BotonVerPdf from "./BotonVerPdf";
 import { cambiarEstadoCotizacion, obtenerCotizacion } from "./cotizacionesApi";
 import type { Cotizacion } from "./cotizacionesTypes";
 import { chipDeEstado, nombreCompleto, textoDias } from "./cotizacionesUtils";
@@ -158,13 +159,19 @@ export default function DetalleCotizacion() {
           </p>
         </div>
 
-        {respondida && (
-          <div className="detalle-titulo-botones">
+        <div className="detalle-titulo-botones">
+          {respondida && (
             <Link to="/cotizaciones" className="btn btn-tertiary btn-grande">
               Ir a cotizaciones
             </Link>
-          </div>
-        )}
+          )}
+          {/* En Enviada, en celular el botón va debajo de "¿Qué respondió el cliente?" */}
+          <BotonVerPdf
+            cotizacion={c}
+            primario={c.estado === "BORRADOR"}
+            className={c.estado === "ENVIADA" ? "solo-laptop" : ""}
+          />
+        </div>
       </div>
 
       {c.estado === "ENVIADA" && (
@@ -244,6 +251,11 @@ export default function DetalleCotizacion() {
                 Marcar como no aceptada
               </button>
             </section>
+          )}
+          {c.estado === "ENVIADA" && (
+            <div className="detalle-pdf-celular solo-celular">
+              <BotonVerPdf cotizacion={c} />
+            </div>
           )}
 
           <section className="tarjeta detalle-totales">

@@ -10,6 +10,8 @@ export interface CotizacionResumen {
   cliente: string;
   empresa: string | null;
   fechaCreacion: string;
+  fechaEntrega: string;
+  fechaRecoleccion: string;
   total: number;
   estado: EstadoCotizacion;
 }

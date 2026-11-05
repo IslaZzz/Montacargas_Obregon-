@@ -6,8 +6,10 @@ import RegistrarCliente from "../features/clientes/RegistrarCliente";
 import VerCotizaciones from "../features/cotizaciones/VerCotizaciones";
 import DetalleCotizacion from "../features/cotizaciones/DetalleCotizacion";
 import NuevaCotizacion from "../features/cotizaciones/nueva/NuevaCotizacion";
+import PdfCotizacion from "../features/cotizaciones/PdfCotizacion";
 import FilterTest from "../features/testComponentes/FilterTest";
 import StyleTest from "../features/testComponentes/StyleTest";
+import Mantenimientos from "../features/mantenimientos/Mantenimientos";
 
 export default function AppRoutes() {
   return (
@@ -26,6 +28,10 @@ export default function AppRoutes() {
         <Route path="/cotizaciones" element={<VerCotizaciones />} />
         <Route path="/cotizaciones/nueva" element={<NuevaCotizacion />} />
         <Route path="/cotizaciones/:id" element={<DetalleCotizacion />} />
+        <Route path="/cotizaciones/:id/pdf" element={<PdfCotizacion />} />
+        
+        {/* Mantenimientos */}
+        <Route path="/mantenimientos" element={<Mantenimientos />} />
 
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />
