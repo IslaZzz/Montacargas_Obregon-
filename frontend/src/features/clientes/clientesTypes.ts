@@ -1,4 +1,4 @@
-import type { Direccion } from '../../types/comun'
+import type { Direccion, DireccionRequest} from '../../types/comun'
 
 // Equivale a RazonSocialResponse
 export interface RazonSocial {
@@ -18,4 +18,22 @@ export interface Cliente {
   telefono: string
   correo: string
   razonesSociales: RazonSocial[]
+}
+
+// Equivale a RazonSocialRequest
+export interface RazonSocialRequest {
+  nombre: string
+  rfc: string
+  direccionFiscal: DireccionRequest
+}
+
+// Equivale a ClienteRequest
+export interface ClienteRequest {
+  nombre: string
+  apellidoPaterno: string
+  apellidoMaterno: string | null
+  empresa: string | null
+  telefono: string
+  correo: string
+  razonesSociales: RazonSocialRequest[]
 }
