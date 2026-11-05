@@ -1,5 +1,6 @@
 package mx.montacargasobregon.backend.clientes.dto;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import mx.montacargasobregon.backend.clientes.modelo.Cliente;
@@ -15,6 +16,7 @@ public record ClienteResponse(
         String empresa,
         String telefono,
         String correo,
+        LocalDate fechaRegistro,
         List<RazonSocialResponse> razonesSociales) {
 
     /**
@@ -29,6 +31,7 @@ public record ClienteResponse(
                 c.getEmpresa(), 
                 c.getTelefono(), 
                 c.getCorreo(),
+                c.getFechaRegistro(),
                 c.getRazonesSociales().stream().map(RazonSocialResponse::toRazonSocialResponse).toList());
     }
 }

@@ -1,5 +1,6 @@
 package mx.montacargasobregon.backend.clientes.servicio;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -34,7 +35,7 @@ public class ClienteService {
         // Crea la entidad con los datos de contacto recibidos
         Cliente cliente = new Cliente(
                 datos.nombre(), datos.apellidoPaterno(), datos.apellidoMaterno(),
-                datos.empresa(), datos.telefono(), datos.correo());
+                datos.empresa(), datos.telefono(), datos.correo(), LocalDate.now());
 
         // Convierte cada razón social recibida en una entidad y la liga al cliente
         datos.razonesSociales().forEach(r -> {
