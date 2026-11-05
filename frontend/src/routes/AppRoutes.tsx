@@ -3,6 +3,8 @@ import AppLayout from "../components/AppLayout";
 import Dashboard from "../features/dashboard/Dashboard";
 import BuscarClientes from "../features/clientes/BuscarClientes";
 import RegistrarCliente from "../features/clientes/RegistrarCliente";
+import FilterTest from "../features/testComponentes/FilterTest";
+import StyleTest from "../features/testComponentes/StyleTest";
 
 export default function AppRoutes() {
   return (
@@ -16,6 +18,10 @@ export default function AppRoutes() {
         {/*Clientes */}
         <Route path="/clientes" element={<BuscarClientes />} />
         <Route path="/clientes/registrar" element={<RegistrarCliente />} />
+
+        {/* para probar los elementos reutilizables*/}
+        <Route path="/componentes" element={<StyleTest />} />
+        <Route path="/componentes/filtros" element={<FilterTest />} />
 
         {/* Aquí se agregarán las demás pantallas */}
       </Route>
