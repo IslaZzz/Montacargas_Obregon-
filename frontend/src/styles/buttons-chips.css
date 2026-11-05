@@ -49,6 +49,21 @@
    color: var(--btn-text-color);
 }
 
+/* Rojo: confirma algo que no se puede deshacer */
+.btn-peligro {
+  background-color: var(--warning-red-outline);
+}
+
+.btn.btn-peligro:hover {
+  background-color: color-mix(in srgb, var(--warning-red-outline) 80%, black);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 /*chips*/
 .chip {
     display: inline-flex;
@@ -132,4 +147,73 @@
 .chip-ok {
     background-color: #B4EAD5;
     color: #209568;
+}
+
+/*chips estado mantenimiento*/
+.chip-mantenimiento-sin-asignar {
+    background-color: var(--warning-red);
+    color: var(--warning-red-outline);
+}
+
+.chip-mantenimiento-asignado {
+    background-color: #B7CFEE;
+    color: var(--primary-teal);
+}
+
+.chip-mantenimiento-en-proceso {
+    background-color: var(--estado-chip-en-curso);
+    color: var(--estado-chip-en-curso-outline);
+}
+
+.chip-mantenimiento-finalizado {
+    background-color: var(--ok-green);
+    color: var(--ok-green-outline);
+}
+
+.chip-mantenimiento-cancelado {
+    background-color: var(--light-gray);
+    color: var(--primary-teal);
+}
+
+/*chips estado cotización: texto azul y punto de color*/
+.chip-cotizacion {
+    height: 32px;
+    padding: 0 14px 0 12px;
+    gap: 8px;
+    border-radius: 16px;
+    font-size: 16px;
+    color: var(--primary-teal);
+}
+
+.chip-cotizacion::before {
+    width: 10px;
+    height: 10px;
+}
+
+.chip-cotizacion-borrador {
+    background-color: rgba(15, 61, 76, 0.1);
+}
+.chip-cotizacion-borrador::before {
+    background-color: var(--primary-teal);
+}
+
+.chip-cotizacion-enviada {
+    background-color: rgba(38, 124, 147, 0.15);
+}
+.chip-cotizacion-enviada::before {
+    background-color: var(--secondary-mint);
+}
+
+.chip-cotizacion-aceptada {
+    background-color: rgba(32, 149, 104, 0.15);
+}
+.chip-cotizacion-aceptada::before {
+    background-color: var(--ok-green-outline);
+}
+
+.chip-cotizacion-no-aceptada {
+    background-color: rgba(186, 54, 54, 0.12);
+}
+.chip-cotizacion-no-aceptada::before {
+    background-color: var(--warning-red-outline);
 }

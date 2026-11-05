@@ -3,6 +3,8 @@ import AppLayout from "../components/AppLayout";
 import Dashboard from "../features/dashboard/Dashboard";
 import BuscarClientes from "../features/clientes/BuscarClientes";
 import RegistrarCliente from "../features/clientes/RegistrarCliente";
+import VerCotizaciones from "../features/cotizaciones/VerCotizaciones";
+import DetalleCotizacion from "../features/cotizaciones/DetalleCotizacion";
 import FilterTest from "../features/testComponentes/FilterTest";
 import StyleTest from "../features/testComponentes/StyleTest";
 import DetalleCliente from "../features/clientes/DetalleCliente";
@@ -20,6 +22,10 @@ export default function AppRoutes() {
         <Route path="/clientes" element={<BuscarClientes />} />
         <Route path="/clientes/registrar" element={<RegistrarCliente />} />
         <Route path="/clientes/:id" element={<DetalleCliente />} />
+
+        {/* Cotizaciones. HU-12 agrega aquí "/cotizaciones/nueva" */}
+        <Route path="/cotizaciones" element={<VerCotizaciones />} />
+        <Route path="/cotizaciones/:id" element={<DetalleCotizacion />} />
 
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />
