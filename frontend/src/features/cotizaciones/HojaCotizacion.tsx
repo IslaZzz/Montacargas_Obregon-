@@ -5,7 +5,7 @@ import {
   formatoTelefono,
 } from "../../utils/formato";
 import type { Cotizacion } from "./cotizacionesTypes";
-import { nombreCompleto } from "./cotizacionesUtils";
+import { nombreCompleto, textoDias } from "./cotizacionesUtils";
 
 // "Lunes 12 de..." → "lunes 12 de...", como va dentro de una oración
 const enMinuscula = (texto: string) =>
@@ -71,10 +71,14 @@ export default function HojaCotizacion({ cotizacion: c }: { cotizacion: Cotizaci
         <tbody>
           {c.partidas.map((p) => (
             <tr key={p.id}>
-              <td>{p.unidad}</td>
-              <td>{p.modelo}</td>
-              <td className="hoja-numerico">{c.dias}</td>
-              <td className="hoja-numerico">{formatoMoneda(p.tarifaDia)}</td>
+              <td className="hoja-laptop">{p.unidad}</td>
+              <td className="hoja-laptop">{p.modelo}</td>
+              <td className="hoja-laptop hoja-numerico">{c.dias}</td>
+              <td className="hoja-laptop hoja-numerico">{formatoMoneda(p.tarifaDia)}</td>
+              {/* En celular, una línea por equipo como en el prototipo */}
+              <td className="hoja-celular">
+                {p.unidad} · {p.modelo} · {textoDias(c.dias)}
+              </td>
               <td className="hoja-numerico">{formatoMoneda(p.importe)}</td>
             </tr>
           ))}

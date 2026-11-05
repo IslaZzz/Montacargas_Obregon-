@@ -133,6 +133,9 @@
 .hoja-tabla .hoja-numerico {
   text-align: right;
 }
+.hoja-tabla .hoja-celular {
+  display: none;
+}
 
 .hoja-totales {
   display: flex;
@@ -207,9 +210,21 @@
     flex-direction: column;
     gap: 12px;
   }
-  .hoja-tabla th,
+  /* Tabla compacta: "MC-07 · Montacargas eléctrico 3 t · 5 días" y el importe */
+  .hoja-tabla thead,
+  .hoja-tabla .hoja-laptop {
+    display: none;
+  }
+  .hoja-tabla .hoja-celular {
+    display: table-cell;
+  }
   .hoja-tabla td {
-    padding: 4px;
+    padding: 6px 0;
+  }
+  .hoja-tabla td.hoja-numerico {
+    padding-left: 8px;
+    font-weight: 600;
+    white-space: nowrap;
   }
   .hoja-totales div {
     gap: 16px;
