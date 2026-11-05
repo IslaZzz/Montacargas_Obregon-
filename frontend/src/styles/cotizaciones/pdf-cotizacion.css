@@ -182,6 +182,7 @@
   .hoja-pdf {
     gap: 12px;
     padding: 16px;
+    font-size: 11px;
   }
   .hoja-pdf p,
   .hoja-tabla {

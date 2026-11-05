@@ -110,7 +110,10 @@ export default function PdfCotizacion() {
 
       <div className="cotizaciones-titulo">
         <div>
-          <h1>PDF de la cotización {cotizacion.folio}</h1>
+          <h1>
+            PDF de <span className="solo-laptop">la cotización </span>
+            {cotizacion.folio}
+          </h1>
           <p>
             Revisa el documento antes de mandarlo al cliente. Se puede abrir o
             descargar en laptop y en celular.
