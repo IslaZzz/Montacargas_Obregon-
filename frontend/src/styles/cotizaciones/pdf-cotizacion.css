@@ -1,0 +1,243 @@
+/* Pantalla del PDF de la cotización: vista previa y acciones */
+.pdf-cuerpo {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.pdf-visor {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  padding: 32px 40px 40px;
+  background: #dcddd3;
+  border-radius: 10px;
+}
+
+/* Tarjeta de acciones */
+.pdf-acciones {
+  flex: none;
+  width: 460px;
+  gap: 18px;
+}
+.pdf-acciones .btn {
+  width: 100%;
+}
+.pdf-divisor {
+  width: 100%;
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: rgba(15, 61, 76, 0.2);
+}
+.pdf-acciones .pdf-nota {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 16px;
+  line-height: 1.35;
+}
+.pdf-nota .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: var(--primary-teal);
+  font-variation-settings: "FILL" 1;
+}
+
+/* ===== Hoja: imita el PDF que genera el backend ===== */
+.hoja-pdf {
+  width: 816px;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 48px 56px 56px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  font:
+    400 15px/1.35 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.hoja-pdf p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--primary-teal);
+}
+.hoja-pdf .hoja-pequena {
+  font-size: 14px;
+  color: var(--text-foreground);
+}
+.hoja-pdf h3 {
+  margin: 0 0 2px;
+  font:
+    700 13px/1.35 "Inter",
+    sans-serif;
+  color: var(--secondary-mint);
+}
+
+.hoja-encabezado {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 22px;
+  border-bottom: 2px solid var(--primary-teal);
+}
+.hoja-encabezado > div:first-child {
+  flex: 1;
+}
+.hoja-pdf .hoja-marca {
+  font:
+    800 22px/1.35 "Manrope",
+    sans-serif;
+}
+.hoja-folio {
+  text-align: right;
+}
+.hoja-pdf .hoja-titulo {
+  font-size: 20px;
+  font-weight: 700;
+}
+.hoja-pdf .hoja-numero {
+  font-weight: 600;
+}
+
+.hoja-columnas {
+  display: flex;
+  gap: 24px;
+}
+.hoja-columnas > section {
+  flex: 1;
+  min-width: 0;
+}
+
+.hoja-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.hoja-tabla thead {
+  background: var(--selection-gray);
+}
+.hoja-tabla th,
+.hoja-tabla td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(15, 61, 76, 0.2);
+  text-align: left;
+}
+.hoja-tabla th {
+  font-weight: 700;
+}
+.hoja-tabla .hoja-numerico {
+  text-align: right;
+}
+.hoja-tabla .hoja-celular {
+  display: none;
+}
+
+.hoja-totales {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  margin: 0;
+}
+.hoja-totales div {
+  display: flex;
+  gap: 24px;
+  text-align: right;
+}
+.hoja-totales dt {
+  width: 200px;
+}
+.hoja-totales dd {
+  width: 120px;
+  margin: 0;
+  font-weight: 600;
+}
+.hoja-totales .hoja-total {
+  font-size: 18px;
+  font-weight: 700;
+}
+.hoja-totales .hoja-total dd {
+  font-weight: 700;
+}
+
+/* ===== Tableta: la vista previa arriba y las acciones abajo ===== */
+@media (max-width: 1100px) {
+  .pdf-cuerpo {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+  }
+  .pdf-acciones {
+    width: auto;
+  }
+}
+
+/* ===== Celular: hoja compacta ===== */
+@media (max-width: 700px) {
+  .pdf-visor {
+    padding: 12px;
+  }
+  .hoja-pdf {
+    gap: 12px;
+    padding: 16px;
+    font-size: 11px;
+  }
+  .hoja-pdf p,
+  .hoja-tabla {
+    font-size: 11px;
+  }
+  .hoja-pdf .hoja-pequena {
+    font-size: 10px;
+  }
+  .hoja-pdf h3 {
+    font-size: 9px;
+  }
+  .hoja-pdf .hoja-marca {
+    font-size: 14px;
+  }
+  .hoja-pdf .hoja-titulo {
+    font-size: 13px;
+  }
+  .hoja-encabezado {
+    padding-bottom: 12px;
+  }
+  .hoja-columnas {
+    flex-direction: column;
+    gap: 12px;
+  }
+  /* Tabla compacta: "MC-07 · Montacargas eléctrico 3 t · 5 días" y el importe */
+  .hoja-tabla thead,
+  .hoja-tabla .hoja-laptop {
+    display: none;
+  }
+  .hoja-tabla .hoja-celular {
+    display: table-cell;
+  }
+  .hoja-tabla td {
+    padding: 6px 0;
+  }
+  .hoja-tabla td.hoja-numerico {
+    padding-left: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .hoja-totales div {
+    gap: 16px;
+  }
+  .hoja-totales dt,
+  .hoja-totales dd {
+    width: auto;
+  }
+  .hoja-totales .hoja-total {
+    font-size: 13px;
+  }
+  .pdf-cuerpo .pdf-nota-celular {
+    margin-top: -8px;
+    font-size: 16px;
+  }
+}
