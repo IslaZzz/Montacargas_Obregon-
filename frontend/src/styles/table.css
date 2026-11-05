@@ -62,3 +62,8 @@
     text-align: left;
     white-space: nowrap;
 }
+
+/* Fila que abre algo al hacer clic (DataTable con onRowClick) */
+.data-table tbody tr.fila-clicable {
+    cursor: pointer;
+}
