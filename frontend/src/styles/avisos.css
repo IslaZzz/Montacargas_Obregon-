@@ -1,0 +1,67 @@
+/* Franja de aviso: base común */
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  border: 2px solid;
+  border-radius: 10px;
+}
+
+.aviso-icono {
+  flex-shrink: 0;
+  font-size: 28px;
+  font-variation-settings: "FILL" 1;
+}
+
+.aviso-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.aviso-texto strong {
+  display: block;
+  font:
+    600 18px/1.35 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+
+.aviso-detalle {
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--primary-teal);
+}
+
+.aviso-cerrar {
+  display: flex;
+  flex-shrink: 0;
+  padding: 2px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--primary-teal);
+  cursor: pointer;
+}
+.aviso-cerrar:hover {
+  background: rgba(15, 61, 76, 0.08);
+}
+
+/* Éxito, verde */
+.aviso-tipo-exito {
+  background: rgba(32, 149, 104, 0.1);
+  border-color: var(--ok-green-outline);
+}
+.aviso-tipo-exito .aviso-icono {
+  color: var(--ok-green-outline);
+}
+
+/* Error, rojo */
+.aviso-tipo-error {
+  background: rgba(186, 54, 54, 0.1);
+  border-color: var(--warning-red-outline);
+}
+.aviso-tipo-error .aviso-icono {
+  color: var(--warning-red-outline);
+}
