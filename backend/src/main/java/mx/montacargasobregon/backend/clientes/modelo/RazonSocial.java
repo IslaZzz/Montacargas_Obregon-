@@ -1,4 +1,4 @@
-package mx.montacargasobregon.backend.clientes;
+package mx.montacargasobregon.backend.clientes.modelo;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import mx.montacargasobregon.backend.clientes.modelo.DireccionFiscal;
 
 /**
  * Razón social de un cliente, los datos fiscales para facturar.

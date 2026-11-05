@@ -1,4 +1,4 @@
-package mx.montacargasobregon.backend.clientes;
+package mx.montacargasobregon.backend.clientes.modelo;
 
 import java.util.ArrayList;
 import java.util.List;

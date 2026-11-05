@@ -1,4 +1,4 @@
-package mx.montacargasobregon.backend.clientes;
+package mx.montacargasobregon.backend.clientes.modelo;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
