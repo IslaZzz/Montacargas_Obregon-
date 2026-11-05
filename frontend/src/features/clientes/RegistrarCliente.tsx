@@ -5,6 +5,7 @@ import Campo from "../../components/CampoForm";
 import { registrarCliente } from "./clientesApi";
 import { ErrorApi } from "../../services/apiClient";
 import { useTitulo } from "../../hooks/useTitulo";
+import { Button } from "../../components/buttons";
 
 // Razón social en blanco
 const razonVacia = () => ({
@@ -317,27 +318,28 @@ export default function RegistrarCliente() {
 
                 {/* Quitar, solo si hay más de una */}
                 {razones.length > 1 && (
-                  <button
+                  <Button
                     type="button"
-                    className="btn btn-tertiary"
+                    variant="tertiary"
                     onClick={() =>
                       setRazones(razones.filter((_, j) => j !== i))
                     }
                   >
                     Quitar
-                  </button>
+                  </Button>
                 )}
               </div>
             ))}
 
             {/* Agregar otra razón social */}
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary btn-ancho"
+              variant="secondary"
+              className="btn-ancho"
               onClick={() => setRazones([...razones, razonVacia()])}
             >
               + Agregar otra razón social
-            </button>
+            </Button>
           </section>
         </div>
       </div>
@@ -345,16 +347,16 @@ export default function RegistrarCliente() {
       {/* Barra de acciones */}
       <div className="barra-acciones">
         <p>Los datos se guardan solo al presionar "Guardar cliente".</p>
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary"
+          variant="secondary"
           onClick={() => navigate("/clientes")}
         >
           Cancelar
-        </button>
-        <button type="submit" className="btn btn-primary">
+        </Button>
+        <Button type="submit" variant="primary">
           Guardar cliente
-        </button>
+        </Button>
       </div>
     </form>
   );

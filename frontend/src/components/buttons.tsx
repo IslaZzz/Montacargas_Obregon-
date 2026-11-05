@@ -1,4 +1,4 @@
-import React, { ReactNode, ButtonHTMLAttributes, AnchorHTMLAttributes } from 'react';
+import type { ReactNode, ButtonHTMLAttributes, AnchorHTMLAttributes } from 'react';
 import '../styles/buttons-chips.css';
 
 export type ButtonVariant = 'primary' | 'filter' | 'secondary' | 'tertiary';

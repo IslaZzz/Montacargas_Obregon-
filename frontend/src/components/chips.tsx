@@ -6,6 +6,7 @@ export type ChipCategory =
   | 'equipo'
   | 'carta'
   | 'traslado'
+  | 'mantenimiento'
   | 'cotizacion';
 
 export type ChipStatus =
@@ -21,6 +22,11 @@ export type ChipStatus =
   | 'pendiente'
   | 'translado'
   | 'ok'
+  | 'sin-asignar'
+  | 'asignado'
+  | 'en-proceso'
+  | 'finalizado'
+  | 'cancelado'
   | 'aceptada'
   | 'no-aceptada';
 
@@ -56,6 +62,14 @@ const chipClasses: Record<ChipCategory, Partial<Record<ChipStatus, string>>> = {
     ok: 'chip-ok',
   },
 
+  mantenimiento: {
+    'sin-asignar': 'chip-mantenimiento-sin-asignar',
+    asignado: 'chip-mantenimiento-asignado',
+    'en-proceso': 'chip-mantenimiento-en-proceso',
+    finalizado: 'chip-mantenimiento-finalizado',
+    cancelado: 'chip-mantenimiento-cancelado',
+  },
+
   cotizacion: {
     borrador: 'chip-cotizacion chip-cotizacion-borrador',
     enviada: 'chip-cotizacion chip-cotizacion-enviada',
@@ -77,6 +91,11 @@ const defaultLabels: Record<ChipStatus, string> = {
   pendiente: 'Pendiente',
   translado: 'En traslado',
   ok: 'Completado',
+  'sin-asignar': 'Sin asignar',
+  asignado: 'Asignado',
+  'en-proceso': 'En progreso',
+  finalizado: 'Finalizado',
+  cancelado: 'Cancelado',
   aceptada: 'Aceptada',
   'no-aceptada': 'No aceptada',
 };
