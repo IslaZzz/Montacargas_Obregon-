@@ -5,6 +5,7 @@ import BuscarClientes from "../features/clientes/BuscarClientes";
 import RegistrarCliente from "../features/clientes/RegistrarCliente";
 import VerCotizaciones from "../features/cotizaciones/VerCotizaciones";
 import DetalleCotizacion from "../features/cotizaciones/DetalleCotizacion";
+import PdfCotizacion from "../features/cotizaciones/PdfCotizacion";
 import FilterTest from "../features/testComponentes/FilterTest";
 import StyleTest from "../features/testComponentes/StyleTest";
 
@@ -24,6 +25,7 @@ export default function AppRoutes() {
         {/* Cotizaciones. HU-12 agrega aquí "/cotizaciones/nueva" */}
         <Route path="/cotizaciones" element={<VerCotizaciones />} />
         <Route path="/cotizaciones/:id" element={<DetalleCotizacion />} />
+        <Route path="/cotizaciones/:id/pdf" element={<PdfCotizacion />} />
 
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />

@@ -371,6 +371,24 @@
   gap: 12px;
 }
 
+/* Ver PDF sin equipos: deshabilitado, con la explicación debajo */
+.ver-pdf-deshabilitado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-foreground);
+}
+.detalle-pdf-celular .btn {
+  width: 100%;
+}
+
+/* Solo en celular; se muestran en la sección de celular de abajo */
+.solo-celular {
+  display: none;
+}
+
 /* Totales */
 .totales-fila {
   display: flex;
@@ -413,7 +431,8 @@
   .detalle-lateral {
     display: contents;
   }
-  .detalle-respuesta {
+  .detalle-respuesta,
+  .detalle-pdf-celular {
     order: -1;
   }
 }
@@ -429,9 +448,15 @@
   .confirmacion-botones .btn {
     width: 100%;
   }
+  .solo-celular {
+    display: block;
+  }
   .btn-grande {
     padding: 0 16px;
     font-size: 16px;
+  }
+  .ver-pdf-deshabilitado {
+    align-items: stretch;
   }
   .cotizaciones-titulo,
   .detalle-titulo {
