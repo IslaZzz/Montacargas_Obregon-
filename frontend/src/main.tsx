@@ -8,6 +8,7 @@ import './styles/filters.css'
 import "./styles/menu-lateral.css";
 import "./styles/layout.css";
 import './styles/clientes/registrar-cliente.css';
+import "./styles/clientes/detalle-cliente.css";
 import App from './App'
 
 createRoot(document.getElementById('root')!).render(

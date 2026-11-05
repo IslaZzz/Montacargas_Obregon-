@@ -5,6 +5,7 @@ import BuscarClientes from "../features/clientes/BuscarClientes";
 import RegistrarCliente from "../features/clientes/RegistrarCliente";
 import FilterTest from "../features/testComponentes/FilterTest";
 import StyleTest from "../features/testComponentes/StyleTest";
+import DetalleCliente from "../features/clientes/DetalleCliente";
 
 export default function AppRoutes() {
   return (
@@ -18,6 +19,7 @@ export default function AppRoutes() {
         {/*Clientes */}
         <Route path="/clientes" element={<BuscarClientes />} />
         <Route path="/clientes/registrar" element={<RegistrarCliente />} />
+        <Route path="/clientes/:id" element={<DetalleCliente />} />
 
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />

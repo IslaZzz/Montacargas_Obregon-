@@ -104,7 +104,7 @@ export default function RegistrarCliente() {
 
     try {
       // Envía los datos al backend
-      await registrarCliente({
+      const clienteRegistrado = await registrarCliente({
         nombre: contacto.nombre.trim(),
         apellidoPaterno: contacto.apellidoPaterno.trim(),
         apellidoMaterno: contacto.apellidoMaterno?.trim() || null,
@@ -124,10 +124,8 @@ export default function RegistrarCliente() {
         })),
       });
 
-      // Vuelve al listado con aviso de éxito
-      navigate("/clientes", {
-        state: { aviso: "Cliente registrado correctamente." },
-      });
+      // Va al detalle del cliente con el aviso de éxito
+      navigate(`/clientes/${clienteRegistrado.id}`, { state: { recienGuardado: true } });
     } catch (err) {
       // Muestra los mensajes que envía el backend
       if (err instanceof ErrorApi && Object.keys(err.errores).length > 0) {

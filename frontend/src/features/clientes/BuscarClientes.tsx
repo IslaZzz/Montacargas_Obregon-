@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Button } from '../../components/buttons'
 import { buscarClientes } from './clientesApi'
 import type { Cliente } from './clientesTypes'
 
 export default function BuscarClientes() {
+  const navigate = useNavigate()
+
   // El estado es una lista de Cliente, y empieza vacía
   const [clientes, setClientes] = useState<Cliente[]>([])
 
@@ -13,7 +17,23 @@ export default function BuscarClientes() {
 
   return (
     <div>
-      <h1>Clientes</h1>
+      {/* Título y botón de registrar */}
+      <div className="titulo-acciones">
+        <div className="titulo-acciones-texto">
+          <h1>Clientes</h1>
+        </div>
+        <div className="titulo-acciones-botones">
+          <Button
+            type="button"
+            variant="primary"
+            onClick={() => navigate('/clientes/registrar')}
+          >
+            <span className="material-symbols-rounded">add</span>
+            Registrar cliente
+          </Button>
+        </div>
+      </div>
+
       <div className="table-container">
         <table className="data-table">
           <thead>
