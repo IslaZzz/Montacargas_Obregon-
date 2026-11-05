@@ -54,6 +54,28 @@
      color: white;
  }
 
+ /* Conteo opcional dentro del chip */
+ .filter-chip-count {
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     min-width: 24px;
+     height: 24px;
+     margin-left: 8px;
+     padding: 0 8px;
+     box-sizing: border-box;
+     border-radius: 12px;
+     background-color: rgba(15, 61, 76, 0.1);
+     color: var(--primary-teal);
+     font-size: 14px;
+     font-weight: 700;
+ }
+
+ .filter-chip:hover .filter-chip-count,
+ .filter-chip.active .filter-chip-count {
+     background-color: var(--off-white-background);
+ }
+
  .dropdown-row {
      display: flex;
      align-items: center;

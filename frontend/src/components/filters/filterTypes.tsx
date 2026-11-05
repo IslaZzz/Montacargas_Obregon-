@@ -9,6 +9,7 @@ export type FilterType =
 export interface FilterOption {
   label: string;
   value: string;
+  count?: number; // Opcional: cuántos registros tiene la opción
 }
 
 export interface DateRangeValue {

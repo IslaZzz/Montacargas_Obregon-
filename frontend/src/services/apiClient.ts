@@ -21,19 +21,33 @@ export async function postApi<T>(ruta: string, cuerpo: unknown): Promise<T> {
     body: JSON.stringify(cuerpo),
   });
 
-  if (!respuesta.ok) {
-    let datos: { mensaje?: string; errores?: Record<string, string> } = {};
-    try {
-      datos = await respuesta.json();
-    } catch {
-      // la respuesta no trae JSON
-    }
-    throw new ErrorApi(
-      datos.mensaje ?? `No fue posible guardar (error ${respuesta.status}).`,
-      datos.errores,
-    );
-  }
+  if (!respuesta.ok) throw await crearErrorApi(respuesta);
   return respuesta.json() as Promise<T>;
+}
+
+export async function patchApi<T>(ruta: string, cuerpo: unknown): Promise<T> {
+  const respuesta = await fetch(`/api${ruta}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(cuerpo),
+  });
+
+  if (!respuesta.ok) throw await crearErrorApi(respuesta);
+  return respuesta.json() as Promise<T>;
+}
+
+// Lee el mensaje y los errores por campo que envía el backend, si los trae
+async function crearErrorApi(respuesta: Response) {
+  let datos: { mensaje?: string; errores?: Record<string, string> } = {};
+  try {
+    datos = await respuesta.json();
+  } catch {
+    // la respuesta no trae JSON
+  }
+  return new ErrorApi(
+    datos.mensaje ?? `No fue posible guardar (error ${respuesta.status}).`,
+    datos.errores,
+  );
 }
 
 // Error que trae el mensaje y los errores por campo que envía el backend
