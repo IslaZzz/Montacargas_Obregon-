@@ -6,7 +6,8 @@ export type ChipCategory =
   | 'equipo'
   | 'carta'
   | 'traslado'
-  | 'mantenimiento';
+  | 'mantenimiento'
+  | 'cotizacion';
 
 export type ChipStatus =
   | 'programado'
@@ -25,7 +26,9 @@ export type ChipStatus =
   | 'asignado'
   | 'en-proceso'
   | 'finalizado'
-  | 'cancelado';
+  | 'cancelado'
+  | 'aceptada'
+  | 'no-aceptada';
 
 interface ChipProps {
   category: ChipCategory;
@@ -66,6 +69,13 @@ const chipClasses: Record<ChipCategory, Partial<Record<ChipStatus, string>>> = {
     finalizado: 'chip-mantenimiento-finalizado',
     cancelado: 'chip-mantenimiento-cancelado',
   },
+
+  cotizacion: {
+    borrador: 'chip-cotizacion chip-cotizacion-borrador',
+    enviada: 'chip-cotizacion chip-cotizacion-enviada',
+    aceptada: 'chip-cotizacion chip-cotizacion-aceptada',
+    'no-aceptada': 'chip-cotizacion chip-cotizacion-no-aceptada',
+  },
 };
 
 const defaultLabels: Record<ChipStatus, string> = {
@@ -86,6 +96,8 @@ const defaultLabels: Record<ChipStatus, string> = {
   'en-proceso': 'En progreso',
   finalizado: 'Finalizado',
   cancelado: 'Cancelado',
+  aceptada: 'Aceptada',
+  'no-aceptada': 'No aceptada',
 };
 
 export default function Chip({
