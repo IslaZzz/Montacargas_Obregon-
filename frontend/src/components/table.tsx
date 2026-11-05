@@ -2,7 +2,8 @@ import type { ReactNode, Key } from 'react';
 import '../styles/table.css';
 
 export interface TableColumn<T> {
-  header: string;
+  // Texto o elemento, por ejemplo una casilla para seleccionar todo
+  header: ReactNode;
   accessor: (row: T) => ReactNode;
   className?: string;
 }
@@ -11,6 +12,8 @@ interface DataTableProps<T> {
   columns: TableColumn<T>[];
   data: T[];
   getRowKey?: (row: T, index: number) => Key;
+  // Opcional: clase extra para una fila, por ejemplo para resaltarla
+  getRowClassName?: (row: T, index: number) => string | undefined;
   emptyMessage?: string;
 }
 
@@ -18,6 +21,7 @@ export default function DataTable<T>({
   columns,
   data,
   getRowKey,
+  getRowClassName,
   emptyMessage = 'No hay registros disponibles',
 }: DataTableProps<T>) {
 
@@ -38,7 +42,10 @@ export default function DataTable<T>({
         <tbody>
           {data.length > 0 ? (
             data.map((row, rowIndex) => (
-              <tr key={getRowKey?.(row, rowIndex) ?? rowIndex}>
+              <tr
+                key={getRowKey?.(row, rowIndex) ?? rowIndex}
+                className={getRowClassName?.(row, rowIndex)}
+              >
 
                 {columns.map((column, colIndex) => (
                   <td

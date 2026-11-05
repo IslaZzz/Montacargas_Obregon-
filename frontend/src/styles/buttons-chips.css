@@ -133,3 +133,29 @@
     background-color: #B4EAD5;
     color: #209568;
 }
+
+/*chips estado mantenimiento*/
+.chip-mantenimiento-sin-asignar {
+    background-color: var(--warning-red);
+    color: var(--warning-red-outline);
+}
+
+.chip-mantenimiento-asignado {
+    background-color: #B7CFEE;
+    color: var(--primary-teal);
+}
+
+.chip-mantenimiento-en-proceso {
+    background-color: var(--estado-chip-en-curso);
+    color: var(--estado-chip-en-curso-outline);
+}
+
+.chip-mantenimiento-finalizado {
+    background-color: var(--ok-green);
+    color: var(--ok-green-outline);
+}
+
+.chip-mantenimiento-cancelado {
+    background-color: var(--light-gray);
+    color: var(--primary-teal);
+}
