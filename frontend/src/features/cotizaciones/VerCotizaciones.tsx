@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Chip from "../../components/chips";
 import DataTable from "../../components/table";
 import type { TableColumn } from "../../components/table";
@@ -61,6 +61,7 @@ function BotonVer({ cotizacion }: { cotizacion: CotizacionResumen }) {
 
 export default function VerCotizaciones() {
   useTitulo("Cotizaciones");
+  const navigate = useNavigate();
 
   const [cotizaciones, setCotizaciones] = useState<CotizacionResumen[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -138,6 +139,8 @@ export default function VerCotizaciones() {
           columns={columnas}
           data={visibles}
           getRowKey={(c) => c.id}
+          // Toda la fila abre el detalle; "Ver" queda para quien usa el teclado
+          onRowClick={(c) => navigate(`/cotizaciones/${c.id}`)}
           emptyMessage={mensajeVacio}
         />
       </div>
