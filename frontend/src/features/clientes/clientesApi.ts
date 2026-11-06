@@ -8,3 +8,7 @@ export const buscarClientes = (texto = '') =>
 // POST /api/clientes, registra un cliente con sus razones sociales (responde 201)
 export const registrarCliente = (solicitud: ClienteRequest) =>
   postApi<Cliente>('/clientes', solicitud)
+
+// GET /api/clientes/{id}, devuelve un Cliente
+export const obtenerCliente = (id: number) =>
+  getApi<Cliente>(`/clientes/${id}`)

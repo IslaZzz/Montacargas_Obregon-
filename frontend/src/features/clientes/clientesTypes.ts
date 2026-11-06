@@ -1,4 +1,4 @@
-import type { Direccion, DireccionRequest} from '../../types/comun'
+import type { Direccion, DireccionRequest } from '../../types/comun'
 
 // Equivale a RazonSocialResponse
 export interface RazonSocial {
@@ -14,9 +14,10 @@ export interface Cliente {
   nombre: string
   apellidoPaterno: string
   apellidoMaterno: string | null
-  empresa: string
+  empresa: string | null
   telefono: string
   correo: string
+  fechaRegistro?: string | null // Formato 2026-10-08, la asigna el backend
   razonesSociales: RazonSocial[]
 }
 

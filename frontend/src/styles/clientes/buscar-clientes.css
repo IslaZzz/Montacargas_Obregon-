@@ -1,0 +1,115 @@
+/* Pantalla de lista de clientes. Usa las clases ya existentes y agrega lo propio */
+
+/* Buscador de FilterFactory, grande y de ancho completo */
+.lista-clientes .filters-row,
+.lista-clientes .filter-group {
+  width: 100%;
+}
+.lista-clientes .filter-label {
+  display: none;
+}
+.lista-clientes .filter-input {
+  flex: 1;
+  min-height: 56px;
+  padding: 12px 16px;
+  font-size: 18px;
+  font-weight: 400;
+  background: var(--off-white-background);
+  border: 2px solid var(--secondary-mint);
+  border-radius: 10px;
+}
+.lista-clientes .filter-input:focus {
+  border-color: var(--primary-teal);
+}
+.lista-clientes .filter-reset {
+  font-size: 14px;
+}
+.lista-clientes .filter-results-info {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 4px 0 8px;
+}
+
+/* Tabla con tamaños del diseño */
+.tabla-clientes .data-table th {
+  font-size: 14px;
+}
+.tabla-clientes .data-table td {
+  font-size: 16px;
+}
+.tabla-clientes .data-table th:last-child {
+  text-align: right;
+}
+
+/* Celda del cliente: nombre y empresa en dos líneas */
+.cliente-nombre {
+  display: block;
+  font-weight: 600;
+  color: var(--primary-teal);
+}
+.cliente-empresa {
+  display: block;
+  font-size: 14px;
+}
+
+/* Botones de cada fila */
+.acciones-fila {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.acciones-fila .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.acciones-fila .material-symbols-rounded {
+  font-size: 20px;
+}
+
+/* Enlace Ver más */
+.ver-mas {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+/* Sin resultados */
+.sin-resultados {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 24px;
+  text-align: center;
+  background: var(--table-background);
+  border: 1px solid var(--table-border);
+  border-radius: var(--table-radius);
+}
+.sin-resultados p {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-teal);
+}
+.sin-resultados .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  font-size: 16px;
+}
+
+/* Celular */
+@media (max-width: 700px) {
+  .acciones-fila {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .lista-clientes .filter-input {
+    font-size: 16px;
+  }
+}

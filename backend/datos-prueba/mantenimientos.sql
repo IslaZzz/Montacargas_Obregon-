@@ -4,7 +4,6 @@
 
 USE montacargas_obregon;
 
--- Categorías
 INSERT IGNORE INTO categorias (nombre) VALUES
   ('Montacargas'), ('Retroexcavadora'), ('Generador'), ('Compactador');
 

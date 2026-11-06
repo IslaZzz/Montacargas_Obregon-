@@ -1,0 +1,143 @@
+/* Pantalla de Revisiones: asignar a mecánicos la revisión de los equipos de cada renta */
+
+.revisiones-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Filtros */
+.revisiones-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 32px;
+}
+.revisiones-filtro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.revisiones-filtro-etiqueta {
+  font-weight: 600;
+  color: var(--primary-teal);
+}
+
+/* Celdas */
+.revisiones .celda-desplegar {
+  width: 48px;
+}
+.revisiones-desplegar {
+  display: flex;
+  padding: 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--primary-teal);
+  cursor: pointer;
+}
+.revisiones-desplegar:hover {
+  background: rgba(15, 61, 76, 0.08);
+}
+.revisiones .celda-principal {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary-teal);
+}
+.revisiones .celda-secundaria {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-foreground);
+}
+.revisiones .celda-mecanico {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.revisiones .celda-mecanico-nombre {
+  font-weight: 600;
+  color: var(--primary-teal);
+}
+.revisiones .celda-accion {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Avance: texto con barra */
+.revisiones-avance {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 120px;
+}
+.revisiones-avance-barra {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--light-gray);
+}
+.revisiones-avance-barra > span {
+  display: block;
+  height: 100%;
+  background: var(--ok-green-outline);
+}
+
+/* Equipos de la renta, al desplegar */
+.revisiones-equipos {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.revisiones-equipos li {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(140px, 1fr) auto minmax(0, 1.5fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+}
+.revisiones-equipos li + li {
+  border-top: 1px solid var(--table-divider);
+}
+.revisiones-equipo-mecanico {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--primary-teal);
+}
+.revisiones-equipo-estado {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.revisiones-equipo-notas {
+  font-size: 12px;
+  color: var(--text-foreground);
+}
+
+/* Botones */
+.revisiones .btn {
+  gap: 6px;
+}
+.revisiones .btn-chico {
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+/* Fila recién asignada */
+.revisiones .data-table tbody tr.fila-resaltada {
+  background-color: rgba(32, 149, 104, 0.1);
+}
+
+/* Pantallas angostas: los datos de cada equipo en dos columnas */
+@media (max-width: 900px) {
+  .revisiones-equipos li {
+    grid-template-columns: 1fr auto;
+  }
+}

@@ -67,3 +67,14 @@
 .data-table tbody tr.fila-clicable {
     cursor: pointer;
 }
+
+/* Fila extra con el detalle de la fila de arriba (DataTable con renderDetalle) */
+.data-table tbody tr.fila-detalle,
+.data-table tbody tr.fila-detalle:hover {
+    background-color: var(--selection-gray);
+}
+
+.data-table tbody tr.fila-detalle > td {
+    height: auto;
+    padding: 12px 16px 16px 48px;
+}

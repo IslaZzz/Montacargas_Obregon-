@@ -32,7 +32,9 @@ public record MantenimientoResponse(
                 nombreCorto(m.getReportadoPor()),
                 m.getFechaReporte(),
                 m.getFechaLimite(),
-                null,
+                m.getRevision() != null
+                        ? m.getRevision().getEquipoRenta().getRenta().getFolio()
+                        : null,
                 m.getMecanico() != null ? m.getMecanico().getId() : null,
                 nombreCorto(m.getMecanico()),
                 m.getEstado().name());
