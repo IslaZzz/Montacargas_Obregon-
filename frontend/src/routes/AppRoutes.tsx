@@ -11,6 +11,7 @@ import FilterTest from "../features/testComponentes/FilterTest";
 import StyleTest from "../features/testComponentes/StyleTest";
 import Mantenimientos from "../features/mantenimientos/Mantenimientos";
 import DetalleCliente from "../features/clientes/DetalleCliente";
+import Disponibilidad from '../features/equipos/disponibilidad/ConsultarDisponibilidad'
 
 export default function AppRoutes() {
   return (
@@ -34,6 +35,9 @@ export default function AppRoutes() {
         
         {/* Mantenimientos */}
         <Route path="/mantenimientos" element={<Mantenimientos />} />
+
+        {/* Disponibilidad */}
+        <Route path="/disponibilidad" element={<Disponibilidad />} />
 
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />
