@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import Chip from "../../components/chips";
 import Modal from "../../components/Modal";
 import { useTitulo } from "../../hooks/useTitulo";
@@ -10,6 +10,7 @@ import {
   formatoMoneda,
   formatoTelefono,
 } from "../../utils/formato";
+import BotonVerPdf from "./BotonVerPdf";
 import { cambiarEstadoCotizacion, obtenerCotizacion } from "./cotizacionesApi";
 import type { Cotizacion } from "./cotizacionesTypes";
 import { chipDeEstado, nombreCompleto, textoDias } from "./cotizacionesUtils";
@@ -36,6 +37,8 @@ function textoFechaEstado(c: Cotizacion) {
 
 export default function DetalleCotizacion() {
   const { id } = useParams();
+  // Folio de la cotización recién creada en "Nueva cotización" (HU-12), para mostrar el aviso
+  const folioCreado = (useLocation().state as { creada?: string } | null)?.creada;
 
   const [cotizacion, setCotizacion] = useState<Cotizacion | null>(null);
   const [error, setError] = useState("");
@@ -103,6 +106,17 @@ export default function DetalleCotizacion() {
     <div className="pagina detalle-cotizacion">
       <VolverACotizaciones />
 
+      {/* Aviso al llegar desde "Nueva cotización" (HU-12) */}
+      {folioCreado && c.estado === "BORRADOR" && (
+        <div className="aviso-exito" role="status">
+          <span className="material-symbols-rounded">check_circle</span>
+          <div>
+            <strong>Cotización guardada con el folio {folioCreado}</strong>
+            <p>Quedó en Borrador. Revísala y envíala al cliente cuando esté lista.</p>
+          </div>
+        </div>
+      )}
+
       {/* Aviso después de marcar la respuesta del cliente */}
       {recienMarcada && c.estado === "ACEPTADA" && (
         <div className="aviso-exito" role="status">
@@ -145,13 +159,19 @@ export default function DetalleCotizacion() {
           </p>
         </div>
 
-        {respondida && (
-          <div className="detalle-titulo-botones">
+        <div className="detalle-titulo-botones">
+          {respondida && (
             <Link to="/cotizaciones" className="btn btn-tertiary btn-grande">
               Ir a cotizaciones
             </Link>
-          </div>
-        )}
+          )}
+          {/* En Enviada, en celular el botón va debajo de "¿Qué respondió el cliente?" */}
+          <BotonVerPdf
+            cotizacion={c}
+            primario={c.estado === "BORRADOR"}
+            className={c.estado === "ENVIADA" ? "solo-laptop" : ""}
+          />
+        </div>
       </div>
 
       {c.estado === "ENVIADA" && (
@@ -231,6 +251,11 @@ export default function DetalleCotizacion() {
                 Marcar como no aceptada
               </button>
             </section>
+          )}
+          {c.estado === "ENVIADA" && (
+            <div className="detalle-pdf-celular solo-celular">
+              <BotonVerPdf cotizacion={c} />
+            </div>
           )}
 
           <section className="tarjeta detalle-totales">

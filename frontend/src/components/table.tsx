@@ -14,14 +14,22 @@ interface DataTableProps<T> {
   getRowKey?: (row: T, index: number) => Key;
   // Opcional: clase extra para una fila, por ejemplo para resaltarla
   getRowClassName?: (row: T, index: number) => string | undefined;
+  // Opcional: qué hacer al hacer clic en una fila, por ejemplo abrir su detalle
+  onRowClick?: (row: T) => void;
   emptyMessage?: string;
 }
+
+// Los clics en botones, enlaces o campos dentro de la fila hacen lo suyo, no el clic de la fila
+const esControl = (elemento: EventTarget) =>
+  elemento instanceof Element &&
+  elemento.closest('a, button, input, select, textarea, label') !== null;
 
 export default function DataTable<T>({
   columns,
   data,
   getRowKey,
   getRowClassName,
+  onRowClick,
   emptyMessage = 'No hay registros disponibles',
 }: DataTableProps<T>) {
 
@@ -44,7 +52,17 @@ export default function DataTable<T>({
             data.map((row, rowIndex) => (
               <tr
                 key={getRowKey?.(row, rowIndex) ?? rowIndex}
-                className={getRowClassName?.(row, rowIndex)}
+                className={
+                  [getRowClassName?.(row, rowIndex), onRowClick && 'fila-clicable']
+                    .filter(Boolean)
+                    .join(' ') || undefined
+                }
+                onClick={
+                  onRowClick &&
+                  ((evento) => {
+                    if (!esControl(evento.target)) onRowClick(row);
+                  })
+                }
               >
 
                 {columns.map((column, colIndex) => (
