@@ -46,3 +46,9 @@ export interface AsignarRevisionesRequest {
   revisionIds: number[];
   personalId: number;
 }
+
+// Equivale a RegistrarResultadoRequest
+export interface RegistrarResultadoRequest {
+  resultado: ResultadoRevision;
+  notas: string | null;
+}

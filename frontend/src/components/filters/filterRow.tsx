@@ -42,6 +42,9 @@ export default function FilterRow({
           }`}
           onClick={() => onChange(option.value)}
         >
+          {option.dotClassName && (
+            <span className={`filter-chip-dot ${option.dotClassName}`} aria-hidden="true" />
+          )}
           {option.label}
           {option.count !== undefined && (
             <span className="filter-chip-count">{option.count}</span>

@@ -6,10 +6,11 @@ export interface TableColumn<T> {
   // Texto o elemento, por ejemplo una casilla para seleccionar todo
   header: ReactNode;
   accessor: (row: T) => ReactNode;
+  // Se aplica a la celda y al encabezado, para que los dos se alineen igual
   className?: string;
 }
 
-interface DataTableProps<T> {
+interface DataTableProps<T, S> {
   columns: TableColumn<T>[];
   data: T[];
   getRowKey?: (row: T, index: number) => Key;
@@ -17,8 +18,12 @@ interface DataTableProps<T> {
   getRowClassName?: (row: T, index: number) => string | undefined;
   // Opcional: qué hacer al hacer clic en una fila, por ejemplo abrir su detalle
   onRowClick?: (row: T) => void;
-  // Opcional: contenido de una fila extra debajo de la fila. Si regresa null, no se muestra
-  renderDetalle?: (row: T) => ReactNode;
+  // Opcional: filas hijas debajo de la fila (por ejemplo, los equipos de una renta).
+  // Usan las mismas columnas que la tabla, así quedan alineadas con el encabezado.
+  // Si regresa null o una lista vacía, no se muestran
+  getSubfilas?: (row: T) => S[] | null;
+  subcolumnas?: TableColumn<S>[];
+  getSubfilaKey?: (subfila: S, index: number) => Key;
   emptyMessage?: string;
 }
 
@@ -27,15 +32,17 @@ const esControl = (elemento: EventTarget) =>
   elemento instanceof Element &&
   elemento.closest('a, button, input, select, textarea, label') !== null;
 
-export default function DataTable<T>({
+export default function DataTable<T, S = never>({
   columns,
   data,
   getRowKey,
   getRowClassName,
   onRowClick,
-  renderDetalle,
+  getSubfilas,
+  subcolumnas,
+  getSubfilaKey,
   emptyMessage = 'No hay registros disponibles',
-}: DataTableProps<T>) {
+}: DataTableProps<T, S>) {
 
   return (
     <div className="table-container">
@@ -44,7 +51,7 @@ export default function DataTable<T>({
         <thead>
           <tr>
             {columns.map((column, index) => (
-              <th key={index}>
+              <th key={index} className={column.className}>
                 {column.header}
               </th>
             ))}
@@ -54,7 +61,7 @@ export default function DataTable<T>({
         <tbody>
           {data.length > 0 ? (
             data.map((row, rowIndex) => {
-              const detalle = renderDetalle?.(row);
+              const subfilas = subcolumnas ? getSubfilas?.(row) ?? [] : [];
 
               return (
                 <Fragment key={getRowKey?.(row, rowIndex) ?? rowIndex}>
@@ -83,11 +90,15 @@ export default function DataTable<T>({
 
                   </tr>
 
-                  {detalle ? (
-                    <tr className="fila-detalle">
-                      <td colSpan={columns.length}>{detalle}</td>
+                  {subfilas.map((subfila, subIndex) => (
+                    <tr key={getSubfilaKey?.(subfila, subIndex) ?? subIndex} className="fila-detalle">
+                      {subcolumnas!.map((column, colIndex) => (
+                        <td key={colIndex} className={column.className ?? ''}>
+                          {column.accessor(subfila)}
+                        </td>
+                      ))}
                     </tr>
-                  ) : null}
+                  ))}
                 </Fragment>
               );
             })

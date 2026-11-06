@@ -109,4 +109,30 @@ public class Mantenimiento {
             estado = EstadoMantenimiento.ASIGNADO;
         }
     }
+
+    /**
+     * Mantenimiento por una falla encontrada en una revisión.
+     * Lo reporta el mecánico de la revisión y queda ligado a ella.
+     */
+    public static Mantenimiento deRevision(Revision revision, String descripcionFalla, LocalDateTime fechaLimite) {
+        Mantenimiento m = new Mantenimiento(revision.getEquipoRenta().getEquipo(), TipoMantenimiento.CORRECTIVO,
+                descripcionFalla, revision.getMecanico(), fechaLimite);
+        m.revision = revision;
+        return m;
+    }
+
+    /** Se marca terminado cuando ya tiene mecánico y no ha terminado. */
+    public boolean puedeTerminarse() {
+        return estado == EstadoMantenimiento.ASIGNADO || estado == EstadoMantenimiento.EN_PROCESO;
+    }
+
+    /** El mecánico avisó que el equipo quedó reparado. */
+    public void terminar() {
+        LocalDateTime ahora = LocalDateTime.now();
+        if (fechaInicio == null) {
+            fechaInicio = ahora;
+        }
+        this.fechaFin = ahora;
+        this.estado = EstadoMantenimiento.COMPLETADO;
+    }
 }

@@ -4,12 +4,14 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import mx.montacargasobregon.backend.revisiones.dto.AsignarRevisionesRequest;
+import mx.montacargasobregon.backend.revisiones.dto.RegistrarResultadoRequest;
 import mx.montacargasobregon.backend.revisiones.dto.RevisionesRentaResponse;
 import mx.montacargasobregon.backend.revisiones.servicio.RevisionService;
 
@@ -34,5 +36,12 @@ public class RevisionController {
     @PatchMapping("/asignar")
     public List<RevisionesRentaResponse> asignar(@Valid @RequestBody AsignarRevisionesRequest datos) {
         return servicio.asignar(datos);
+    }
+
+    /** PATCH /api/revisiones/5/resultado: registra lo que reportó el mecánico; devuelve la lista actualizada. */
+    @PatchMapping("/{id}/resultado")
+    public List<RevisionesRentaResponse> registrarResultado(@PathVariable Long id,
+                                                            @Valid @RequestBody RegistrarResultadoRequest datos) {
+        return servicio.registrarResultado(id, datos);
     }
 }

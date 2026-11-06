@@ -42,10 +42,6 @@ import mx.montacargasobregon.backend.revisiones.modelo.EstadoRevision;
 import mx.montacargasobregon.backend.revisiones.modelo.Revision;
 import mx.montacargasobregon.backend.revisiones.modelo.TipoRevision;
 import mx.montacargasobregon.backend.revisiones.repositorio.RevisionRepository;
-import mx.montacargasobregon.backend.traslados.modelo.EstadoTraslado;
-import mx.montacargasobregon.backend.traslados.modelo.TipoTraslado;
-import mx.montacargasobregon.backend.traslados.modelo.Traslado;
-import mx.montacargasobregon.backend.traslados.repositorio.TrasladoRepository;
 
 @ExtendWith(MockitoExtension.class)
 class CapturaRentaServiceTest {
@@ -67,9 +63,6 @@ class CapturaRentaServiceTest {
     @Mock
     private RevisionRepository revisionRepositorio;
 
-    @Mock
-    private TrasladoRepository trasladoRepositorio;
-
     private CapturaRentaService servicio;
 
     private Cliente cliente;
@@ -80,7 +73,7 @@ class CapturaRentaServiceTest {
     @BeforeEach
     void setUp() {
         servicio = new CapturaRentaService(repositorio, clienteRepositorio, equipoRepositorio,
-                revisionRepositorio, trasladoRepositorio);
+                revisionRepositorio);
 
         cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
@@ -118,16 +111,15 @@ class CapturaRentaServiceTest {
     private void prepararCreacion(Integer ultimoFolio) {
         when(clienteRepositorio.findById(1L)).thenReturn(Optional.of(cliente));
         when(equipoRepositorio.findAllById(Set.of(30L, 31L))).thenReturn(List.of(mc030, mc031));
-        when(repositorio.equiposOcupados(eq(INICIO), eq(FIN), any(), eq(FaseEquipoRenta.CANCELADO)))
+        when(repositorio.equiposOcupados(eq(INICIO), eq(FIN), any(), any()))
                 .thenReturn(List.of());
         when(repositorio.ultimoNumeroFolio()).thenReturn(ultimoFolio);
         when(repositorio.save(any(Renta.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
-    void crear_conEntrega_creaRentaRevisionesDeSalidaYTraslado() {
+    void crear_conEntrega_creaRentaYRevisionesDeSalida() {
         prepararCreacion(2090);
-        when(repositorio.ultimoNumeroFolioTraslado()).thenReturn(86);
 
         RentaCapturadaResponse renta = servicio.crear(solicitud(List.of(30L, 31L), ENTREGA_DESDE, ENTREGA_HASTA));
 
@@ -145,26 +137,17 @@ class CapturaRentaServiceTest {
             assertEquals(EstadoRevision.PENDIENTE, r.getEstado());
             assertEquals(ENTREGA_DESDE, r.getFechaProgramada());
         }
-
-        // Un traslado de entrega con el horario acordado
-        ArgumentCaptor<Traslado> traslado = ArgumentCaptor.forClass(Traslado.class);
-        verify(trasladoRepositorio).save(traslado.capture());
-        assertEquals("TR-0087", traslado.getValue().getFolio());
-        assertEquals(TipoTraslado.ENTREGA, traslado.getValue().getTipo());
-        assertEquals(EstadoTraslado.PROGRAMADO, traslado.getValue().getEstado());
-        assertEquals(ENTREGA_DESDE, traslado.getValue().getFechaHoraInicio());
-        assertEquals(ENTREGA_HASTA, traslado.getValue().getFechaHoraFin());
     }
 
     @Test
-    void crear_sinEntrega_noCreaRevisionesNiTraslado() {
+    void crear_sinEntrega_noCreaRevisiones() {
         prepararCreacion(2090);
 
         RentaCapturadaResponse renta = servicio.crear(solicitud(List.of(30L, 31L), null, null));
 
         assertEquals("R-2091", renta.folio());
         assertEquals(null, renta.entregaDesde());
-        verifyNoInteractions(revisionRepositorio, trasladoRepositorio);
+        verifyNoInteractions(revisionRepositorio);
     }
 
     @Test
@@ -180,7 +163,7 @@ class CapturaRentaServiceTest {
     void crear_rechazaConConflicto_cuandoUnEquipoEstaEnOtraRenta() {
         when(clienteRepositorio.findById(1L)).thenReturn(Optional.of(cliente));
         when(equipoRepositorio.findAllById(Set.of(30L, 31L))).thenReturn(List.of(mc030, mc031));
-        when(repositorio.equiposOcupados(eq(INICIO), eq(FIN), any(), eq(FaseEquipoRenta.CANCELADO)))
+        when(repositorio.equiposOcupados(eq(INICIO), eq(FIN), any(), any()))
                 .thenReturn(List.of(31L));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
@@ -257,20 +240,15 @@ class CapturaRentaServiceTest {
     }
 
     @Test
-    void confirmarEntrega_creaRevisionesDeSalidaYTraslado() {
+    void confirmarEntrega_creaRevisionesDeSalida() {
         Renta renta = rentaGuardada();
         when(repositorio.findById(20L)).thenReturn(Optional.of(renta));
-        when(repositorio.ultimoNumeroFolioTraslado()).thenReturn(null);
 
         RentaCapturadaResponse respuesta = servicio.confirmarEntrega(20L, new HorarioRequest(ENTREGA_DESDE, ENTREGA_HASTA));
 
         assertEquals(ENTREGA_DESDE, respuesta.entregaDesde());
         assertEquals(ENTREGA_HASTA, respuesta.entregaHasta());
         verify(revisionRepositorio, times(2)).save(any(Revision.class));
-
-        ArgumentCaptor<Traslado> traslado = ArgumentCaptor.forClass(Traslado.class);
-        verify(trasladoRepositorio).save(traslado.capture());
-        assertEquals("TR-0001", traslado.getValue().getFolio());
     }
 
     @Test
@@ -284,7 +262,7 @@ class CapturaRentaServiceTest {
 
         assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
         assertTrue(ex.getReason().contains("R-2091"));
-        verifyNoInteractions(revisionRepositorio, trasladoRepositorio);
+        verifyNoInteractions(revisionRepositorio);
     }
 
     @Test
@@ -315,7 +293,7 @@ class CapturaRentaServiceTest {
         ReflectionTestUtils.setField(descompuesto, "estado", EstadoEquipo.FUERA_SERVICIO);
         Equipo ocupado = equipo(33L, "MC-033");
 
-        when(repositorio.equiposOcupados(eq(INICIO), eq(FIN), any(), eq(FaseEquipoRenta.CANCELADO)))
+        when(repositorio.equiposOcupados(eq(INICIO), eq(FIN), any(), any()))
                 .thenReturn(List.of(33L));
         when(equipoRepositorio.findAll()).thenReturn(List.of(mc031, ocupado, descompuesto, mc030));
 
@@ -325,5 +303,9 @@ class CapturaRentaServiceTest {
                 disponibles.stream().map(EquipoDisponibleResponse::numeroUnidad).toList());
         assertEquals("Montacargas", disponibles.get(0).categoria());
         assertEquals("Toyota 8FGU25", disponibles.get(0).descripcion());
+        // Un equipo que ya regresó de su renta cuenta como libre
+        verify(repositorio).equiposOcupados(INICIO, FIN,
+                List.of(EstadoRenta.PROGRAMADA, EstadoRenta.EN_CURSO),
+                List.of(FaseEquipoRenta.CANCELADO, FaseEquipoRenta.COMPLETADO));
     }
 }

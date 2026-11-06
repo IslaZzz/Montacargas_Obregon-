@@ -9,6 +9,8 @@ import org.springframework.data.repository.query.Param;
 
 import mx.montacargasobregon.backend.traslados.modelo.EstadoTraslado;
 import mx.montacargasobregon.backend.traslados.modelo.Traslado;
+import mx.montacargasobregon.backend.rentas.modelo.Renta;
+import mx.montacargasobregon.backend.traslados.modelo.TipoTraslado;
 
 public interface TrasladoRepository extends JpaRepository<Traslado, Long> {
 
@@ -54,5 +56,12 @@ public interface TrasladoRepository extends JpaRepository<Traslado, Long> {
             @Param("hasta") LocalDateTime hasta,
             @Param("cancelado") EstadoTraslado cancelado
     );
+
+    /** Si la renta ya tiene un traslado de ese tipo que no esté cancelado. */
+    boolean existsByRentaAndTipoAndEstadoNot(Renta renta, TipoTraslado tipo, EstadoTraslado estado);
+
+    /** Número del último folio: "TR-0086" -> 86. Null si no hay traslados. */
+    @Query("select max(cast(substring(t.folio, 4) as Integer)) from Traslado t")
+    Integer ultimoNumeroFolio();
 }
 
