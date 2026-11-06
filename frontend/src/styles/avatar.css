@@ -1,0 +1,14 @@
+/* Círculo con iniciales (componente Avatar) */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #b7cfee;
+  color: var(--primary-teal);
+  font-size: 12px;
+  font-weight: 700;
+}

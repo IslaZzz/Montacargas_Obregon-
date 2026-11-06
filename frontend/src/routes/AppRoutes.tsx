@@ -10,6 +10,8 @@ import PdfCotizacion from "../features/cotizaciones/PdfCotizacion";
 import FilterTest from "../features/testComponentes/FilterTest";
 import StyleTest from "../features/testComponentes/StyleTest";
 import Mantenimientos from "../features/mantenimientos/Mantenimientos";
+import Revisiones from "../features/revisiones/Revisiones";
+import ApartadosProximos from "../features/avisos/ApartadosProximos";
 import DetalleCliente from "../features/clientes/DetalleCliente";
 
 export default function AppRoutes() {
@@ -31,9 +33,14 @@ export default function AppRoutes() {
         <Route path="/cotizaciones/nueva" element={<NuevaCotizacion />} />
         <Route path="/cotizaciones/:id" element={<DetalleCotizacion />} />
         <Route path="/cotizaciones/:id/pdf" element={<PdfCotizacion />} />
-        
+
+        {/* Revisiones */}
+        <Route path="/revisiones" element={<Revisiones />} />
         {/* Mantenimientos */}
         <Route path="/mantenimientos" element={<Mantenimientos />} />
+
+        {/* Avisos */}
+        <Route path="/apartados-proximos" element={<ApartadosProximos />} />
 
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />
