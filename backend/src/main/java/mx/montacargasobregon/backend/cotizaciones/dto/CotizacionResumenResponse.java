@@ -8,7 +8,8 @@ import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 
 /** Una fila de la lista de cotizaciones. */
 public record CotizacionResumenResponse(Long id, String folio, String cliente, String empresa,
-                                        LocalDateTime fechaCreacion, BigDecimal total, String estado) {
+                                        LocalDateTime fechaCreacion, LocalDateTime fechaEntrega,
+                                        LocalDateTime fechaRecoleccion, BigDecimal total, String estado) {
 
     public static CotizacionResumenResponse toCotizacionResumenResponse(Cotizacion c) {
         return new CotizacionResumenResponse(
@@ -17,6 +18,8 @@ public record CotizacionResumenResponse(Long id, String folio, String cliente, S
                 nombreCompleto(c.getCliente()),
                 c.getCliente().getEmpresa(),
                 c.getFechaCreacion(),
+                c.getFechaEntrega(),
+                c.getFechaRecoleccion(),
                 c.getTotal(),
                 c.getEstado().name());
     }
