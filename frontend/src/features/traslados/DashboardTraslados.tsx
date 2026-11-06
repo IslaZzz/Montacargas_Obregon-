@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import Aviso from "../../components/Aviso";
 import Avatar from "../../components/Avatar";
 import { Button } from "../../components/buttons";
@@ -6,12 +8,14 @@ import Chip from "../../components/chips";
 import DateRangePicker from "../../components/filters/dateRangePicker";
 import FilterRow from "../../components/filters/filterRow";
 import type { DateRangeValue } from "../../components/filters/filterTypes";
+import Modal from "../../components/Modal";
 import DataTable from "../../components/table";
 import type { TableColumn } from "../../components/table";
 import { useTitulo } from "../../hooks/useTitulo";
+import { ErrorApi } from "../../services/apiClient";
 import { formatoDiaCorto, formatoHora } from "../../utils/fechas";
 import PanelAsignacion from "./PanelAsignacion";
-import { listarTraslados } from "./trasladosApi";
+import { listarTraslados, marcarRealizado } from "./trasladosApi";
 import type { FiltroTraslados, Traslado } from "./trasladosTypes";
 import { CHIPS_FILTRO, contarPorFiltro } from "./trasladosUtils";
 import "../../styles/operacion.css";
@@ -33,8 +37,13 @@ export default function DashboardTraslados() {
   // Traslado que se está asignando en el panel; null = cerrado
   const [trasladoEnPanel, setTrasladoEnPanel] = useState<Traslado | null>(null);
 
-  // Confirmación después de asignar y fila que se resalta
-  const [exito, setExito] = useState<string | null>(null);
+  // Traslado que se está marcando como realizado; null = cerrado
+  const [enRealizar, setEnRealizar] = useState<Traslado | null>(null);
+  const [realizando, setRealizando] = useState(false);
+  const [errorRealizar, setErrorRealizar] = useState("");
+
+  // Confirmación después de asignar o marcar realizado, y fila que se resalta
+  const [exito, setExito] = useState<{ titulo: string; detalle: ReactNode } | null>(null);
   const [resaltados, setResaltados] = useState<Set<number>>(new Set());
 
   // Carga inicial y recarga al cambiar el rango de fechas
@@ -81,45 +90,85 @@ export default function DashboardTraslados() {
     setTrasladoEnPanel(t);
   }
 
-  function handleAsignacionExitosa(actualizado: Traslado) {
+  // Reemplaza el traslado en la lista y lo resalta
+  function actualizar(actualizado: Traslado, titulo: string, detalle: ReactNode) {
     setTraslados((prev) => prev.map((t) => (t.id === actualizado.id ? actualizado : t)));
-    setExito(`${actualizado.folio} quedó asignado a ${actualizado.responsableNombre}`);
+    setExito({ titulo, detalle });
     setResaltados(new Set([actualizado.id]));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function handleAsignacionExitosa(actualizado: Traslado) {
+    actualizar(
+      actualizado,
+      `${actualizado.folio} quedó asignado a ${actualizado.responsableNombre}`,
+      "Te lo marcamos en la tabla.",
+    );
+  }
+
+  function abrirRealizar(t: Traslado) {
+    setExito(null);
+    setErrorRealizar("");
+    setEnRealizar(t);
+  }
+
+  function cerrarRealizar() {
+    if (!realizando) setEnRealizar(null);
+  }
+
+  async function confirmarRealizado() {
+    if (!enRealizar) return;
+    setRealizando(true);
+    setErrorRealizar("");
+    try {
+      const actualizado = await marcarRealizado(enRealizar.id);
+      actualizar(
+        actualizado,
+        `${actualizado.folio} quedó realizado`,
+        actualizado.tipo === "ENTREGA" ? (
+          `Los equipos de la renta ${actualizado.rentaFolio} ya están con el cliente.`
+        ) : (
+          <>
+            Ya puedes asignar las <Link to="/revisiones">revisiones de entrada</Link> de la renta{" "}
+            {actualizado.rentaFolio}.
+          </>
+        ),
+      );
+      setEnRealizar(null);
+    } catch (err) {
+      setErrorRealizar(err instanceof ErrorApi ? err.message : "No fue posible guardar. Revisa tu conexión.");
+    } finally {
+      setRealizando(false);
+    }
+  }
+
   function accion(row: Traslado) {
-    // Si el operador ya salió, ya no se puede cambiar
-    if (row.yaInicio) {
+    if (row.estado === "COMPLETADO") {
+      return <Chip category="traslado" status="ok" />;
+    }
+    if (row.responsableId === null) {
       return (
         <span className="acciones">
-          <Button
-            type="button"
-            variant="tertiary"
-            className="btn-chico"
-            disabled
-            title="El operador ya inició este traslado y no se puede modificar"
-          >
-            <span className="material-symbols-rounded" aria-hidden="true">lock</span>
-            Ya inició
+          <Button type="button" variant="primary" className="btn-chico" onClick={() => abrirPanel(row)}>
+            <span className="material-symbols-rounded" aria-hidden="true">person_add</span>
+            Asignar
           </Button>
         </span>
       );
     }
-    const asignado = row.responsableId !== null;
     return (
       <span className="acciones">
-        <Button
-          type="button"
-          variant={asignado ? "tertiary" : "primary"}
-          className="btn-chico"
-          onClick={() => abrirPanel(row)}
-        >
-          <span className="material-symbols-rounded" aria-hidden="true">
-            {asignado ? "swap_horiz" : "person_add"}
-          </span>
-          {asignado ? "Cambiar" : "Asignar"}
+        <Button type="button" variant="primary" className="btn-chico" onClick={() => abrirRealizar(row)}>
+          <span className="material-symbols-rounded" aria-hidden="true">task_alt</span>
+          Marcar realizado
         </Button>
+        {/* Si el operador ya salió, ya no se puede cambiar */}
+        {!row.yaInicio && (
+          <Button type="button" variant="tertiary" className="btn-chico" onClick={() => abrirPanel(row)}>
+            <span className="material-symbols-rounded" aria-hidden="true">swap_horiz</span>
+            Cambiar
+          </Button>
+        )}
       </span>
     );
   }
@@ -180,13 +229,13 @@ export default function DashboardTraslados() {
       {/* Título */}
       <div className="operacion-titulo">
         <h1>Traslados</h1>
-        <p>Elige quién lleva cada entrega y recolección programada.</p>
+        <p>Elige quién lleva cada entrega y recolección, y márcala cuando el operador confirme que la hizo.</p>
       </div>
 
       {/* Avisos */}
       {exito && (
-        <Aviso tipo="exito" titulo={exito} onCerrar={() => setExito(null)}>
-          Te lo marcamos en la tabla.
+        <Aviso tipo="exito" titulo={exito.titulo} onCerrar={() => setExito(null)}>
+          {exito.detalle}
         </Aviso>
       )}
       {error && (
@@ -232,6 +281,49 @@ export default function DashboardTraslados() {
         onCerrar={() => setTrasladoEnPanel(null)}
         onAsignacionExitosa={handleAsignacionExitosa}
       />
+
+      {/* Confirmar que el traslado ya se hizo */}
+      <Modal
+        abierto={enRealizar !== null}
+        titulo={
+          enRealizar
+            ? `¿Ya se ${enRealizar.tipo === "ENTREGA" ? "entregó" : "recogió"} ${enRealizar.folio}?`
+            : ""
+        }
+        subtitulo="Márcalo cuando el operador te confirme que lo hizo."
+        onCerrar={cerrarRealizar}
+        acciones={
+          <>
+            <Button type="button" variant="tertiary" onClick={cerrarRealizar} disabled={realizando}>
+              Cancelar
+            </Button>
+            <Button type="button" variant="primary" onClick={confirmarRealizado} disabled={realizando}>
+              {realizando ? "Guardando…" : "Marcar realizado"}
+            </Button>
+          </>
+        }
+      >
+        {enRealizar && (
+          <div className="traslados-realizado">
+            <p>
+              <strong>Cliente:</strong> {enRealizar.clienteNombre}
+            </p>
+            <p>
+              <strong>Operador:</strong> {enRealizar.responsableNombre}
+            </p>
+            <p>
+              {enRealizar.tipo === "ENTREGA"
+                ? `Los equipos quedarán con el cliente y la renta ${enRealizar.rentaFolio} pasará a en curso.`
+                : `Se crearán las revisiones de entrada de los equipos de la renta ${enRealizar.rentaFolio}.`}
+            </p>
+            {errorRealizar && (
+              <p className="campo-error" role="alert">
+                {errorRealizar}
+              </p>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

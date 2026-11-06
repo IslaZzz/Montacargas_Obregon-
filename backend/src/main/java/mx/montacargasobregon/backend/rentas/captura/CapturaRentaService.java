@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -43,13 +44,16 @@ public class CapturaRentaService {
     private final ClienteRepository clienteRepositorio;
     private final EquipoRepository equipoRepositorio;
     private final RevisionRepository revisionRepositorio;
+    private final AvanceRentaService avanceRenta;
 
     public CapturaRentaService(CapturaRentaRepository repositorio, ClienteRepository clienteRepositorio,
-                               EquipoRepository equipoRepositorio, RevisionRepository revisionRepositorio) {
+                               EquipoRepository equipoRepositorio, RevisionRepository revisionRepositorio,
+                               AvanceRentaService avanceRenta) {
         this.repositorio = repositorio;
         this.clienteRepositorio = clienteRepositorio;
         this.equipoRepositorio = equipoRepositorio;
         this.revisionRepositorio = revisionRepositorio;
+        this.avanceRenta = avanceRenta;
     }
 
     /** Equipos operativos que no están en otra renta en esas fechas. */
@@ -138,6 +142,40 @@ public class CapturaRentaService {
         validarHorario(datos.desde(), datos.hasta(), renta.getFechaFin());
 
         programarEntrega(renta, datos.desde(), datos.hasta());
+        return RentaCapturadaResponse.deRenta(renta);
+    }
+
+    /** Rentas en curso a las que todavía no se les acuerda la recolección. */
+    @Transactional(readOnly = true)
+    public List<RentaCapturadaResponse> rentasSinRecoleccion() {
+        return repositorio.findByEstadoAndRecoleccionDesdeIsNullOrderByFechaFinAsc(EstadoRenta.EN_CURSO).stream()
+                .map(RentaCapturadaResponse::deRenta)
+                .toList();
+    }
+
+    /**
+     * Confirma el horario de recolección de una renta en curso.
+     * Al guardarlo nace el traslado de recolección por asignar.
+     */
+    @Transactional
+    public RentaCapturadaResponse confirmarRecoleccion(Long id, HorarioRequest datos) {
+        Renta renta = repositorio.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Renta no encontrada"));
+
+        if (renta.getEstado() != EstadoRenta.EN_CURSO) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Solo se puede programar la recolección de una renta en curso");
+        }
+        if (renta.getRecoleccionDesde() != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "La renta " + renta.getFolio() + " ya tiene horario de recolección");
+        }
+        if (!datos.desde().isBefore(datos.hasta())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "El horario de recolección debe terminar después de empezar");
+        }
+
+        avanceRenta.programarRecoleccion(renta, datos.desde(), datos.hasta());
         return RentaCapturadaResponse.deRenta(renta);
     }
 

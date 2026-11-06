@@ -42,6 +42,7 @@ import mx.montacargasobregon.backend.revisiones.modelo.EstadoRevision;
 import mx.montacargasobregon.backend.revisiones.modelo.Revision;
 import mx.montacargasobregon.backend.revisiones.modelo.TipoRevision;
 import mx.montacargasobregon.backend.revisiones.repositorio.RevisionRepository;
+import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
 
 @ExtendWith(MockitoExtension.class)
 class CapturaRentaServiceTest {
@@ -63,6 +64,9 @@ class CapturaRentaServiceTest {
     @Mock
     private RevisionRepository revisionRepositorio;
 
+    @Mock
+    private AvanceRentaService avanceRenta;
+
     private CapturaRentaService servicio;
 
     private Cliente cliente;
@@ -73,7 +77,7 @@ class CapturaRentaServiceTest {
     @BeforeEach
     void setUp() {
         servicio = new CapturaRentaService(repositorio, clienteRepositorio, equipoRepositorio,
-                revisionRepositorio);
+                revisionRepositorio, avanceRenta);
 
         cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
@@ -307,5 +311,73 @@ class CapturaRentaServiceTest {
         verify(repositorio).equiposOcupados(INICIO, FIN,
                 List.of(EstadoRenta.PROGRAMADA, EstadoRenta.EN_CURSO),
                 List.of(FaseEquipoRenta.CANCELADO, FaseEquipoRenta.COMPLETADO));
+    }
+
+    @Test
+    void rentasSinRecoleccion_soloPideLasRentasEnCurso() {
+        Renta renta = rentaGuardada();
+        renta.cambiarEstado(EstadoRenta.EN_CURSO);
+        when(repositorio.findByEstadoAndRecoleccionDesdeIsNullOrderByFechaFinAsc(EstadoRenta.EN_CURSO))
+                .thenReturn(List.of(renta));
+
+        List<RentaCapturadaResponse> rentas = servicio.rentasSinRecoleccion();
+
+        assertEquals(List.of("R-2091"), rentas.stream().map(RentaCapturadaResponse::folio).toList());
+    }
+
+    @Test
+    void confirmarRecoleccion_programaElTrasladoDeRecoleccion() {
+        Renta renta = rentaGuardada();
+        renta.cambiarEstado(EstadoRenta.EN_CURSO);
+        when(repositorio.findById(20L)).thenReturn(Optional.of(renta));
+        LocalDateTime desde = LocalDateTime.of(2026, 11, 20, 14, 0);
+        LocalDateTime hasta = LocalDateTime.of(2026, 11, 20, 16, 0);
+
+        servicio.confirmarRecoleccion(20L, new HorarioRequest(desde, hasta));
+
+        verify(avanceRenta).programarRecoleccion(renta, desde, hasta);
+    }
+
+    @Test
+    void confirmarRecoleccion_rechazaConConflicto_cuandoLaRentaNoEstaEnCurso() {
+        Renta renta = rentaGuardada();
+        when(repositorio.findById(20L)).thenReturn(Optional.of(renta));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> servicio.confirmarRecoleccion(20L, new HorarioRequest(
+                        LocalDateTime.of(2026, 11, 20, 14, 0), LocalDateTime.of(2026, 11, 20, 16, 0))));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        verifyNoInteractions(avanceRenta);
+    }
+
+    @Test
+    void confirmarRecoleccion_rechazaConConflicto_cuandoYaTieneHorario() {
+        Renta renta = rentaGuardada();
+        renta.cambiarEstado(EstadoRenta.EN_CURSO);
+        renta.confirmarRecoleccion(LocalDateTime.of(2026, 11, 20, 14, 0), LocalDateTime.of(2026, 11, 20, 16, 0));
+        when(repositorio.findById(20L)).thenReturn(Optional.of(renta));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> servicio.confirmarRecoleccion(20L, new HorarioRequest(
+                        LocalDateTime.of(2026, 11, 21, 8, 0), LocalDateTime.of(2026, 11, 21, 10, 0))));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        assertTrue(ex.getReason().contains("R-2091"));
+        verifyNoInteractions(avanceRenta);
+    }
+
+    @Test
+    void confirmarRecoleccion_rechaza_cuandoElHorarioTerminaAntesDeEmpezar() {
+        Renta renta = rentaGuardada();
+        renta.cambiarEstado(EstadoRenta.EN_CURSO);
+        when(repositorio.findById(20L)).thenReturn(Optional.of(renta));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> servicio.confirmarRecoleccion(20L, new HorarioRequest(
+                        LocalDateTime.of(2026, 11, 20, 16, 0), LocalDateTime.of(2026, 11, 20, 14, 0))));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        verifyNoInteractions(avanceRenta);
     }
 }

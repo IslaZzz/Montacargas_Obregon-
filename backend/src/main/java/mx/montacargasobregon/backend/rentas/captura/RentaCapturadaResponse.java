@@ -7,7 +7,7 @@ import java.util.List;
 import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 
-/** La renta recién capturada, para confirmarle al auxiliar lo que se creó. */
+/** Una renta capturada, para confirmarle al auxiliar lo que se guardó. */
 public record RentaCapturadaResponse(
         Long id,
         String folio,
@@ -16,6 +16,8 @@ public record RentaCapturadaResponse(
         LocalDate fechaFin,
         LocalDateTime entregaDesde,
         LocalDateTime entregaHasta,
+        LocalDateTime recoleccionDesde,
+        LocalDateTime recoleccionHasta,
         String estado,
         List<String> equipos) {   // Números de unidad
 
@@ -28,6 +30,8 @@ public record RentaCapturadaResponse(
                 r.getFechaFin(),
                 r.getEntregaDesde(),
                 r.getEntregaHasta(),
+                r.getRecoleccionDesde(),
+                r.getRecoleccionHasta(),
                 r.getEstado().name(),
                 r.getEquipos().stream().map(er -> er.getEquipo().getNumeroUnidad()).toList());
     }

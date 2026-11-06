@@ -19,6 +19,7 @@ import DetalleCliente from "../features/clientes/DetalleCliente";
 
 import DashboardTraslados from "../features/traslados/DashboardTraslados";
 
+import ProgramarRecoleccion from "../features/rentas-captura/ProgramarRecoleccion";
 import RegistrarRenta from "../features/rentas-captura/RegistrarRenta";
 
 
@@ -44,6 +45,8 @@ export default function AppRoutes() {
 
         {/* Captura manual temporal: sin opción en el menú lateral*/}
         <Route path="/rentas/nueva" element={<RegistrarRenta />} />
+
+        <Route path="/rentas/recoleccion" element={<ProgramarRecoleccion />} />
 
         {/* Revisiones */}
         <Route path="/revisiones" element={<Revisiones />} />

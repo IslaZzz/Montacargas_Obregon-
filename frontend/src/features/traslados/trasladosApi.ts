@@ -1,4 +1,4 @@
-import { getApi, postApi } from "../../services/apiClient";
+import { getApi, patchApi, postApi } from "../../services/apiClient";
 import type {
   OperadorDisponibilidad,
   Traslado,
@@ -49,5 +49,13 @@ export async function asignarResponsable(
   return postApi<Traslado>(`/traslados/${trasladoId}/asignar`, {
     personalId,
   });
+}
+
+/**
+ * Marca el traslado como realizado, cuando el operador confirma que ya entregó o recogió.
+ * Rechazará con ErrorApi si no tiene responsable o ya estaba realizado.
+ */
+export async function marcarRealizado(trasladoId: number): Promise<Traslado> {
+  return patchApi<Traslado>(`/traslados/${trasladoId}/completar`, {});
 }
 

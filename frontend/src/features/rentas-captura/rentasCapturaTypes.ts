@@ -22,6 +22,12 @@ export interface CrearRentaRequest {
   entregaHasta: string | null;
 }
 
+// Equivale a HorarioRequest
+export interface HorarioRequest {
+  desde: string; // "2026-11-20T14:00:00"
+  hasta: string;
+}
+
 // Equivale a RentaCapturadaResponse
 export interface RentaCreada {
   id: number;
@@ -31,6 +37,8 @@ export interface RentaCreada {
   fechaFin: string;
   entregaDesde: string | null;
   entregaHasta: string | null;
+  recoleccionDesde: string | null;
+  recoleccionHasta: string | null;
   estado: string;
   equipos: string[]; // Números de unidad
 }

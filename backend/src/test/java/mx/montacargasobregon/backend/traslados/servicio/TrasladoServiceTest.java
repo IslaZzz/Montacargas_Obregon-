@@ -9,6 +9,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
+import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -46,6 +48,9 @@ class TrasladoServiceTest {
     @Mock
     private PersonalRepository personalRepositorio;
 
+    @Mock
+    private AvanceRentaService avanceRenta;
+
     private TrasladoService servicio;
 
     private Cliente cliente;
@@ -56,7 +61,7 @@ class TrasladoServiceTest {
 
     @BeforeEach
     void setUp() {
-        servicio = new TrasladoService(repositorio, personalRepositorio);
+        servicio = new TrasladoService(repositorio, personalRepositorio, avanceRenta);
 
         cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
@@ -194,5 +199,65 @@ class TrasladoServiceTest {
         List<TrasladoResponse> porFecha = servicio.listar(null, LocalDate.of(2026, 10, 8), LocalDate.of(2026, 10, 8));
         assertEquals(1, porFecha.size());
         assertEquals("TR-0089", porFecha.get(0).folio());
+    }
+
+    @Test
+    void completar_marcaRealizadoYHaceAvanzarLaRenta() {
+        trasladoEntrega.asignarResponsable(operadorLuis);
+        when(repositorio.findById(200L)).thenReturn(Optional.of(trasladoEntrega));
+
+        TrasladoResponse respuesta = servicio.completar(200L);
+
+        assertEquals(EstadoTraslado.COMPLETADO, respuesta.estado());
+        assertNotNull(trasladoEntrega.getFechaFinReal());
+        verify(avanceRenta).trasladoRealizado(trasladoEntrega);
+    }
+
+    @Test
+    void completar_rechazaConConflicto_cuandoNoTieneResponsable() {
+        when(repositorio.findById(200L)).thenReturn(Optional.of(trasladoEntrega));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> servicio.completar(200L));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        assertTrue(ex.getReason().contains("TR-0086"));
+        verifyNoInteractions(avanceRenta);
+    }
+
+    @Test
+    void completar_rechazaConConflicto_cuandoYaSeRealizo() {
+        trasladoEntrega.asignarResponsable(operadorLuis);
+        trasladoEntrega.completar();
+        when(repositorio.findById(200L)).thenReturn(Optional.of(trasladoEntrega));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> servicio.completar(200L));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        verifyNoInteractions(avanceRenta);
+    }
+
+    @Test
+    void completar_rechazaLaRecoleccion_mientrasNoSeHagaLaEntrega() {
+        Traslado recoleccion = new Traslado("TR-0087", renta, TipoTraslado.RECOLECCION,
+                LocalDateTime.of(2026, 10, 20, 14, 0),
+                LocalDateTime.of(2026, 10, 20, 16, 0));
+        recoleccion.asignarResponsable(operadorAna);
+        when(repositorio.findById(201L)).thenReturn(Optional.of(recoleccion));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> servicio.completar(201L));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        assertTrue(ex.getReason().contains("R-2046"));
+        assertEquals(EstadoTraslado.PROGRAMADO, recoleccion.getEstado());
+        verifyNoInteractions(avanceRenta);
+    }
+
+    @Test
+    void completar_responde404_cuandoNoExiste() {
+        when(repositorio.findById(999L)).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> servicio.completar(999L));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
     }
 }

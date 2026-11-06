@@ -1,6 +1,7 @@
 package mx.montacargasobregon.backend.operacion.servicio;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -24,6 +25,10 @@ import mx.montacargasobregon.backend.rentas.modelo.EquipoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.FaseEquipoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
+import mx.montacargasobregon.backend.revisiones.modelo.EstadoRevision;
+import mx.montacargasobregon.backend.revisiones.modelo.Revision;
+import mx.montacargasobregon.backend.revisiones.modelo.TipoRevision;
+import mx.montacargasobregon.backend.revisiones.repositorio.RevisionRepository;
 import mx.montacargasobregon.backend.traslados.modelo.EstadoTraslado;
 import mx.montacargasobregon.backend.traslados.modelo.TipoTraslado;
 import mx.montacargasobregon.backend.traslados.modelo.Traslado;
@@ -34,9 +39,14 @@ class AvanceRentaServiceTest {
 
     private static final LocalDateTime ENTREGA_DESDE = LocalDateTime.of(2026, 11, 10, 8, 0);
     private static final LocalDateTime ENTREGA_HASTA = LocalDateTime.of(2026, 11, 10, 10, 0);
+    private static final LocalDateTime RECOLECCION_DESDE = LocalDateTime.of(2026, 11, 20, 14, 0);
+    private static final LocalDateTime RECOLECCION_HASTA = LocalDateTime.of(2026, 11, 20, 16, 0);
 
     @Mock
     private TrasladoRepository trasladoRepositorio;
+
+    @Mock
+    private RevisionRepository revisionRepositorio;
 
     private AvanceRentaService servicio;
 
@@ -46,7 +56,7 @@ class AvanceRentaServiceTest {
 
     @BeforeEach
     void setUp() {
-        servicio = new AvanceRentaService(trasladoRepositorio);
+        servicio = new AvanceRentaService(trasladoRepositorio, revisionRepositorio);
 
         Cliente cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
@@ -130,4 +140,71 @@ class AvanceRentaServiceTest {
         assertEquals(FaseEquipoRenta.COMPLETADO, mc030.getFase());
         assertEquals(EstadoRenta.PROGRAMADA, renta.getEstado());
     }
+
+
+    @Test
+    void programarRecoleccion_guardaElHorarioYCreaElTraslado() {
+        when(trasladoRepositorio.existsByRentaAndTipoAndEstadoNot(renta, TipoTraslado.RECOLECCION, EstadoTraslado.CANCELADO))
+                .thenReturn(false);
+        when(trasladoRepositorio.ultimoNumeroFolio()).thenReturn(90);
+
+        servicio.programarRecoleccion(renta, RECOLECCION_DESDE, RECOLECCION_HASTA);
+
+        assertEquals(RECOLECCION_DESDE, renta.getRecoleccionDesde());
+        assertEquals(RECOLECCION_HASTA, renta.getRecoleccionHasta());
+        ArgumentCaptor<Traslado> traslado = ArgumentCaptor.forClass(Traslado.class);
+        verify(trasladoRepositorio).save(traslado.capture());
+        assertEquals("TR-0091", traslado.getValue().getFolio());
+        assertEquals(TipoTraslado.RECOLECCION, traslado.getValue().getTipo());
+        assertEquals(EstadoTraslado.PROGRAMADO, traslado.getValue().getEstado());
+        assertEquals(RECOLECCION_DESDE, traslado.getValue().getFechaHoraInicio());
+        assertEquals(RECOLECCION_HASTA, traslado.getValue().getFechaHoraFin());
+        assertNull(traslado.getValue().getResponsable());
+    }
+
+    @Test
+    void programarRecoleccion_noRepiteElTraslado_cuandoYaExiste() {
+        when(trasladoRepositorio.existsByRentaAndTipoAndEstadoNot(renta, TipoTraslado.RECOLECCION, EstadoTraslado.CANCELADO))
+                .thenReturn(true);
+
+        servicio.programarRecoleccion(renta, RECOLECCION_DESDE, RECOLECCION_HASTA);
+
+        assertEquals(RECOLECCION_DESDE, renta.getRecoleccionDesde());
+        verify(trasladoRepositorio, never()).save(any());
+    }
+
+    @Test
+    void trasladoRealizado_entrega_dejaLosEquiposConElCliente() {
+        mc030.cambiarFase(FaseEquipoRenta.LISTO_ENTREGA);
+        mc031.cambiarFase(FaseEquipoRenta.LISTO_ENTREGA);
+        Traslado entrega = new Traslado("TR-0087", renta, TipoTraslado.ENTREGA, ENTREGA_DESDE, ENTREGA_HASTA);
+
+        servicio.trasladoRealizado(entrega);
+
+        assertEquals(FaseEquipoRenta.EN_OPERACION, mc030.getFase());
+        assertEquals(FaseEquipoRenta.EN_OPERACION, mc031.getFase());
+        assertEquals(EstadoRenta.EN_CURSO, renta.getEstado());
+        verifyNoInteractions(revisionRepositorio);
+    }
+
+    @Test
+    void trasladoRealizado_recoleccion_creaUnaRevisionDeEntradaPorEquipo() {
+        renta.cambiarEstado(EstadoRenta.EN_CURSO);
+        mc030.cambiarFase(FaseEquipoRenta.EN_OPERACION);
+        mc031.cambiarFase(FaseEquipoRenta.CANCELADO);
+        Traslado recoleccion = new Traslado("TR-0091", renta, TipoTraslado.RECOLECCION,
+                RECOLECCION_DESDE, RECOLECCION_HASTA);
+
+        servicio.trasladoRealizado(recoleccion);
+
+        assertEquals(FaseEquipoRenta.EN_REVISION_ENTRADA, mc030.getFase());
+        assertEquals(FaseEquipoRenta.CANCELADO, mc031.getFase());
+        ArgumentCaptor<Revision> revision = ArgumentCaptor.forClass(Revision.class);
+        verify(revisionRepositorio).save(revision.capture());
+        assertSame(mc030, revision.getValue().getEquipoRenta());
+        assertEquals(TipoRevision.ENTRADA, revision.getValue().getTipo());
+        assertEquals(EstadoRevision.PENDIENTE, revision.getValue().getEstado());
+        assertEquals(EstadoRenta.EN_CURSO, renta.getEstado());
+    }
+
 }
