@@ -87,5 +87,15 @@ public class TrasladoController {
     ) {
         return servicio.asignar(id, request);
     }
+
+    /**
+     * PATCH /api/traslados/{id}/completar
+     * Marca el traslado como realizado y hace avanzar la renta.
+     */
+    @PatchMapping("/{id}/completar")
+    public TrasladoResponse completar(@PathVariable Long id) {
+        return servicio.completar(id);
+    }
+
 }
 
