@@ -53,22 +53,31 @@ export default function NuevaCotizacion() {
   const location = useLocation();
 
   const [borrador, setBorrador] = useState<BorradorCotizacion>(() => {
-    // Si llega un cliente desde la tabla de clientes, se carga ya elegido
-    const cliente =
-      (location.state as { cliente?: Cliente } | null)?.cliente ?? null;
-    if (!cliente) return borradorVacio;
+    const estado = location.state as {
+      cliente?: Cliente;
+      fechas?: { desde: string; hasta: string };
+    } | null;
+
+    const cliente = estado?.cliente ?? null;
+    const fechas = estado?.fechas;
 
     return {
       ...borradorVacio,
-      cliente,
-      // Con una sola razón social queda elegida, igual que al buscar
-      razonSocialId:
-        cliente.razonesSociales.length === 1
-          ? cliente.razonesSociales[0].id
-          : null,
+      ...(fechas
+        ? { fechaEntrega: fechas.desde, fechaRecoleccion: fechas.hasta }
+        : {}),
+      ...(cliente
+        ? {
+            cliente,
+            razonSocialId:
+              cliente.razonesSociales.length === 1
+                ? cliente.razonesSociales[0].id
+                : null,
+          }
+        : {}),
     };
   });
-  
+
   const [errores, setErrores] = useState<Errores>({});
   const [errorGuardar, setErrorGuardar] = useState("");
   const [guardando, setGuardando] = useState(false);
