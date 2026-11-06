@@ -17,6 +17,8 @@ import DetalleCliente from "../features/clientes/DetalleCliente";
 
 import DashboardTraslados from "../features/traslados/DashboardTraslados";
 
+import RegistrarRenta from "../features/rentas-captura/RegistrarRenta";
+
 
 export default function AppRoutes() {
   return (
@@ -37,6 +39,9 @@ export default function AppRoutes() {
         <Route path="/cotizaciones/nueva" element={<NuevaCotizacion />} />
         <Route path="/cotizaciones/:id" element={<DetalleCotizacion />} />
         <Route path="/cotizaciones/:id/pdf" element={<PdfCotizacion />} />
+
+        {/* Captura manual temporal: sin opción en el menú lateral*/}
+        <Route path="/rentas/nueva" element={<RegistrarRenta />} />
 
         {/* Revisiones */}
         <Route path="/revisiones" element={<Revisiones />} />
