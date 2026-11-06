@@ -1,29 +1,4 @@
-/* Pantalla de Mantenimientos: asignar mantenimientos a mecánicos */
-
-.mantenimientos-titulo {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-/* Filtros: estado a la izquierda, fechas a la derecha */
-.mantenimientos-filtros {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px 32px;
-}
-.mantenimientos-filtro {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
-.mantenimientos-filtro-etiqueta {
-  font-weight: 600;
-  color: var(--primary-teal);
-}
+/* Pantalla de Mantenimientos. Lo común con Revisiones y Traslados está en operacion.css */
 
 /* Barra que aparece al marcar equipos */
 .mantenimientos-seleccion {
@@ -38,7 +13,7 @@
   color: var(--primary-teal);
 }
 
-/* Celdas */
+/* Casillas para marcar */
 .mantenimientos .celda-casilla {
   width: 48px;
 }
@@ -52,18 +27,8 @@
   cursor: not-allowed;
   opacity: 0.4;
 }
-.mantenimientos .celda-principal {
-  display: block;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--primary-teal);
-}
-.mantenimientos .celda-secundaria {
-  display: block;
-  margin-top: 2px;
-  font-size: 12px;
-  color: var(--text-foreground);
-}
+
+/* Falla con su ícono */
 .mantenimientos .celda-falla {
   display: flex;
   align-items: center;
@@ -79,166 +44,13 @@
 .mantenimientos .icono-ok {
   color: var(--ok-green-outline);
 }
-.mantenimientos .celda-mecanico {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.mantenimientos .celda-mecanico > div {
+
+/* Modal de terminar */
+.mantenimientos-terminar {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
+  gap: 8px;
 }
-.mantenimientos .celda-mecanico-nombre {
-  font-weight: 600;
-  color: var(--primary-teal);
-}
-.mantenimientos .celda-accion {
-  text-align: right;
-  white-space: nowrap;
-}
-
-/* Círculo con iniciales, en la tabla y en el modal */
-.mantenimientos .avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #b7cfee;
-  color: var(--primary-teal);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-/* Botones: ícono con separación, versión compacta para la tabla y deshabilitados */
-.mantenimientos .btn {
-  gap: 6px;
-}
-.mantenimientos .btn-chico {
-  padding: 8px 14px;
-  font-size: 14px;
-}
-.mantenimientos .btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-/* Filas recién asignadas */
-.mantenimientos .data-table tbody tr.fila-resaltada {
-  background-color: rgba(32, 149, 104, 0.1);
-}
-
-/* Modal de asignar */
-.asignar-subtitulo {
-  margin: 0 0 8px;
-  padding: 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--primary-teal);
-}
-.asignar-equipos {
+.mantenimientos-terminar p {
   margin: 0;
-  padding: 0;
-  list-style: none;
-  border-radius: 10px;
-  background: var(--selection-gray);
-}
-.asignar-equipos li {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  font-size: 14px;
-}
-.asignar-equipos li + li {
-  border-top: 1px solid var(--table-divider);
-}
-.asignar-equipos strong {
-  color: var(--primary-teal);
-}
-.asignar-falla {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-foreground);
-}
-.asignar-falla .material-symbols-rounded {
-  font-size: 16px;
-  color: var(--warning-red-outline);
-}
-.asignar-salida {
-  font-size: 13px;
-  color: var(--text-foreground);
-  white-space: nowrap;
-}
-.asignar-mecanicos {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-.asignar-mecanico {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border: 1.5px solid var(--primary-teal);
-  border-radius: 10px;
-  background: var(--off-white-background);
-  cursor: pointer;
-}
-.asignar-mecanico.elegido {
-  border-color: var(--ok-green-outline);
-  background: rgba(32, 149, 104, 0.1);
-}
-.asignar-mecanico input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--primary-teal);
-}
-.asignar-mecanico-texto {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  font-size: 13px;
-}
-.asignar-mecanico-texto strong {
-  font-size: 15px;
-  color: var(--primary-teal);
-}
-.asignar-elegido {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--ok-green);
-  color: var(--ok-green-outline);
-  font-size: 12px;
-  font-weight: 600;
-}
-.asignar-elegido .material-symbols-rounded {
-  font-size: 14px;
-}
-.asignar-mensaje {
-  font-size: 14px;
-  color: var(--text-foreground);
-}
-
-/* Celular: la fecha de salida baja a su propia línea */
-@media (max-width: 600px) {
-  .asignar-equipos li {
-    grid-template-columns: auto 1fr;
-  }
-  .asignar-salida {
-    grid-column: 1 / -1;
-  }
 }

@@ -83,6 +83,7 @@ html {
   display: flex;
   align-items: center;
   width: min(720px, 100%);
+  min-width: 0; /* Deja que se encoja en celular para que el encabezado no se salga */
   height: 56px;
   padding: 0 12px 0 24px;
   border-radius: 28px;

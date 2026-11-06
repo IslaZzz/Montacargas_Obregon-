@@ -67,3 +67,15 @@
 .data-table tbody tr.fila-clicable {
     cursor: pointer;
 }
+
+/* Filas hijas de la fila de arriba (DataTable con getSubfilas): mismas columnas, fondo gris */
+.data-table tbody tr.fila-detalle,
+.data-table tbody tr.fila-detalle:hover {
+    background-color: var(--selection-gray);
+}
+
+.data-table tbody tr.fila-detalle > td {
+    height: auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}

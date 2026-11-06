@@ -94,4 +94,21 @@ public class Revision {
             estado = EstadoRevision.ASIGNADO;
         }
     }
+
+    /** El resultado se registra cuando la revisión ya tiene mecánico y no ha terminado. */
+    public boolean puedeRegistrarResultado() {
+        return estado == EstadoRevision.ASIGNADO || estado == EstadoRevision.EN_PROCESO;
+    }
+
+    /** Guarda lo que reportó el mecánico y da la revisión por terminada. */
+    public void registrarResultado(ResultadoRevision resultado, String notas) {
+        LocalDateTime ahora = LocalDateTime.now();
+        if (fechaInicio == null) {
+            fechaInicio = ahora;
+        }
+        this.fechaFin = ahora;
+        this.resultado = resultado;
+        this.notas = notas;
+        this.estado = EstadoRevision.COMPLETADA;
+    }
 }

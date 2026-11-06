@@ -10,8 +10,19 @@ import PdfCotizacion from "../features/cotizaciones/PdfCotizacion";
 import FilterTest from "../features/testComponentes/FilterTest";
 import StyleTest from "../features/testComponentes/StyleTest";
 import Mantenimientos from "../features/mantenimientos/Mantenimientos";
+import Revisiones from "../features/revisiones/Revisiones";
+import ApartadosProximos from "../features/avisos/ApartadosProximos";
+import CartaRenta from "../features/cartas/CartaRenta";
+import VistaPreviaCarta from "../features/cartas/VistaPreviaCarta";
+
 import DetalleCliente from "../features/clientes/DetalleCliente";
 import Disponibilidad from '../features/equipos/disponibilidad/ConsultarDisponibilidad'
+
+import DashboardTraslados from "../features/traslados/DashboardTraslados";
+
+import ProgramarRecoleccion from "../features/rentas-captura/ProgramarRecoleccion";
+import RegistrarRenta from "../features/rentas-captura/RegistrarRenta";
+
 
 export default function AppRoutes() {
   return (
@@ -32,9 +43,25 @@ export default function AppRoutes() {
         <Route path="/cotizaciones/nueva" element={<NuevaCotizacion />} />
         <Route path="/cotizaciones/:id" element={<DetalleCotizacion />} />
         <Route path="/cotizaciones/:id/pdf" element={<PdfCotizacion />} />
-        
+
+        {/* Captura manual temporal: sin opción en el menú lateral*/}
+        <Route path="/rentas/nueva" element={<RegistrarRenta />} />
+
+        <Route path="/rentas/recoleccion" element={<ProgramarRecoleccion />} />
+
+        {/* Revisiones */}
+        <Route path="/revisiones" element={<Revisiones />} />
+        {/* Traslados */}
+        <Route path="/traslados" element={<DashboardTraslados />} />
         {/* Mantenimientos */}
         <Route path="/mantenimientos" element={<Mantenimientos />} />
+
+        {/* Avisos */}
+        <Route path="/apartados-proximos" element={<ApartadosProximos />} />
+
+        {/* Carta responsiva. Provisional hasta que exista el detalle de la renta (OHU-03) */}
+        <Route path="/rentas/:id/carta" element={<CartaRenta />} />
+        <Route path="/rentas/:id/carta/vista-previa" element={<VistaPreviaCarta />} />
 
         {/* Disponibilidad */}
         <Route path="/disponibilidad" element={<Disponibilidad />} />

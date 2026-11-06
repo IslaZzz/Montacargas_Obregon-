@@ -1,0 +1,190 @@
+/* Botón "Avisos" del encabezado y su lista desplegable (OHU-24) */
+
+.avisos-contenedor {
+  position: relative;
+}
+
+.avisos-campana {
+  position: relative;
+  display: inline-flex;
+}
+.avisos-contador {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--warning-red-outline);
+  color: var(--btn-text-color);
+  font:
+    700 11px/18px "Inter",
+    sans-serif;
+  text-align: center;
+}
+
+/* Texto solo para lectores de pantalla */
+.avisos-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.panel-avisos {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: -120px;
+  z-index: 20;
+  width: 500px;
+  max-width: calc(100vw - 32px);
+  background: var(--off-white-background);
+  border: 1px solid var(--secondary-mint);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.panel-avisos-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--table-header-background);
+  border-bottom: 1px solid var(--table-divider);
+}
+.panel-avisos-encabezado h2 {
+  margin: 0;
+  font:
+    600 20px/normal "Inter",
+    sans-serif;
+  letter-spacing: normal;
+  color: var(--primary-teal);
+}
+.panel-avisos-marcar {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--secondary-mint);
+  font:
+    500 14px "Inter",
+    sans-serif;
+  cursor: pointer;
+}
+.panel-avisos-marcar:hover {
+  text-decoration: underline;
+}
+.panel-avisos-marcar:disabled {
+  color: var(--search-bar-grey-teal);
+  cursor: default;
+  text-decoration: none;
+}
+
+.panel-avisos-lista {
+  max-height: min(420px, 60vh);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.panel-aviso {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border-bottom: 1px solid var(--table-divider);
+}
+/* Los que todavía no se marcan como leídos */
+.panel-aviso-nuevo {
+  background: var(--beige-background);
+}
+
+.panel-aviso-icono {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--reminder-yellow);
+  color: var(--outline-reminder-yellow);
+  font-size: 20px;
+}
+
+.panel-aviso-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--text-foreground);
+}
+.panel-aviso-cuerpo p {
+  margin: 0;
+}
+.panel-aviso-titulo {
+  font-weight: 600;
+  color: var(--primary-teal);
+}
+
+.panel-aviso-accion,
+.panel-avisos-todos {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: none;
+  color: var(--secondary-mint);
+  font:
+    600 14px "Inter",
+    sans-serif;
+  text-decoration: none;
+}
+.panel-aviso-accion {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 0;
+}
+.panel-aviso-accion:hover {
+  text-decoration: underline;
+}
+.panel-aviso-accion .material-symbols-rounded,
+.panel-avisos-todos .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.panel-avisos-todos {
+  justify-content: center;
+  width: 100%;
+  padding: 14px 16px;
+}
+.panel-avisos-todos:hover {
+  text-decoration: underline;
+}
+
+.panel-avisos-mensaje {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 20px 16px;
+  border-bottom: 1px solid var(--table-divider);
+  font-size: 14px;
+}
+.panel-avisos-mensaje .material-symbols-rounded {
+  color: var(--ok-green-outline);
+}
+
+/* Celular: la lista ocupa el ancho de la pantalla */
+@media (max-width: 700px) {
+  .panel-avisos {
+    position: fixed;
+    top: 72px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+    max-width: none;
+  }
+}
