@@ -154,13 +154,13 @@ export default function BuscarClientes() {
           >
             Ver datos
           </Button>
-          {/*Botón para crear cotización, pasa el clienteId a la pantalla de
+          {/*Botón para crear cotización, pasa el cliente a la pantalla de
           nueva cotización*/}
           <Button
             type="button"
             variant="secondary"
             onClick={() =>
-              navigate("/cotizaciones/nueva", { state: { clienteId: c.id } })
+              navigate("/cotizaciones/nueva", { state: { cliente: c } })
             }
           >
             <span className="material-symbols-rounded">description</span>

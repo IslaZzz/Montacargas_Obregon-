@@ -119,14 +119,12 @@ export default function DetalleCliente() {
             <span className="material-symbols-rounded">edit</span>
             Editar datos
           </Button>
-          {/* Pendiente: pantalla de nueva cotización */}
+          {/* Pantalla de nueva cotización */}
           <Button
             type="button"
             variant="primary"
             onClick={() =>
-              navigate("/cotizaciones/nueva", {
-                state: { clienteId: cliente.id },
-              })
+              navigate("/cotizaciones/nueva", { state: { cliente } })
             }
           >
             Crear cotización para este cliente →
