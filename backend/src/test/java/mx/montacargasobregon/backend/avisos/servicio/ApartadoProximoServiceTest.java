@@ -161,7 +161,7 @@ class ApartadoProximoServiceTest {
     }
 
     private static CartaResponsiva carta(Renta renta, EstadoCarta estado) {
-        CartaResponsiva carta = new CartaResponsiva(renta);
+        CartaResponsiva carta = new CartaResponsiva(renta, null, null);
         carta.cambiarEstado(estado);
         return carta;
     }

@@ -1,0 +1,518 @@
+/* Carta responsiva (OHU-04): bloque del detalle de la renta, vista previa y modales */
+
+.carta-pagina {
+  max-width: 1100px;
+}
+
+.carta-volver {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 8px;
+  color: var(--secondary-mint);
+  font:
+    600 18px "Inter",
+    sans-serif;
+  text-decoration: none;
+}
+.carta-volver:hover {
+  text-decoration: underline;
+}
+
+.carta-encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.carta-chips,
+.carta-previa-estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.carta-chips .chip,
+.carta-previa-estado .chip {
+  padding: 8px 16px;
+  font-size: 16px;
+}
+.pagina .carta-previa-estado {
+  margin-top: -8px;
+  font-size: 22px;
+  color: var(--primary-teal);
+}
+
+.carta-nota {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pagina .carta-nota {
+  font-size: 14px;
+  color: var(--tertiary-mineral-blue);
+}
+.carta-nota .material-symbols-rounded {
+  font-size: 18px;
+}
+
+/* ===== Bloque de la carta ===== */
+.carta-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 800px;
+  padding: 32px;
+  background: var(--off-white-background);
+  border: 2px solid var(--secondary-mint);
+  border-radius: 4px;
+}
+/* Amarillo mientras falta algo por hacer con la carta */
+.carta-bloque-pendiente {
+  border-color: var(--outline-reminder-yellow);
+}
+.carta-bloque-firmada {
+  border-color: var(--ok-green-outline);
+}
+
+.carta-bloque-titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font:
+    600 30px/1.2 "Inter",
+    sans-serif;
+  letter-spacing: normal;
+  color: var(--primary-teal);
+}
+.carta-bloque-titulo .material-symbols-rounded {
+  font-size: 36px;
+  color: var(--outline-reminder-yellow);
+}
+.carta-bloque-firmada .carta-bloque-titulo .material-symbols-rounded {
+  color: var(--ok-green-outline);
+}
+
+.pagina .carta-bloque p,
+.carta-panel p {
+  margin: 0;
+}
+.pagina .carta-bloque > p {
+  font-size: 22px;
+  color: var(--primary-teal);
+}
+.pagina .carta-bloque .carta-bloque-ayuda,
+.carta-bloque-ayuda {
+  font-size: 16px;
+  color: var(--tertiary-mineral-blue);
+}
+
+/* La renta cambió después de generar la carta */
+.carta-cambio-aviso {
+  display: flex;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--reminder-yellow);
+  border: 1px solid var(--outline-reminder-yellow);
+  border-radius: 4px;
+  color: var(--primary-teal);
+}
+.carta-cambio-aviso .material-symbols-rounded {
+  color: var(--outline-reminder-yellow);
+}
+.carta-cambio-aviso strong {
+  font-size: 17px;
+}
+.pagina .carta-cambio-aviso p {
+  font-size: 16px;
+  color: var(--primary-teal);
+}
+
+/* Archivo vigente */
+.carta-archivo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--selection-gray);
+  border-radius: 4px;
+}
+.carta-archivo-icono {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 4px;
+  background: var(--off-white-background);
+  color: var(--warning-red-outline);
+  font-size: 30px;
+}
+.carta-archivo > div {
+  min-width: 0;
+}
+.pagina .carta-bloque .carta-archivo-nombre {
+  overflow-wrap: anywhere;
+  font:
+    600 22px "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.pagina .carta-bloque .carta-archivo-version {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 16px;
+  color: var(--tertiary-mineral-blue);
+}
+
+.pagina .carta-bloque .carta-destinatario {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-wrap: anywhere;
+  font-size: 20px;
+}
+.carta-destinatario .material-symbols-rounded {
+  color: var(--secondary-mint);
+}
+
+/* Botones */
+.carta-boton-principal,
+.carta-acciones .btn,
+.carta-boton-modal {
+  gap: 10px;
+}
+.carta-boton-principal {
+  width: 100%;
+  min-height: 64px;
+  font-size: 20px;
+}
+.carta-acciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.carta-acciones-tres {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.carta-acciones .btn {
+  min-height: 52px;
+  padding: 12px;
+  font-size: 17px;
+}
+.carta-acciones .material-symbols-rounded,
+.carta-boton-principal .material-symbols-rounded,
+.carta-boton-modal .material-symbols-rounded {
+  font-size: 22px;
+}
+.carta-boton-modal {
+  min-height: 56px;
+  padding: 12px 28px;
+  font-size: 18px;
+}
+
+.carta-enlaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+}
+.carta-enlace {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--secondary-mint);
+  font:
+    600 18px "Inter",
+    sans-serif;
+  cursor: pointer;
+}
+.carta-enlace:hover {
+  text-decoration: underline;
+}
+
+/* ===== Modales ===== */
+.carta-faltantes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.carta-faltantes li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: color-mix(in srgb, var(--warning-red) 45%, white);
+  border: 1px solid var(--warning-red-outline);
+  border-radius: 4px;
+  color: var(--primary-teal);
+}
+.carta-faltantes .material-symbols-rounded {
+  color: var(--warning-red-outline);
+}
+.carta-faltante-dato {
+  flex: 1;
+  font:
+    600 18px "Inter",
+    sans-serif;
+}
+.carta-faltante-origen {
+  padding: 2px 10px;
+  border-radius: 10px;
+  background: var(--off-white-background);
+  font-size: 14px;
+}
+
+.carta-cambios {
+  padding: 14px 18px;
+  background: var(--selection-gray);
+  border-radius: 4px;
+}
+.carta-cambios-titulo {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--tertiary-mineral-blue);
+}
+.carta-cambios dl {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+.carta-cambio {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.8fr) minmax(0, 2fr);
+  gap: 12px;
+  color: var(--primary-teal);
+}
+.carta-cambio dt {
+  font-size: 17px;
+}
+.carta-cambio dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+.carta-cambio-antes {
+  color: var(--tertiary-mineral-blue);
+}
+.carta-cambio dd .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--secondary-mint);
+}
+
+.carta-versiones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--secondary-mint);
+}
+.carta-version {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font:
+    600 14px "Inter",
+    sans-serif;
+}
+.carta-version-anterior {
+  background: var(--light-gray);
+  color: var(--primary-teal);
+}
+.carta-version-vigente {
+  background: var(--ok-green);
+  color: var(--primary-teal);
+}
+.carta-modal-nota {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-foreground);
+}
+
+/* ===== Vista previa ===== */
+.carta-previa {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 571px;
+}
+.carta-previa .pagina h1 {
+  font-size: 56px;
+}
+
+.carta-visor {
+  display: flex;
+  flex-direction: column;
+  min-height: 600px;
+  border: 2px solid var(--secondary-mint);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--selection-gray);
+}
+.carta-visor-barra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 8px 20px;
+  background: var(--off-white-background);
+  color: var(--primary-teal);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.carta-visor-barra > .material-symbols-rounded {
+  color: var(--warning-red-outline);
+}
+.carta-visor-abrir {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  color: var(--secondary-mint);
+  font-size: 14px;
+  white-space: nowrap;
+}
+.carta-visor-abrir .material-symbols-rounded {
+  font-size: 18px;
+}
+.carta-visor iframe {
+  flex: 1;
+  width: 100%;
+  min-height: 560px;
+  border: 0;
+}
+
+.carta-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--selection-gray);
+  border-left: 1px solid var(--secondary-mint);
+  box-shadow: -4px 0 4px rgba(0, 0, 0, 0.25);
+}
+.carta-panel-encabezado {
+  display: flex;
+  align-items: center;
+  height: 81px;
+  padding: 0 34px;
+  background: var(--primary-teal);
+}
+.carta-panel-encabezado h2 {
+  margin: 0;
+  font:
+    600 24px "Inter",
+    sans-serif;
+  letter-spacing: normal;
+  color: var(--selection-gray);
+}
+.carta-panel-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 40px 34px;
+}
+.carta-panel-dato:nth-of-type(even) {
+  background: var(--off-white-background);
+}
+.carta-panel-dato > span,
+.carta-panel-acciones > span {
+  font-size: 16px;
+  color: var(--tertiary-mineral-blue);
+}
+.carta-panel-dato strong {
+  overflow-wrap: anywhere;
+  font:
+    600 24px "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.carta-panel-dato p {
+  font-size: 18px;
+  color: var(--tertiary-mineral-blue);
+}
+.carta-panel-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: auto;
+  padding: 40px 34px;
+}
+
+/* Marco oculto para imprimir el PDF */
+.carta-marco-impresion {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border: 0;
+}
+
+/* Tableta: el panel pasa abajo */
+@media (max-width: 1100px) {
+  .carta-previa {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .carta-previa .pagina h1 {
+    font-size: clamp(28px, 5vw, 40px);
+  }
+  .carta-panel {
+    border-left: 0;
+    border-top: 1px solid var(--secondary-mint);
+    box-shadow: none;
+  }
+}
+
+/* Celular */
+@media (max-width: 700px) {
+  .carta-bloque {
+    padding: 20px 16px;
+  }
+  .carta-bloque-titulo {
+    font-size: 24px;
+  }
+  .pagina .carta-bloque > p {
+    font-size: 18px;
+  }
+  .pagina .carta-bloque .carta-archivo-nombre {
+    font-size: 17px;
+  }
+  .pagina .carta-bloque .carta-destinatario {
+    font-size: 16px;
+  }
+  .carta-acciones-tres {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .carta-cambio {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .carta-visor,
+  .carta-visor iframe {
+    min-height: 440px;
+  }
+  .carta-panel-encabezado {
+    height: 64px;
+    padding: 0 16px;
+  }
+  .carta-panel-dato,
+  .carta-panel-acciones {
+    padding: 24px 16px;
+  }
+  .carta-panel-dato strong {
+    font-size: 19px;
+  }
+}

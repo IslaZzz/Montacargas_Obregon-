@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Chip from "../../components/chips";
 import { useTitulo } from "../../hooks/useTitulo";
 import type { ApartadoProximo } from "./avisosTypes";
@@ -6,6 +7,7 @@ import {
   chipCarta,
   esUrgente,
   nombreCarta,
+  rutaCarta,
   sinCarta,
   textoEquipos,
   textoInicio,
@@ -13,8 +15,6 @@ import {
 import SelectorAnticipacion from "./SelectorAnticipacion";
 import { useApartadosProximos } from "./useApartadosProximos";
 import "../../styles/apartados/apartados.css";
-
-const FALTA_CARTA = "Disponible cuando exista la carta responsiva (OHU-04)";
 
 function TarjetaApartado({ apartado }: { apartado: ApartadoProximo }) {
   const accion = accionCarta(apartado);
@@ -37,13 +37,12 @@ function TarjetaApartado({ apartado }: { apartado: ApartadoProximo }) {
           </Chip>
         </div>
       </div>
-      {/* TODO: generar, enviar o ver la carta cuando exista OHU-04 */}
-      <button type="button" className="btn btn-filter apartado-accion" disabled title={FALTA_CARTA}>
+      <Link to={rutaCarta(apartado)} className="btn btn-filter apartado-accion">
         {accion.texto}
         <span className="material-symbols-rounded" aria-hidden="true">
           {accion.icono}
         </span>
-      </button>
+      </Link>
     </li>
   );
 }
