@@ -10,8 +10,9 @@ import FilterRow from "../../components/filters/filterRow";
 import DataTable from "../../components/table";
 import type { TableColumn } from "../../components/table";
 import { useTitulo } from "../../hooks/useTitulo";
+import { listarMecanicos } from "../../services/personalApi";
 import { formatoDiaCorto, formatoHora } from "../../utils/fechas";
-import { asignarRevisiones, listarMecanicosRevision, listarRevisiones } from "./revisionesApi";
+import { asignarRevisiones, listarRevisiones } from "./revisionesApi";
 import type { Revision, RevisionesRenta } from "./revisionesTypes";
 import {
   ESTADOS,
@@ -332,7 +333,7 @@ export default function Revisiones() {
         elementos={elementos}
         mecanicoActualId={actual}
         textoBoton={textoBoton}
-        cargarMecanicos={listarMecanicosRevision}
+        cargarMecanicos={listarMecanicos}
         onConfirmar={confirmar}
         onCerrar={() => setEnModal(null)}
       />

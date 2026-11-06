@@ -21,14 +21,6 @@ export interface Mantenimiento {
   estado: EstadoMantenimiento;
 }
 
-// Equivale a MecanicoCargaResponse
-export interface MecanicoCarga {
-  id: number;
-  codigo: string;
-  nombre: string;
-  equiposActivos: number;
-}
-
 // Equivale a AsignarRequest
 export interface AsignarRequest {
   mantenimientoIds: number[];

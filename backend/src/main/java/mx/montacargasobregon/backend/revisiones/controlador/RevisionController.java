@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import mx.montacargasobregon.backend.revisiones.dto.AsignarRevisionesRequest;
-import mx.montacargasobregon.backend.revisiones.dto.MecanicoCargaResponse;
 import mx.montacargasobregon.backend.revisiones.dto.RevisionesRentaResponse;
 import mx.montacargasobregon.backend.revisiones.servicio.RevisionService;
 
@@ -29,12 +28,6 @@ public class RevisionController {
     @GetMapping
     public List<RevisionesRentaResponse> listar() {
         return servicio.listarPorRenta();
-    }
-
-    /** GET /api/revisiones/mecanicos: mecánicos activos con su carga de revisiones. */
-    @GetMapping("/mecanicos")
-    public List<MecanicoCargaResponse> mecanicos() {
-        return servicio.mecanicosConCarga();
     }
 
     /** PATCH /api/revisiones/asignar: asigna o cambia el mecánico; devuelve la lista actualizada. */

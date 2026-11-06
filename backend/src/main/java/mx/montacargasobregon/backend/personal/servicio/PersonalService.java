@@ -58,6 +58,22 @@ public class PersonalService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Personal no encontrado"));
     }
 
+    /**
+     * Busca a un mecánico para asignarle trabajo.
+     * Responde 404 si no existe y 400 si no es mecánico o ya no está activo.
+     */
+    @Transactional(readOnly = true)
+    public Personal mecanicoActivo(Long id) {
+        Personal mecanico = repositorio.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mecánico no encontrado"));
+
+        if (!mecanico.isActivo() || mecanico.getTipo() != TipoPersonal.MECANICO) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La persona elegida no es un mecánico activo");
+        }
+        return mecanico;
+    }
+
     /** Cambia los datos de alguien del personal. */
     @Transactional
     public Personal actualizar(Long id, PersonalRequest datos) {

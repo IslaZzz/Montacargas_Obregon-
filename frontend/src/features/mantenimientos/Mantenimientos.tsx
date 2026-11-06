@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import AsignarMecanicoModal from "../../components/AsignarMecanicoModal";
+import type { ElementoAsignar, MecanicoOpcion } from "../../components/AsignarMecanicoModal";
 import Aviso from "../../components/Aviso";
+import Avatar from "../../components/Avatar";
 import { Button } from "../../components/buttons";
 import Chip from "../../components/chips";
 import DateRangePicker from "../../components/filters/dateRangePicker";
@@ -8,18 +12,11 @@ import type { DateRangeValue } from "../../components/filters/filterTypes";
 import DataTable from "../../components/table";
 import type { TableColumn } from "../../components/table";
 import { useTitulo } from "../../hooks/useTitulo";
-import AsignarMecanicoModal from "./AsignarMecanicoModal";
-import { listarMantenimientos } from "./mantenimientosApi";
-import type { Mantenimiento, MecanicoCarga } from "./mantenimientosTypes";
-import {
-  ESTADOS,
-  chipDeEstado,
-  formatoDiaCorto,
-  formatoHora,
-  formatoRelativo,
-  iniciales,
-  ordenar,
-} from "./mantenimientosUtils";
+import { listarMecanicos } from "../../services/personalApi";
+import { formatoDiaCorto, formatoHora, formatoRelativo } from "../../utils/fechas";
+import { asignarMantenimientos, listarMantenimientos } from "./mantenimientosApi";
+import type { Mantenimiento } from "./mantenimientosTypes";
+import { ESTADOS, chipDeEstado, ordenar } from "./mantenimientosUtils";
 import "../../styles/mantenimientos/mantenimientos.css";
 
 export default function Mantenimientos() {
@@ -101,8 +98,14 @@ export default function Mantenimientos() {
     setEnModal(lista);
   }
 
-  // Después de asignar: actualiza la tabla, resalta las filas y muestra la confirmación
-  function alAsignar(actualizados: Mantenimiento[], mecanico: MecanicoCarga) {
+  // Guarda la asignación. Si el backend responde error, el modal lo muestra y no se cierra
+  async function confirmar(mecanico: MecanicoOpcion) {
+    const actualizados = await asignarMantenimientos({
+      mantenimientoIds: enModal.map((m) => m.id),
+      personalId: mecanico.id,
+    });
+
+    // Actualiza la tabla, resalta las filas y muestra la confirmación
     const porId = new Map(actualizados.map((m) => [m.id, m]));
     setMantenimientos((anterior) => ordenar(anterior.map((m) => porId.get(m.id) ?? m)));
 
@@ -213,7 +216,7 @@ export default function Mantenimientos() {
       accessor: (m) =>
         m.mecanicoNombre ? (
           <div className="celda-mecanico">
-            <span className="avatar" aria-hidden="true">{iniciales(m.mecanicoNombre)}</span>
+            <Avatar nombre={m.mecanicoNombre} />
             <div>
               <span className="celda-mecanico-nombre">{m.mecanicoNombre}</span>
               <Chip category="mantenimiento" status={chipDeEstado(m.estado)} />
@@ -225,6 +228,25 @@ export default function Mantenimientos() {
     },
     { header: "Acción", accessor: accion, className: "celda-accion" },
   ];
+
+  // Datos del modal
+  const total = enModal.length;
+  const actual = total === 1 ? enModal[0].mecanicoId : null;
+  const equipos = `${total} ${total === 1 ? "equipo" : "equipos"}`;
+  const titulo =
+    actual !== null
+      ? `Cambiar el mecánico de ${enModal[0].numeroUnidad}.`
+      : `Asignar ${equipos} a un mecánico.`;
+  const textoBoton = actual !== null ? "Cambiar mecánico" : `Asignar ${equipos}`;
+  const elementos: ElementoAsignar[] = enModal.map((m) => ({
+    id: m.id,
+    titulo: m.numeroUnidad,
+    descripcion: m.descripcionFalla,
+    alerta: true,
+    detalle: m.fechaLimite
+      ? `Sale ${formatoDiaCorto(m.fechaLimite).toLowerCase()} · ${formatoHora(m.fechaLimite)}`
+      : "Sin fecha de salida",
+  }));
 
   return (
     <div className="pagina mantenimientos">
@@ -290,11 +312,17 @@ export default function Mantenimientos() {
         emptyMessage={cargando ? "Cargando mantenimientos…" : "No hay mantenimientos con estos filtros."}
       />
 
-      <AsignarMecanicoModal
-        mantenimientos={enModal}
-        onCerrar={() => setEnModal([])}
-        onAsignado={alAsignar}
-      />
+        <AsignarMecanicoModal
+          abierto={total > 0}
+          titulo={titulo}
+          subtitulo="Elige quién revisará y reparará las fallas reportadas."
+          elementos={elementos}
+          mecanicoActualId={actual}
+          textoBoton={textoBoton}
+          cargarMecanicos={listarMecanicos}
+          onConfirmar={confirmar}
+          onCerrar={() => setEnModal([])}
+        />
     </div>
   );
 }

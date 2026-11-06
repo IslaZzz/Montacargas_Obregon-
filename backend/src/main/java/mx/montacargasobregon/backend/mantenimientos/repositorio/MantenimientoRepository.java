@@ -5,9 +5,11 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import mx.montacargasobregon.backend.mantenimientos.modelo.EstadoMantenimiento;
 import mx.montacargasobregon.backend.mantenimientos.modelo.Mantenimiento;
+import mx.montacargasobregon.backend.personal.dto.CargaPorMecanico;
 
 public interface MantenimientoRepository extends JpaRepository<Mantenimiento, Long> {
 
@@ -23,6 +25,12 @@ public interface MantenimientoRepository extends JpaRepository<Mantenimiento, Lo
         """)
     List<Mantenimiento> listar();
 
-    // Para calcular cuántos mantenimientos sin terminar tiene cada mecánico
-    List<Mantenimiento> findByEstadoIn(Collection<EstadoMantenimiento> estados);
+    // Cuántos mantenimientos en esos estados tiene cada mecánico, contados en la base de datos
+    @Query("""
+        select new mx.montacargasobregon.backend.personal.dto.CargaPorMecanico(m.mecanico.id, count(m))
+        from Mantenimiento m
+        where m.mecanico is not null and m.estado in :estados
+        group by m.mecanico.id
+        """)
+    List<CargaPorMecanico> contarPorMecanico(@Param("estados") Collection<EstadoMantenimiento> estados);
 }
