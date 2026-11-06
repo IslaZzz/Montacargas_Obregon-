@@ -6,11 +6,17 @@ import FilterFactory from "../../components/filters/filterFactory";
 import type { FilterDefinition } from "../../components/filters/filterTypes";
 import { buscarClientes } from "./clientesApi";
 import type { Cliente } from "./clientesTypes";
-import { useTitulo } from "../../hooks/useTitulo";
+
+// Cuántos clientes se muestran por tanda
+const POR_PAGINA = 20;
 
 // 6871234567 pasa a 687 123 4567
 const formatearTelefono = (telefono: string) =>
   telefono.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3");
+
+// Quita los acentos, para que "gutierrez" encuentre "Gutiérrez"
+const sinAcentos = (texto: string) =>
+  texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 // Un solo buscador que revisa nombre, empresa, teléfono y RFC a la vez
 const filtros: FilterDefinition<Cliente>[] = [
@@ -19,8 +25,8 @@ const filtros: FilterDefinition<Cliente>[] = [
     label: "Buscar cliente",
     type: "text",
     placeholder: "Busca por nombre, empresa, RFC o teléfono",
-    getValue: (c) =>
-      [
+    getValue: (c) => {
+      const texto = [
         c.nombre,
         c.apellidoPaterno,
         c.apellidoMaterno,
@@ -30,23 +36,90 @@ const filtros: FilterDefinition<Cliente>[] = [
         ...c.razonesSociales.map((r) => r.rfc),
       ]
         .filter(Boolean)
-        .join(" "),
+        .join(" ");
+      // Se agrega también la versión sin acentos
+      return `${texto} ${sinAcentos(texto)}`;
+    },
   },
 ];
 
+// Tabla con límite de 20, "Ver más" y mensaje sin resultados
+interface TablaClientesProps {
+  datos: Cliente[];
+  columnas: TableColumn<Cliente>[];
+  hayClientes: boolean;
+  textoBuscado?: string;
+}
+
+function TablaClientes({
+  datos,
+  columnas,
+  hayClientes,
+  textoBuscado = "",
+}: TablaClientesProps) {
+  const [visibles, setVisibles] = useState(POR_PAGINA);
+
+  // Cuando cambia el filtro, se vuelve a las primeras 20
+  useEffect(() => {
+    setVisibles(POR_PAGINA);
+  }, [datos]);
+
+  // Sin resultados
+  if (datos.length === 0) {
+    return (
+      <div className="sin-resultados" role="status">
+        <p>
+          {textoBuscado
+            ? `No se encontró ningún cliente con “${textoBuscado}”`
+            : hayClientes
+              ? "No se encontró ningún cliente"
+              : "Aún no hay clientes registrados"}
+        </p>
+      </div>
+    );
+  }
+
+  const mostrados = datos.slice(0, visibles);
+
+  return (
+    <>
+      <div className="tabla-clientes">
+        <DataTable
+          columns={columnas}
+          data={mostrados}
+          getRowKey={(c) => c.id}
+        />
+      </div>
+
+      {/* Si hay más de los que se muestran */}
+      {datos.length > mostrados.length && (
+        <div className="ver-mas">
+          <Button
+            type="button"
+            variant="tertiary"
+            onClick={() => setVisibles(visibles + POR_PAGINA)}
+          >
+            Ver más
+          </Button>
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function BuscarClientes() {
-  useTitulo("Clientes");
   const navigate = useNavigate();
 
-  // El estado es una lista de Cliente, y empieza vacía
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     // Se ejecuta una vez al abrir la pantalla
     buscarClientes()
       .then(setClientes)
-      .catch(() => setError("No fue posible cargar los clientes."));
+      .catch(() => setError("No fue posible cargar los clientes."))
+      .finally(() => setCargando(false));
   }, []);
 
   // Columnas de la tabla
@@ -73,6 +146,7 @@ export default function BuscarClientes() {
       header: "Acciones",
       accessor: (c) => (
         <div className="acciones-fila">
+          {/*Botón para ver datos del cliente*/}
           <Button
             type="button"
             variant="secondary"
@@ -80,6 +154,8 @@ export default function BuscarClientes() {
           >
             Ver datos
           </Button>
+          {/*Botón para crear cotización, pasa el clienteId a la pantalla de
+          nueva cotización*/}
           <Button
             type="button"
             variant="secondary"
@@ -122,19 +198,18 @@ export default function BuscarClientes() {
         </div>
       )}
 
-      {/* Buscador y tabla */}
-      <FilterFactory data={clientes} filters={filtros}>
-        {(filtrados) => (
-          <div className="tabla-clientes">
-            <DataTable
-              columns={columnas}
-              data={filtrados}
-              getRowKey={(c) => c.id}
-              emptyMessage="No se encontraron clientes"
+      {/* Buscador y tabla, filtra mientras se escribe */}
+      {!cargando && !error && (
+        <FilterFactory data={clientes} filters={filtros}>
+          {(filtrados) => (
+            <TablaClientes
+              datos={filtrados}
+              columnas={columnas}
+              hayClientes={clientes.length > 0}
             />
-          </div>
-        )}
-      </FilterFactory>
+          )}
+        </FilterFactory>
+      )}
     </div>
   );
 }
