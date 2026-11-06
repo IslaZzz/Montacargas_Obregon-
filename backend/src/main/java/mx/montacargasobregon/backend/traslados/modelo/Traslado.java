@@ -103,6 +103,12 @@ public class Traslado {
         this.fechaAsignacion = LocalDateTime.now();
     }
 
+    /** Cambia el horario mientras no haya iniciado. Quien llama revisa los empalmes del operador. */
+    public void reprogramar(LocalDateTime inicio, LocalDateTime fin) {
+        this.fechaHoraInicio = inicio;
+        this.fechaHoraFin = fin;
+    }
+
     /** Desasigna el chofer/operador. */
     public void desasignar() {
         this.responsable = null;

@@ -1,5 +1,4 @@
 import { aFecha } from "../../utils/formato";
-import type { RevisionesRenta } from "./dashboardTypes";
 
 const dosDigitos = (n: number) => String(n).padStart(2, "0");
 
@@ -17,7 +16,7 @@ export function diasEntre(desde: Date, hasta: Date) {
 }
 
 // Cómo se nombra el día en "Próximas operaciones":
-// "mañana", "lunes" o, si falta una semana o más, "viernes 16"
+// "hoy", "mañana", "lunes" o, si falta una semana o más, "viernes 16"
 export function etiquetaDia(fecha: Date, hoy: Date) {
   const dias = diasEntre(hoy, fecha);
   if (dias === 0) return "hoy";
@@ -30,17 +29,4 @@ export function etiquetaDia(fecha: Date, hoy: Date) {
 export function formatoHora(texto: string) {
   const fecha = aFecha(texto);
   return `${dosDigitos(fecha.getHours())}:${dosDigitos(fecha.getMinutes())}`;
-}
-
-// Preparaciones de hoy: equipos con revisión de salida programada para hoy
-// que todavía no se terminan (total ya no cuenta las canceladas)
-export function contarPreparaciones(filas: RevisionesRenta[], hoy: Date) {
-  return filas
-    .filter(
-      (f) =>
-        f.tipo === "SALIDA" &&
-        f.fechaProgramada !== null &&
-        mismoDia(aFecha(f.fechaProgramada), hoy),
-    )
-    .reduce((suma, f) => suma + (f.total - f.revisadas), 0);
 }

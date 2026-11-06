@@ -11,6 +11,7 @@ import mx.montacargasobregon.backend.traslados.modelo.EstadoTraslado;
 import mx.montacargasobregon.backend.traslados.modelo.Traslado;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.traslados.modelo.TipoTraslado;
+import java.util.Optional;
 
 public interface TrasladoRepository extends JpaRepository<Traslado, Long> {
 
@@ -60,6 +61,9 @@ public interface TrasladoRepository extends JpaRepository<Traslado, Long> {
 
     /** Si la renta ya tiene un traslado de ese tipo que no esté cancelado. */
     boolean existsByRentaAndTipoAndEstadoNot(Renta renta, TipoTraslado tipo, EstadoTraslado estado);
+
+    /** El último traslado de ese tipo de la renta que no esté cancelado. */
+    Optional<Traslado> findFirstByRentaAndTipoAndEstadoNotOrderByIdDesc(Renta renta, TipoTraslado tipo, EstadoTraslado estado);
 
     /** Número del último folio: "TR-0086" -> 86. Null si no hay traslados. */
     @Query("select max(cast(substring(t.folio, 4) as Integer)) from Traslado t")

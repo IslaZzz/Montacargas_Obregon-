@@ -1,0 +1,290 @@
+/* Detalle de la renta (OHU-03) con su recolección (OHU-12). Los campos del modal vienen de registrar-cliente.css */
+
+/* Contenido a la izquierda y datos de la renta a la derecha */
+.detalle-renta {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+}
+.detalle-renta .pagina {
+  gap: 20px;
+}
+
+.detalle-renta-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tertiary-mineral-blue);
+  font:
+    600 16px "Inter",
+    sans-serif;
+  cursor: pointer;
+}
+.detalle-renta-volver:hover {
+  color: var(--primary-teal);
+}
+.detalle-renta-volver .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.detalle-renta-encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.detalle-renta-cliente {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font:
+    500 22px "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+
+.detalle-renta-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 760px;
+}
+
+/* ===== Bloque de recolección ===== */
+.recoleccion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 28px 32px;
+  background: var(--off-white-background);
+  border: 2px solid var(--secondary-mint);
+  border-radius: 4px;
+}
+.recoleccion-pendiente {
+  border-color: var(--outline-reminder-yellow);
+}
+.recoleccion-confirmada {
+  border-color: var(--ok-green-outline);
+}
+.recoleccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 4px;
+  font:
+    500 26px/normal "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.recoleccion-titulo .material-symbols-rounded {
+  font-size: 32px;
+}
+.recoleccion-pendiente .recoleccion-titulo .material-symbols-rounded {
+  color: var(--outline-reminder-yellow);
+}
+.recoleccion-confirmada .recoleccion-titulo .material-symbols-rounded {
+  color: var(--ok-green-outline);
+}
+.pagina .recoleccion .recoleccion-texto {
+  font-size: 20px;
+  color: var(--primary-teal);
+}
+.pagina .recoleccion .recoleccion-ayuda {
+  font-size: 15px;
+  color: var(--tertiary-mineral-blue);
+}
+.pagina .recoleccion .recoleccion-dia {
+  font:
+    700 34px/1.2 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.pagina .recoleccion .recoleccion-horario {
+  font-size: 20px;
+  color: var(--primary-teal);
+}
+.recoleccion-antes {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: var(--reminder-yellow);
+  color: #a66c0b;
+  font:
+    600 13px "Inter",
+    sans-serif;
+}
+.recoleccion-antes::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.recoleccion-operador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font:
+    600 18px "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.recoleccion-operador small {
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--tertiary-mineral-blue);
+}
+.recoleccion-boton {
+  align-self: stretch;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* Modal: fecha, rango de horas y avisos */
+.recoleccion-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: min(440px, 80vw);
+}
+.recoleccion-modal-horas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.recoleccion-modal-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid var(--outline-reminder-yellow);
+  border-radius: 4px;
+  background: var(--reminder-yellow);
+  color: #7a4f08;
+  font-size: 14px;
+}
+.recoleccion-modal-aviso div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.recoleccion-modal-aviso .material-symbols-rounded {
+  font-size: 20px;
+  color: var(--outline-reminder-yellow);
+}
+.recoleccion-modal .recoleccion-ayuda {
+  margin: 0;
+  font-size: 14px;
+  color: var(--tertiary-mineral-blue);
+}
+
+/* ===== Franja: equipos, carta y fecha clave ===== */
+.detalle-renta-franja {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 2px solid var(--secondary-mint);
+  border-radius: 4px;
+  background: var(--off-white-background);
+}
+.detalle-renta-dato {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px 20px;
+  color: var(--primary-teal);
+}
+.detalle-renta-dato + .detalle-renta-dato {
+  border-left: 1px solid var(--selection-gray);
+}
+.detalle-renta-dato-texto {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.detalle-renta-dato-texto small {
+  font-size: 13px;
+  color: var(--tertiary-mineral-blue);
+}
+.detalle-renta-dato-texto strong {
+  font:
+    700 20px "Inter",
+    sans-serif;
+}
+.detalle-renta-icono {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--selection-gray);
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.detalle-renta-icono-ok {
+  background: var(--ok-green);
+  color: var(--ok-green-outline);
+}
+.detalle-renta-ok {
+  color: var(--ok-green-outline);
+}
+
+/* ===== Datos de la renta ===== */
+.detalle-renta-panel {
+  position: sticky;
+  top: 130px; /* Debajo del encabezado */
+  align-self: start;
+  height: calc(100dvh / var(--zoom) - 130px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--off-white-background);
+  border-left: 1px solid var(--secondary-mint);
+  box-shadow: -4px 0 4px rgba(0, 0, 0, 0.25);
+}
+.detalle-renta-panel-encabezado {
+  display: flex;
+  align-items: center;
+  height: 72px;
+  padding: 0 32px;
+  background: var(--primary-teal);
+}
+.detalle-renta-panel-encabezado h2 {
+  margin: 0;
+  font:
+    600 22px/normal "Inter",
+    sans-serif;
+  color: var(--selection-gray);
+}
+.detalle-renta-panel-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 28px 32px;
+  color: var(--primary-teal);
+}
+.detalle-renta-panel-dato:nth-of-type(even) {
+  background: var(--selection-gray);
+}
+.detalle-renta-panel-dato small {
+  font-size: 13px;
+  color: var(--tertiary-mineral-blue);
+}
+.detalle-renta-panel-dato strong {
+  font:
+    600 20px "Inter",
+    sans-serif;
+}
+.detalle-renta-panel-dato span {
+  font-size: 15px;
+  color: var(--tertiary-mineral-blue);
+}
