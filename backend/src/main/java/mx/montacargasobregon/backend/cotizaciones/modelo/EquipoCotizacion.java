@@ -17,10 +17,10 @@ import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 
 /** Un equipo dentro de una cotización, con el precio con el que se cotizó. */
 @Entity
-@Table(name = "partidas_cotizacion")
+@Table(name = "equipos_cotizacion")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PartidaCotizacion {
+public class EquipoCotizacion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,17 +30,17 @@ public class PartidaCotizacion {
     @JoinColumn(name = "equipo_id", nullable = false)
     private Equipo equipo;
 
-    // Copia de la tarifa del modelo al cotizar: si la tarifa cambia después, la cotización conserva su precio
+    // Tarifa por día, copiada del modelo al cotizar: si la tarifa cambia después, la cotización conserva su precio
     @Column(name = "tarifa_dia", nullable = false, precision = 10, scale = 2)
-    private BigDecimal tarifaDia;
+    private BigDecimal tarifa;
 
     // Días de renta × tarifa por día (HU-13)
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal importe;
 
-    public PartidaCotizacion(Equipo equipo, BigDecimal tarifaDia, BigDecimal importe) {
+    public EquipoCotizacion(Equipo equipo, BigDecimal tarifa, BigDecimal importe) {
         this.equipo = equipo;
-        this.tarifaDia = tarifaDia;
+        this.tarifa = tarifa;
         this.importe = importe;
     }
 }
