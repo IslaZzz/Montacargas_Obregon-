@@ -6,3 +6,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.iml
+
+*.zip
+Claude outputs/
