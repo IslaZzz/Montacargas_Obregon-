@@ -1,0 +1,248 @@
+/* Pantalla de disponibilidad. Reutiliza .pagina, .tarjeta, .paso, .aviso-exito y .aviso-error */
+
+.encabezado-pagina h1 {
+  margin-bottom: 8px;
+}
+.encabezado-pagina p {
+  margin: 0;
+}
+
+/* Avisos de información y de advertencia, con la misma forma que .aviso-exito */
+.aviso-info,
+.aviso-advertencia,
+.pie-disponibilidad {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 10px;
+}
+.aviso-info {
+  background: rgba(38, 124, 147, 0.1);
+  border: 2px solid var(--secondary-mint);
+}
+.aviso-advertencia {
+  background: rgba(217, 142, 31, 0.12);
+  border: 2px solid #d98e1f;
+}
+.aviso-info > .material-symbols-rounded,
+.aviso-advertencia > .material-symbols-rounded,
+.pie-disponibilidad > .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 26px;
+  color: var(--secondary-mint);
+  font-variation-settings: "FILL" 1;
+}
+.aviso-advertencia > .material-symbols-rounded {
+  color: #b86f00;
+}
+.aviso-info strong,
+.aviso-advertencia strong,
+.pie-disponibilidad strong {
+  display: block;
+  font: 600 18px/1.35 "Inter", sans-serif;
+  color: var(--primary-teal);
+}
+.aviso-info p,
+.aviso-advertencia p,
+.pie-disponibilidad p {
+  margin: 2px 0 0;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+/* Formulario: dos tarjetas lado a lado */
+.filtros-disponibilidad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.campo-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.campo-bloque:last-child {
+  margin-bottom: 0;
+}
+.filtros-disponibilidad .dropdown-trigger {
+  width: 100%;
+  min-height: 48px;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--primary-teal);
+  background: var(--off-white-background);
+  border: 1px solid var(--primary-teal);
+  border-radius: 8px;
+}
+.filtros-disponibilidad .dropdown-menu {
+  left: 0;
+  right: 0;
+}
+.filtros-disponibilidad .filter-chip {
+  font-size: 14px;
+}
+.filtros-disponibilidad .date-range-container {
+  flex-wrap: wrap;
+}
+
+/* Botón de consultar */
+.btn-buscar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  font-size: 18px;
+}
+
+/* Resumen de la búsqueda */
+.resumen-consulta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px 40px;
+  padding: 16px 20px;
+  background: var(--selection-gray);
+  border: 2px solid var(--secondary-mint);
+  border-radius: 10px;
+}
+.resumen-consulta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.resumen-consulta span {
+  font-size: 14px;
+}
+.resumen-consulta strong {
+  font-size: 18px;
+  color: var(--primary-teal);
+}
+.resumen-consulta .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Tabla de resultados */
+.tabla-disponibilidad .data-table td {
+  font-size: 16px;
+}
+.etiqueta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 6px 2px 0;
+  padding: 4px 10px;
+  font-size: 14px;
+  color: var(--primary-teal);
+  background: rgba(38, 124, 147, 0.12);
+  border-radius: 6px;
+}
+.etiqueta-chip .material-symbols-rounded {
+  font-size: 16px;
+}
+.estado-libre {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ok-green-outline);
+  background: var(--ok-green);
+  border-radius: 999px;
+}
+
+/* Pie con el botón de crear cotización */
+.pie-disponibilidad {
+  align-items: center;
+  background: var(--off-white-background);
+  border: 1px solid rgba(15, 61, 76, 0.2);
+}
+.pie-disponibilidad > div {
+  flex: 1;
+}
+
+/* Opciones cuando no hay resultados */
+.opcion-disponibilidad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  background: var(--off-white-background);
+  border: 1px solid rgba(15, 61, 76, 0.2);
+  border-radius: 8px;
+}
+.opcion-disponibilidad p {
+  margin: 0;
+  font-weight: 600;
+  color: var(--primary-teal);
+}
+
+/* Tablet y celular */
+@media (max-width: 1100px) {
+  .filtros-disponibilidad {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .resumen-consulta .btn {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+  .pie-disponibilidad {
+    flex-wrap: wrap;
+  }
+  .pie-disponibilidad .btn {
+    width: 100%;
+  }
+  .opcion-disponibilidad {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* La tabla se ve como tarjetas */
+  .tabla-disponibilidad .data-table,
+  .tabla-disponibilidad .data-table tbody,
+  .tabla-disponibilidad .data-table tr,
+  .tabla-disponibilidad .data-table td {
+    display: block;
+  }
+  .tabla-disponibilidad .data-table thead {
+    display: none;
+  }
+  .tabla-disponibilidad .data-table tr {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--table-divider);
+  }
+  .tabla-disponibilidad .data-table tr:last-child {
+    border-bottom: 0;
+  }
+  .tabla-disponibilidad .data-table td {
+    height: auto;
+    padding: 6px 0;
+    border: 0;
+  }
+  .tabla-disponibilidad .data-table td::before {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-foreground);
+  }
+  .tabla-disponibilidad .data-table td:nth-child(2)::before {
+    content: "Etiquetas";
+  }
+  .tabla-disponibilidad .data-table td:nth-child(3)::before {
+    content: "Tarifa vigente";
+  }
+  .tabla-disponibilidad .data-table td:nth-child(4)::before {
+    content: "Estado";
+  }
+}
