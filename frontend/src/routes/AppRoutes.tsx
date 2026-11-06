@@ -18,6 +18,7 @@ import VistaPreviaCarta from "../features/cartas/VistaPreviaCarta";
 import DetalleCliente from "../features/clientes/DetalleCliente";
 import Disponibilidad from '../features/equipos/disponibilidad/ConsultarDisponibilidad'
 
+import ConsultarEquipos from "../features/equipos/estados/ConsultarEquipos";
 import DashboardTraslados from "../features/traslados/DashboardTraslados";
 
 import ProgramarRecoleccion from "../features/rentas-captura/ProgramarRecoleccion";
@@ -62,6 +63,9 @@ export default function AppRoutes() {
         {/* Carta responsiva. Provisional hasta que exista el detalle de la renta (OHU-03) */}
         <Route path="/rentas/:id/carta" element={<CartaRenta />} />
         <Route path="/rentas/:id/carta/vista-previa" element={<VistaPreviaCarta />} />
+
+        {/* Equipos */}
+        <Route path="/equipos" element={<ConsultarEquipos />} />
 
         {/* Disponibilidad */}
         <Route path="/disponibilidad" element={<Disponibilidad />} />
