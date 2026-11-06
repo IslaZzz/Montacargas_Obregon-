@@ -29,6 +29,13 @@ const soloRfc = (valor: string) =>
     .replace(/[^A-ZÑ&0-9]/g, "")
     .slice(0, 13);
 
+// Campo del backend a llave del formulario:
+// "telefono" → "telefono"; "razonesSociales[0].direccionFiscal.codigoPostal" → "0.codigoPostal"
+const llaveDelCampo = (campo: string) => {
+  const razon = campo.match(/^razonesSociales\[(\d+)\]\.(?:direccionFiscal\.)?(\w+)$/);
+  return razon ? `${razon[1]}.${razon[2]}` : campo;
+};
+
 export default function RegistrarCliente() {
   useTitulo("Registrar cliente");
   const navigate = useNavigate();
@@ -49,8 +56,9 @@ export default function RegistrarCliente() {
   // True después de pulsar Guardar
   const [enviado, setEnviado] = useState(false);
 
-  // Mensajes de error del backend
-  const [erroresServidor, setErroresServidor] = useState<string[]>([]);
+  // Errores del backend: los de cada campo van debajo de él; los demás, en el aviso
+  const [erroresServidor, setErroresServidor] = useState<Record<string, string>>({});
+  const [mensajeServidor, setMensajeServidor] = useState("");
 
   // Revisa los campos obligatorios vacíos
   // Llaves: "telefono" o "posición.campo" como "0.rfc"
@@ -83,18 +91,36 @@ export default function RegistrarCliente() {
   }
 
   // Los errores se muestran solo después de intentar guardar
-  const errores = enviado ? validar() : {};
+  const errores = enviado ? { ...erroresServidor, ...validar() } : {};
   const total = Object.keys(errores).length;
 
+  // Al corregir un campo se quita el error que el backend marcó en él
+  const quitarErrorServidor = (llave: string) =>
+    setErroresServidor((actuales) => {
+      if (!(llave in actuales)) return actuales;
+      const resto = { ...actuales };
+      delete resto[llave];
+      return resto;
+    });
+
+  // Cambia un dato de contacto
+  const cambiarContacto = (campo: keyof typeof contacto, valor: string) => {
+    setContacto({ ...contacto, [campo]: valor });
+    quitarErrorServidor(campo);
+  };
+
   // Cambia un campo de una razón social
-  const cambiarRazon = (i: number, campo: string, valor: string) =>
+  const cambiarRazon = (i: number, campo: string, valor: string) => {
     setRazones(razones.map((r, j) => (j === i ? { ...r, [campo]: valor } : r)));
+    quitarErrorServidor(`${i}.${campo}`);
+  };
 
   // Al pulsar Guardar cliente
   async function guardar(e: FormEvent) {
     e.preventDefault();
     setEnviado(true);
-    setErroresServidor([]);
+    setErroresServidor({});
+    setMensajeServidor("");
 
     // Si hay campos vacíos no se envía
     if (Object.keys(validar()).length > 0) {
@@ -127,15 +153,22 @@ export default function RegistrarCliente() {
       // Va al detalle del cliente con el aviso de éxito
       navigate(`/clientes/${clienteRegistrado.id}`, { state: { recienGuardado: true } });
     } catch (err) {
-      // Muestra los mensajes que envía el backend
-      if (err instanceof ErrorApi && Object.keys(err.errores).length > 0) {
-        setErroresServidor(Object.values(err.errores));
-      } else {
-        setErroresServidor([
-          err instanceof Error
-            ? err.message
-            : "No fue posible guardar el cliente.",
-        ]);
+      // Cada error del backend se marca en su campo; si no es de un campo, va al aviso
+      const porCampo: Record<string, string> = {};
+      const sinCampo: string[] = [];
+      if (err instanceof ErrorApi) {
+        for (const [campo, texto] of Object.entries(err.errores)) {
+          const llave = llaveDelCampo(campo);
+          if (llave in contacto || /^\d+\.\w+$/.test(llave)) porCampo[llave] = texto;
+          else sinCampo.push(texto);
+        }
+      }
+      setErroresServidor(porCampo);
+      if (Object.keys(porCampo).length === 0) {
+        setMensajeServidor(
+          sinCampo[0] ??
+            (err instanceof Error ? err.message : "No fue posible guardar el cliente."),
+        );
       }
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -152,7 +185,7 @@ export default function RegistrarCliente() {
         </p>
 
         {/* Aviso de error */}
-        {(total > 0 || erroresServidor.length > 0) && (
+        {(total > 0 || mensajeServidor) && (
           <div className="aviso-error" role="alert">
             <span className="material-symbols-rounded">error</span>
             <div>
@@ -167,7 +200,7 @@ export default function RegistrarCliente() {
                   "Guardar cliente".
                 </p>
               ) : (
-                <p>{erroresServidor[0]}</p>
+                <p>{mensajeServidor}</p>
               )}
             </div>
           </div>
@@ -186,26 +219,28 @@ export default function RegistrarCliente() {
               obligatorio
               value={contacto.nombre}
               error={errores.nombre}
-              onChange={(v) => setContacto({ ...contacto, nombre: v })}
+              onChange={(v) => cambiarContacto("nombre", v)}
             />
             <Campo
               etiqueta="Apellido paterno"
               obligatorio
               value={contacto.apellidoPaterno}
               error={errores.apellidoPaterno}
-              onChange={(v) => setContacto({ ...contacto, apellidoPaterno: v })}
+              onChange={(v) => cambiarContacto("apellidoPaterno", v)}
             />
             <Campo
               etiqueta="Apellido materno"
               value={contacto.apellidoMaterno}
-              onChange={(v) => setContacto({ ...contacto, apellidoMaterno: v })}
+              error={errores.apellidoMaterno}
+              onChange={(v) => cambiarContacto("apellidoMaterno", v)}
             />
 
             {/* Empresa opcional */}
             <Campo
               etiqueta="Empresa"
               value={contacto.empresa}
-              onChange={(v) => setContacto({ ...contacto, empresa: v })}
+              error={errores.empresa}
+              onChange={(v) => cambiarContacto("empresa", v)}
             />
 
             {/* Teléfono de 10 dígitos */}
@@ -220,7 +255,7 @@ export default function RegistrarCliente() {
               value={contacto.telefono}
               error={errores.telefono}
               onChange={(v) =>
-                setContacto({ ...contacto, telefono: soloDigitos(v, 10) })
+                cambiarContacto("telefono", soloDigitos(v, 10))
               }
             />
 
@@ -231,7 +266,7 @@ export default function RegistrarCliente() {
               type="email"
               value={contacto.correo}
               error={errores.correo}
-              onChange={(v) => setContacto({ ...contacto, correo: v })}
+              onChange={(v) => cambiarContacto("correo", v)}
             />
 
             {/* Nota informativa */}
@@ -319,9 +354,11 @@ export default function RegistrarCliente() {
                   <Button
                     type="button"
                     variant="tertiary"
-                    onClick={() =>
-                      setRazones(razones.filter((_, j) => j !== i))
-                    }
+                    onClick={() => {
+                      setRazones(razones.filter((_, j) => j !== i));
+                      // Las razones se renumeran: los errores del backend ya no aplican
+                      setErroresServidor({});
+                    }}
                   >
                     Quitar
                   </Button>
