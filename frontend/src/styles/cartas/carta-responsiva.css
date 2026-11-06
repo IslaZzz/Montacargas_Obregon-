@@ -350,6 +350,179 @@
   color: var(--text-foreground);
 }
 
+/* ===== Carta firmada (OHU-05) ===== */
+.carta-firmada-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pagina .carta-bloque .carta-firmada-fecha {
+  font:
+    700 26px/1.25 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.pagina .carta-bloque .carta-firmada-quien {
+  font-size: 20px;
+  color: var(--primary-teal);
+}
+
+/* Registrar firma: tipo, fecha, quién firma y la carta firmada */
+.carta-firma {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--primary-teal);
+}
+.carta-firma-tipos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 4px;
+  border-radius: 6px;
+  background: var(--selection-gray);
+}
+.carta-firma-tipo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--primary-teal);
+  font:
+    600 16px "Inter",
+    sans-serif;
+  cursor: pointer;
+}
+.carta-firma-tipo .material-symbols-rounded {
+  font-size: 20px;
+}
+.carta-firma-tipo-activo {
+  background: var(--primary-teal);
+  color: var(--off-white-background);
+}
+.carta-firma label {
+  margin-top: 8px;
+  font:
+    600 16px "Inter",
+    sans-serif;
+}
+.carta-firma input[type="datetime-local"],
+.carta-firma input[type="text"] {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 1px solid var(--primary-teal);
+  border-radius: 4px;
+  background: var(--off-white-background);
+  color: var(--primary-teal);
+  font:
+    400 18px "Inter",
+    sans-serif;
+}
+.carta-firma input[aria-invalid="true"] {
+  border-color: var(--warning-red-outline);
+}
+/* El selector de archivos del navegador se oculta: se usa la zona para arrastrar */
+.carta-firma-entrada {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.carta-firma-zona {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px 16px;
+  border: 2px dashed var(--secondary-mint);
+  border-radius: 4px;
+  background: var(--off-white-background);
+  color: var(--primary-teal);
+  font:
+    400 14px "Inter",
+    sans-serif;
+  cursor: pointer;
+}
+.carta-firma-zona .material-symbols-rounded {
+  font-size: 28px;
+  color: var(--secondary-mint);
+}
+.carta-firma-zona strong {
+  font-size: 16px;
+}
+.carta-firma-zona-encima {
+  background: var(--selection-gray);
+}
+.carta-firma-zona-error {
+  border-color: var(--warning-red-outline);
+  background: color-mix(in srgb, var(--warning-red) 45%, white);
+}
+.carta-firma-zona-error .material-symbols-rounded {
+  color: var(--warning-red-outline);
+}
+.carta-firma-archivo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--ok-green-outline);
+  border-radius: 4px;
+  background: var(--selection-gray);
+}
+.carta-firma-archivo-error {
+  border-color: var(--warning-red-outline);
+}
+.carta-firma-archivo > .material-symbols-rounded {
+  color: var(--warning-red-outline);
+}
+.carta-firma-archivo > div {
+  flex: 1;
+  min-width: 0;
+}
+.carta-firma-archivo p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font:
+    600 16px "Inter",
+    sans-serif;
+}
+.carta-firma-archivo span {
+  font-size: 13px;
+  color: var(--tertiary-mineral-blue);
+}
+.carta-firma-ok .material-symbols-rounded {
+  color: var(--ok-green-outline);
+}
+.carta-firma-quitar {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: 0;
+  background: none;
+  color: var(--primary-teal);
+  cursor: pointer;
+}
+.carta-firma-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--warning-red-outline);
+}
+.carta-firma-error .material-symbols-rounded {
+  font-size: 18px;
+}
+
 /* Enviar carta: Para (sin cambiar), Mensaje y el archivo adjunto */
 .carta-envio {
   display: flex;

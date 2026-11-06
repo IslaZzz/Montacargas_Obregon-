@@ -74,6 +74,37 @@ public class CartaResponsiva {
     @Column(name = "correo_envio", length = 150)
     private String correoEnvio;
 
+    // ===== Firma (OHU-05); vacíos mientras no se firma =====
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_firma", length = 20)
+    private TipoFirma tipoFirma;
+
+    // Cuándo firmó el cliente, según quien registra la firma
+    @Column(name = "fecha_firma")
+    private LocalDateTime fechaFirma;
+
+    @Column(name = "firmante", length = 150)
+    private String firmante;
+
+    // Quién registró la firma en el sistema y cuándo
+    @Column(name = "firma_registrada_por", length = 150)
+    private String firmaRegistradaPor;
+
+    @Column(name = "firma_registrada_rol", length = 60)
+    private String firmaRegistradaRol;
+
+    @Column(name = "firma_registrada_en")
+    private LocalDateTime firmaRegistradaEn;
+
+    // La carta firmada: el PDF que regresó el cliente o la foto/escaneo de la carta impresa (máx. 10 MB)
+    @Lob
+    @Column(name = "archivo_firmado", columnDefinition = "LONGBLOB")
+    private byte[] archivoFirmado;
+
+    // application/pdf, image/jpeg o image/png
+    @Column(name = "tipo_archivo_firmado", length = 40)
+    private String tipoArchivoFirmado;
+
     /** Crea la carta recién generada, versión 1. */
     public CartaResponsiva(Renta renta, String datos, byte[] pdf) {
         this.renta = renta;
@@ -102,6 +133,37 @@ public class CartaResponsiva {
         this.estado = EstadoCarta.ENVIADA;
         this.fechaEnvio = LocalDateTime.now(ZONA_HORARIA);
         this.correoEnvio = correo;
+    }
+
+    /**
+     * El cliente firmó la carta: pasa a Firmada. Desde ese momento no se regenera, no se envía
+     * y la firma no se cambia.
+     */
+    public void registrarFirma(TipoFirma tipo, LocalDateTime fecha, String firmante,
+                               String registradaPor, String rol, byte[] archivo, String tipoArchivo) {
+        this.estado = EstadoCarta.FIRMADA;
+        this.tipoFirma = tipo;
+        this.fechaFirma = fecha;
+        this.firmante = firmante;
+        this.firmaRegistradaPor = registradaPor;
+        this.firmaRegistradaRol = rol;
+        this.firmaRegistradaEn = LocalDateTime.now(ZONA_HORARIA);
+        this.archivoFirmado = archivo;
+        this.tipoArchivoFirmado = tipoArchivo;
+    }
+
+    public boolean tieneArchivoFirmado() {
+        return archivoFirmado != null && archivoFirmado.length > 0;
+    }
+
+    /** Ej. Carta_firmada_R-2070.pdf o Carta_firmada_R-2070.jpg */
+    public String nombreArchivoFirmado() {
+        String extension = switch (tipoArchivoFirmado == null ? "" : tipoArchivoFirmado) {
+            case "image/jpeg" -> "jpg";
+            case "image/png" -> "png";
+            default -> "pdf";
+        };
+        return "Carta_firmada_%s.%s".formatted(renta.getFolio(), extension);
     }
 
     public void cambiarEstado(EstadoCarta nuevoEstado) {

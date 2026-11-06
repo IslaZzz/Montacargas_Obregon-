@@ -17,6 +17,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +34,7 @@ import mx.montacargasobregon.backend.cartas.dto.CambioCarta;
 import mx.montacargasobregon.backend.cartas.dto.CartaResponse;
 import mx.montacargasobregon.backend.cartas.modelo.CartaResponsiva;
 import mx.montacargasobregon.backend.cartas.modelo.EstadoCarta;
+import mx.montacargasobregon.backend.cartas.modelo.TipoFirma;
 import mx.montacargasobregon.backend.cartas.repositorio.CartaResponsivaRepository;
 import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 import mx.montacargasobregon.backend.clientes.modelo.DireccionFiscal;
@@ -50,6 +52,10 @@ class CartaResponsivaServiceTest {
 
     private static final Long RENTA_ID = 7L;
     private static final LocalDate INICIO = LocalDate.of(2026, 10, 12);
+    private static final LocalDateTime AYER = LocalDateTime.now(CartaResponsiva.ZONA_HORARIA).minusDays(1);
+    private static final byte[] PDF = { '%', 'P', 'D', 'F', '-', '1' };
+    private static final byte[] JPG = { (byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0 };
+    private static final byte[] PNG = { (byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A };
 
     @Mock
     private RentaRepository rentas;
@@ -317,6 +323,129 @@ class CartaResponsivaServiceTest {
         assertEquals("Hola Juan, te compartimos la carta responsiva de la renta R-1042, con los equipos "
                 + "Toyota 8FGU25 (MC-09) y Toyota 8FGU25 (MC-10), para tu firma electrónica.",
                 CartaResponsivaService.mensajeSugerido(renta, DatosCarta.de(renta)));
+    }
+
+    // ===== Firma (OHU-05) =====
+
+    @Test
+    void registraLaFirmaFisicaConLaFotoYQuedaFirmada() {
+        CartaResponsiva carta = cartaGenerada();
+        carta.registrarEnvio("juan.perez@ejemplo.com");
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.of(carta));
+
+        CartaResponse firmada = servicio.registrarFirma(RENTA_ID, TipoFirma.FISICA, AYER, " Juan Pérez ", JPG);
+
+        assertEquals(EstadoCarta.FIRMADA, firmada.estado());
+        assertEquals(TipoFirma.FISICA, firmada.firma().tipo());
+        assertEquals(AYER, firmada.firma().fecha());
+        assertEquals("Juan Pérez", firmada.firma().firmante());
+        // Quién y cuándo se registró
+        assertEquals(CartaResponsivaService.USUARIO_PROVISIONAL, firmada.firma().registradaPor());
+        assertEquals(CartaResponsivaService.ROL_PROVISIONAL, firmada.firma().rolRegistro());
+        assertNotNull(firmada.firma().registradaEn());
+        assertEquals("Carta_firmada_R-1042.jpg", firmada.firma().nombreArchivo());
+        // Ya no se regenera, no se envía ni se vuelve a firmar
+        assertFalse(firmada.puedeGenerar());
+        assertFalse(firmada.puedeEnviar());
+        assertFalse(firmada.puedeFirmar());
+    }
+
+    @Test
+    void laFirmaElectronicaGuardaElPdfQueRegresoElCliente() {
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.of(cartaGenerada()));
+
+        servicio.registrarFirma(RENTA_ID, TipoFirma.ELECTRONICA, AYER, "Juan Pérez", PDF);
+        CartaResponsivaService.ArchivoCarta archivo = servicio.archivoFirmado(RENTA_ID);
+
+        assertEquals("Carta_firmada_R-1042.pdf", archivo.nombre());
+        assertEquals("application/pdf", archivo.tipo());
+        assertEquals(PDF, archivo.contenido());
+    }
+
+    @Test
+    void sinEvidenciaNoSeRegistraLaFirmaFisica() {
+        CartaResponsiva carta = cartaGenerada();
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.of(carta));
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> servicio.registrarFirma(RENTA_ID, TipoFirma.FISICA, AYER, "Juan Pérez", null));
+
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatusCode());
+        assertEquals("Adjunta la carta firmada para registrar la firma.", error.getReason());
+        assertEquals(EstadoCarta.GENERADA, carta.getEstado());
+    }
+
+    @Test
+    void laFirmaElectronicaTambienPideElPdf() {
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.of(cartaGenerada()));
+
+        ResponseStatusException sinArchivo = assertThrows(ResponseStatusException.class,
+                () -> servicio.registrarFirma(RENTA_ID, TipoFirma.ELECTRONICA, AYER, "Juan Pérez", new byte[0]));
+        ResponseStatusException foto = assertThrows(ResponseStatusException.class,
+                () -> servicio.registrarFirma(RENTA_ID, TipoFirma.ELECTRONICA, AYER, "Juan Pérez", PNG));
+
+        assertEquals(HttpStatus.BAD_REQUEST, sinArchivo.getStatusCode());
+        assertEquals("La carta firmada electrónicamente debe ser un PDF.", foto.getReason());
+    }
+
+    @Test
+    void soloAceptaPdfJpgOPng() {
+        assertEquals("image/png", CartaResponsivaService.validarArchivo(TipoFirma.FISICA, PNG));
+        assertEquals("image/jpeg", CartaResponsivaService.validarArchivo(TipoFirma.FISICA, JPG));
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> CartaResponsivaService.validarArchivo(TipoFirma.FISICA, "hola".getBytes()));
+
+        assertEquals("El archivo debe ser PDF, JPG o PNG.", error.getReason());
+    }
+
+    @Test
+    void noAceptaFechaFuturaNiFirmanteVacio() {
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.of(cartaGenerada()));
+        LocalDateTime manana = LocalDateTime.now(CartaResponsiva.ZONA_HORARIA).plusDays(1);
+
+        assertThrows(ResponseStatusException.class,
+                () -> servicio.registrarFirma(RENTA_ID, TipoFirma.FISICA, manana, "Juan Pérez", JPG));
+        assertThrows(ResponseStatusException.class,
+                () -> servicio.registrarFirma(RENTA_ID, TipoFirma.FISICA, AYER, "  ", JPG));
+    }
+
+    @Test
+    void noSeFirmaUnaCartaQueNoSeHaGenerado() {
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.empty());
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> servicio.registrarFirma(RENTA_ID, TipoFirma.FISICA, AYER, "Juan Pérez", JPG));
+
+        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
+        assertFalse(servicio.consultar(RENTA_ID).puedeFirmar());
+    }
+
+    @Test
+    void unaCartaFirmadaNoSeVuelveAFirmarNiSeEnvia() {
+        CartaResponsiva carta = cartaGenerada();
+        carta.registrarFirma(TipoFirma.FISICA, AYER, "Juan Pérez", "Juan Pérez", "Auxiliar", JPG, "image/jpeg");
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.of(carta));
+
+        ResponseStatusException otraVez = assertThrows(ResponseStatusException.class,
+                () -> servicio.registrarFirma(RENTA_ID, TipoFirma.ELECTRONICA, AYER, "Otra persona", PDF));
+        ResponseStatusException enviar = assertThrows(ResponseStatusException.class,
+                () -> servicio.enviar(RENTA_ID, null));
+
+        assertEquals(HttpStatus.CONFLICT, otraVez.getStatusCode());
+        assertEquals(HttpStatus.CONFLICT, enviar.getStatusCode());
+        assertEquals("Juan Pérez", carta.getFirmante()); // No cambió
+    }
+
+    @Test
+    void sugiereAlContactoEnLaObraComoFirmante() {
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.of(cartaGenerada()));
+
+        CartaResponse carta = servicio.consultar(RENTA_ID);
+
+        assertEquals("Juan Pérez", carta.firmanteSugerido());
+        assertTrue(carta.puedeFirmar());
+        assertNull(carta.firma());
     }
 
     // Carta generada con los datos actuales de la renta
