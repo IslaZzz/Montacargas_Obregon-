@@ -201,11 +201,13 @@ export default function BuscarClientes() {
       {/* Buscador y tabla, filtra mientras se escribe */}
       {!cargando && !error && (
         <FilterFactory data={clientes} filters={filtros}>
-          {(filtrados) => (
+          {(filtrados, valores) => (
             <TablaClientes
               datos={filtrados}
               columnas={columnas}
               hayClientes={clientes.length > 0}
+              // Sin texto el filtro vale "all"
+              textoBuscado={valores.busqueda === "all" ? "" : (valores.busqueda ?? "").trim()}
             />
           )}
         </FilterFactory>
