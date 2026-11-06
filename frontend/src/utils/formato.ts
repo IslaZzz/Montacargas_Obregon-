@@ -43,6 +43,18 @@ export function formatoFechaHora(texto: string) {
   return `${dia.charAt(0).toUpperCase()}${dia.slice(1)}, ${hora}`;
 }
 
+// → "Jueves 08 de octubre"
+export function formatoDia(fecha: Date) {
+  const dia = fecha
+    .toLocaleDateString("es-MX", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+    })
+    .replace(",", ""); // "jueves, 08 de..." → "jueves 08 de..."
+  return `${dia.charAt(0).toUpperCase()}${dia.slice(1)}`;
+}
+
 // "6872104455" → "687 210 4455"
 export const formatoTelefono = (telefono: string) =>
   telefono.replace(/^(\d{3})(\d{3})(\d{4})$/, "$1 $2 $3");
