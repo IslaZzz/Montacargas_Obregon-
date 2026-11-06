@@ -1,10 +1,4 @@
-/* Contenedor principal de traslados */
-.traslados-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-}
+/* Pantalla de Traslados (Módulo de Operación y Logística) */
 
 /* Encabezado */
 .traslados-header {
@@ -15,16 +9,10 @@
   gap: 16px;
 }
 
-.traslados-titulo-bloque h1 {
-  margin: 0;
-  font: 800 32px/1.2 var(--title-font-manrope, 'Manrope', sans-serif);
-  color: var(--primary-teal, #0F3D4C);
-}
-
-.traslados-titulo-bloque p {
-  margin: 6px 0 0 0;
-  font-size: 15px;
-  color: var(--text-foreground, #2E2D37);
+.traslados-titulo-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 /* Botón de fecha en cabecera */
@@ -285,83 +273,27 @@
 }
 
 /* ========================================================== */
-/* PANEL LATERAL (DRAWER)                                     */
+/* MODAL CENTRADO: CONTENIDO DE ASIGNACIÓN                    */
 /* ========================================================== */
 
-.panel-lateral-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  justify-content: flex-end;
-  background: rgba(15, 61, 76, 0.45);
-  backdrop-filter: blur(2px);
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.panel-lateral-drawer {
-  width: min(540px, 100vw);
-  height: 100vh;
-  background-color: var(--off-white-background, #FFFFF8);
-  box-shadow: -8px 0 32px rgba(15, 61, 76, 0.2);
-  display: flex;
-  flex-direction: column;
-  animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-
-.panel-lateral-header {
-  padding: 24px 28px;
+/* Alerta de Error Contextual (Conflicto de empalme de horarios) */
+.panel-error-contextual {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  border-bottom: 1px solid #E2E8F0;
+  gap: 10px;
+  background-color: #FBEAEA;
+  border: 1.5px solid var(--warning-red-outline, #BA3636);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--warning-red-outline, #BA3636);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
-.panel-lateral-titulo-bloque h2 {
-  margin: 0;
-  font: 800 24px/1.2 var(--title-font-manrope, 'Manrope', sans-serif);
-  color: var(--primary-teal, #0F3D4C);
-}
-
-.panel-lateral-titulo-bloque p {
-  margin: 4px 0 0 0;
-  font-size: 14px;
-  color: var(--text-foreground, #2E2D37);
-}
-
-.panel-cerrar-btn {
-  background: transparent;
-  border: none;
-  padding: 4px;
-  border-radius: 8px;
-  color: var(--primary-teal, #0F3D4C);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.panel-cerrar-btn:hover {
-  background-color: rgba(15, 61, 76, 0.08);
-}
-
-.panel-lateral-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.panel-error-contextual .material-symbols-rounded {
+  font-size: 20px;
+  flex-shrink: 0;
 }
 
 /* Card Resumen del Traslado */
@@ -369,10 +301,10 @@
   background-color: #FFFFFF;
   border: 1.5px solid var(--secondary-mint, #267C93);
   border-radius: 12px;
-  padding: 16px 20px;
+  padding: 14px 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .panel-resumen-fila {
@@ -399,12 +331,12 @@
 .panel-seccion-operadores {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .seccion-op-titulo {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   color: var(--primary-teal, #0F3D4C);
 }
@@ -415,44 +347,25 @@
   color: #64748B;
 }
 
-/* Alerta de Error Contextual */
-.panel-error-contextual {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background-color: #FBEAEA;
-  border: 1.5px solid var(--warning-red-outline, #BA3636);
-  border-radius: 10px;
-  padding: 12px 16px;
-  color: var(--warning-red-outline, #BA3636);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.panel-error-contextual .material-symbols-rounded {
-  font-size: 20px;
-  flex-shrink: 0;
-}
-
 /* Lista de Tarjetas de Operadores */
 .lista-operadores {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .card-operador {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-radius: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
   border: 1.5px solid #CDD2D1;
   background-color: #FFFFFF;
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
+  gap: 12px;
 }
 
 .card-operador:hover {
@@ -469,11 +382,12 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .radio-circulo {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   border: 2px solid #94A3B8;
   display: flex;
@@ -488,8 +402,8 @@
 }
 
 .radio-punto-interno {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background-color: var(--primary-teal, #0F3D4C);
 }
@@ -498,29 +412,37 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .operador-datos-nombre {
   font-size: 14px;
   font-weight: 700;
   color: var(--primary-teal, #0F3D4C);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .operador-datos-motivo {
   font-size: 12px;
   color: #64748B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Badges de Disponibilidad */
 .badge-disponibilidad {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 11.5px;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 14px;
+  font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .badge-disponible {
@@ -542,7 +464,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: 10px;
   background-color: #F5F6E8;
   border: 1px solid #E2E8DF;
@@ -553,18 +475,7 @@
 }
 
 .aviso-notificacion-operador .material-symbols-rounded {
-  font-size: 20px;
+  font-size: 18px;
   color: var(--secondary-mint, #267C93);
   flex-shrink: 0;
 }
-
-/* Pie del Panel Lateral */
-.panel-lateral-footer {
-  padding: 16px 28px;
-  border-top: 1px solid #E2E8F0;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  background-color: var(--off-white-background, #FFFFF8);
-}
-

@@ -214,7 +214,7 @@ export default function DashboardTraslados() {
   ];
 
   return (
-    <div className="traslados-container">
+    <div className="pagina traslados">
       {/* Encabezado con Título y Filtro de Fechas */}
       <header className="traslados-header">
         <div className="traslados-titulo-bloque">
