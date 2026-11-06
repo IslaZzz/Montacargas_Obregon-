@@ -15,6 +15,10 @@ import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
  * @param fechaEnvio      cuándo se envió la versión vigente; vacía si no se ha enviado
  * @param correoEnvio     a qué correo se envió la versión vigente
  * @param mensajeSugerido el texto con que se llena el mensaje al enviarla
+ * @param puedeFirmar     si se puede registrar la firma: ya tiene archivo, no está firmada
+ *                        y la renta está Programada o En curso
+ * @param firmanteSugerido con quién se llena "Nombre de quien firma" (el contacto en la obra)
+ * @param firma           la firma registrada; vacía si no está firmada
  * @param cambios         los datos de la renta que cambiaron después de generar la carta
  */
 public record CartaResponse(
@@ -32,5 +36,8 @@ public record CartaResponse(
         LocalDateTime fechaEnvio,
         String correoEnvio,
         String mensajeSugerido,
+        boolean puedeFirmar,
+        String firmanteSugerido,
+        FirmaCarta firma,
         List<CambioCarta> cambios) {
 }

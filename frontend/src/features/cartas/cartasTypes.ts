@@ -26,7 +26,24 @@ export interface Carta {
   fechaEnvio: string | null; // Cuándo se envió la versión vigente
   correoEnvio: string | null;
   mensajeSugerido: string; // Con lo que se llena el mensaje del correo
+  puedeFirmar: boolean; // Generada, sin firmar y renta Programada o En curso
+  firmanteSugerido: string; // El contacto en la obra
+  firma: FirmaCarta | null; // Vacía mientras no se firma
   cambios: CambioCarta[];
+}
+
+export type TipoFirma = "ELECTRONICA" | "FISICA";
+
+// La firma registrada (OHU-05)
+export interface FirmaCarta {
+  tipo: TipoFirma;
+  fecha: string; // Cuándo firmó el cliente
+  firmante: string;
+  registradaPor: string;
+  rolRegistro: string;
+  registradaEn: string;
+  nombreArchivo: string | null;
+  tipoArchivo: string | null; // application/pdf, image/jpeg o image/png
 }
 
 // Datos que faltan para generarla: dato → a quién le toca ("Cliente", "Renta" o "Equipo")
