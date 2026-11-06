@@ -35,4 +35,7 @@ public interface CapturaRentaRepository extends JpaRepository<Renta, Long> {
     // Número del último folio de renta: "R-2090" -> 2090. Null si no hay rentas
     @Query("select max(cast(substring(r.folio, 3) as Integer)) from Renta r")
     Integer ultimoNumeroFolio();
+
+    // Rentas en curso que todavía no tienen horario de recolección, las que terminan antes primero
+    List<Renta> findByEstadoAndRecoleccionDesdeIsNullOrderByFechaFinAsc(EstadoRenta estado);
 }

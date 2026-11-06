@@ -51,4 +51,17 @@ public class CapturaRentaController {
     public RentaCapturadaResponse confirmarEntrega(@PathVariable Long id, @Valid @RequestBody HorarioRequest datos) {
         return servicio.confirmarEntrega(id, datos);
     }
+
+    /** GET /api/rentas/sin-recoleccion: rentas en curso que aún no tienen horario de recolección. */
+    @GetMapping("/sin-recoleccion")
+    public List<RentaCapturadaResponse> sinRecoleccion() {
+        return servicio.rentasSinRecoleccion();
+    }
+
+    /** PATCH /api/rentas/5/recoleccion: confirma el horario de recolección y crea su traslado. */
+    @PatchMapping("/{id}/recoleccion")
+    public RentaCapturadaResponse confirmarRecoleccion(@PathVariable Long id, @Valid @RequestBody HorarioRequest datos) {
+        return servicio.confirmarRecoleccion(id, datos);
+    }
+
 }
