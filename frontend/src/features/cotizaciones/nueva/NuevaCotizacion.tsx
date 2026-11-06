@@ -10,7 +10,13 @@ import type {
   CrearCotizacionRequest,
   Errores,
 } from "./nuevaCotizacionTypes";
-import { fechaHoraIso } from "./calculo";
+import {
+  calcularDias,
+  calcularTotales,
+  enPesos,
+  fechaHoraIso,
+  importeCentavos,
+} from "./calculo";
 import {
   erroresDelBackend,
   hayErrores,
@@ -27,6 +33,7 @@ import type { Cliente } from "../../clientes/clientesTypes";
 
 const PASOS = ["Cliente", "Fechas y obra", "Equipos", "Revisar y guardar"];
 const ULTIMO_PASO = PASOS.length - 1;
+const PASO_EQUIPOS = 2;
 
 function aSolicitud(b: BorradorCotizacion): CrearCotizacionRequest | null {
   if (!b.cliente || b.razonSocialId === null) return null;
@@ -40,6 +47,15 @@ function aSolicitud(b: BorradorCotizacion): CrearCotizacionRequest | null {
     telefonoContacto: b.telefonoContacto,
     equipoIds: b.equipos.map((e) => e.id),
   };
+}
+
+// En celular, la barra de abajo del paso de equipos muestra cuántos van y el subtotal (nueva-cotizacion.css)
+function resumirEquipos(b: BorradorCotizacion) {
+  const cuantos = b.equipos.length;
+  if (cuantos === 0) return null;
+  const dias = calcularDias(b.fechaEntrega, b.fechaRecoleccion) ?? 0;
+  const { subtotal } = calcularTotales(b.equipos.map((e) => importeCentavos(dias, e.modelo.tarifaDia)));
+  return { texto: `${cuantos} ${cuantos === 1 ? "equipo" : "equipos"}`, subtotal: enPesos(subtotal) };
 }
 
 const textoDeErrores = (total: number) =>
@@ -127,6 +143,7 @@ export default function NuevaCotizacion() {
   };
 
   const totalErrores = Object.keys(errores).length;
+  const resumenEquipos = paso === PASO_EQUIPOS ? resumirEquipos(borrador) : null;
 
   return (
     <div className="pagina-form">
@@ -179,8 +196,19 @@ export default function NuevaCotizacion() {
       </div>
 
       <div className="barra-acciones">
-        <p>
-          Paso {paso + 1} de {PASOS.length} · {PASOS[paso]}
+        <p className={resumenEquipos ? "nc-barra-con-resumen" : undefined}>
+          <span>
+            Paso {paso + 1} de {PASOS.length} ·{" "}
+            <span className="nc-barra-paso">{PASOS[paso]}</span>
+            {resumenEquipos && (
+              <span className="nc-barra-resumen">{resumenEquipos.texto}</span>
+            )}
+          </span>
+          {resumenEquipos && (
+            <strong className="nc-barra-resumen">
+              {resumenEquipos.subtotal}
+            </strong>
+          )}
         </p>
         <Button
           type="button"
