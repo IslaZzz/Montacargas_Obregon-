@@ -13,12 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import mx.montacargasobregon.backend.personal.modelo.Personal;
-import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
-import mx.montacargasobregon.backend.personal.repositorio.PersonalRepository;
+import mx.montacargasobregon.backend.personal.servicio.PersonalService;
 import mx.montacargasobregon.backend.revisiones.dto.AsignarRevisionesRequest;
-import mx.montacargasobregon.backend.revisiones.dto.MecanicoCargaResponse;
 import mx.montacargasobregon.backend.revisiones.dto.RevisionesRentaResponse;
-import mx.montacargasobregon.backend.revisiones.modelo.EstadoRevision;
 import mx.montacargasobregon.backend.revisiones.modelo.Revision;
 import mx.montacargasobregon.backend.revisiones.repositorio.RevisionRepository;
 
@@ -26,16 +23,12 @@ import mx.montacargasobregon.backend.revisiones.repositorio.RevisionRepository;
 @Service
 public class RevisionService {
 
-    // Lo que cuenta como trabajo pendiente de un mecánico
-    private static final List<EstadoRevision> SIN_TERMINAR =
-            List.of(EstadoRevision.ASIGNADO, EstadoRevision.EN_PROCESO);
-
     private final RevisionRepository repositorio;
-    private final PersonalRepository personalRepositorio;
+    private final PersonalService personalServicio;
 
-    public RevisionService(RevisionRepository repositorio, PersonalRepository personalRepositorio) {
+    public RevisionService(RevisionRepository repositorio, PersonalService personalServicio) {
         this.repositorio = repositorio;
-        this.personalRepositorio = personalRepositorio;
+        this.personalServicio = personalServicio;
     }
 
     /** Las revisiones agrupadas por renta y tipo, de la más próxima a la más lejana. */
@@ -53,35 +46,13 @@ public class RevisionService {
                 .toList();
     }
 
-    /** Mecánicos activos con su carga de revisiones, para elegir a quién asignar. */
-    @Transactional(readOnly = true)
-    public List<MecanicoCargaResponse> mecanicosConCarga() {
-        Map<Long, Long> carga = repositorio.findByEstadoIn(SIN_TERMINAR).stream()
-                .filter(r -> r.getMecanico() != null)
-                .collect(Collectors.groupingBy(r -> r.getMecanico().getId(), Collectors.counting()));
-
-        return personalRepositorio.findByTipoAndActivoTrue(TipoPersonal.MECANICO).stream()
-                .map(p -> new MecanicoCargaResponse(
-                        p.getId(),
-                        p.getCodigo(),
-                        p.getNombres() + " " + p.getApellidoPaterno(),
-                        carga.getOrDefault(p.getId(), 0L)))
-                .toList();
-    }
-
     /**
      * Asigna o cambia el mecánico de una o varias revisiones.
      * Si alguna no se puede, no se asigna ninguna. Devuelve la lista actualizada.
      */
     @Transactional
     public List<RevisionesRentaResponse> asignar(AsignarRevisionesRequest datos) {
-        Personal mecanico = personalRepositorio.findById(datos.personalId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mecánico no encontrado"));
-
-        if (!mecanico.isActivo() || mecanico.getTipo() != TipoPersonal.MECANICO) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "La persona elegida no es un mecánico activo");
-        }
+        Personal mecanico = personalServicio.mecanicoActivo(datos.personalId());
 
         Set<Long> ids = new HashSet<>(datos.revisionIds());
         List<Revision> revisiones = repositorio.findAllById(ids);

@@ -19,6 +19,8 @@ import mx.montacargasobregon.backend.personal.dto.PersonalRequest;
 import mx.montacargasobregon.backend.personal.dto.PersonalResponse;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.personal.servicio.PersonalService;
+import mx.montacargasobregon.backend.personal.dto.MecanicoCargaResponse;
+import mx.montacargasobregon.backend.personal.servicio.CargaTrabajoService;
 
 /** Rutas HTTP del personal. */
 @RestController
@@ -26,9 +28,11 @@ import mx.montacargasobregon.backend.personal.servicio.PersonalService;
 public class PersonalController {
 
     private final PersonalService servicio;
+    private final CargaTrabajoService cargaTrabajo;
 
-    public PersonalController(PersonalService servicio) {
+    public PersonalController(PersonalService servicio, CargaTrabajoService cargaTrabajo) {
         this.servicio = servicio;
+        this.cargaTrabajo = cargaTrabajo;
     }
 
     /** POST /api/personal: registra a alguien del personal. */
@@ -48,6 +52,15 @@ public class PersonalController {
         return servicio.buscar(texto, tipo).stream()
                 .map(PersonalResponse::toPersonalResponse)
                 .toList();
+    }
+
+    /**
+     * GET /api/personal/mecanicos: mecánicos activos con cuántos equipos tienen por atender,
+     * sumando revisiones y mantenimientos. Lo usan los modales de asignar.
+     */
+    @GetMapping("/mecanicos")
+    public List<MecanicoCargaResponse> mecanicosConCarga() {
+        return cargaTrabajo.mecanicosConCarga();
     }
 
     /** GET /api/personal/5: obtiene al personal con id 5; si no existe, responde 404. */

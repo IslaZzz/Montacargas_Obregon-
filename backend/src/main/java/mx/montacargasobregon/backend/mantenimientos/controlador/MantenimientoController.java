@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import mx.montacargasobregon.backend.mantenimientos.dto.AsignarRequest;
 import mx.montacargasobregon.backend.mantenimientos.dto.MantenimientoResponse;
-import mx.montacargasobregon.backend.mantenimientos.dto.MecanicoCargaResponse;
 import mx.montacargasobregon.backend.mantenimientos.servicio.MantenimientoService;
+
 
 /** Rutas HTTP de los mantenimientos. */
 @RestController
@@ -31,12 +31,6 @@ public class MantenimientoController {
         return servicio.listar().stream()
                 .map(MantenimientoResponse::toMantenimientoResponse)
                 .toList();
-    }
-
-    /** GET /api/mantenimientos/mecanicos: mecánicos activos con su carga de trabajo. */
-    @GetMapping("/mecanicos")
-    public List<MecanicoCargaResponse> mecanicos() {
-        return servicio.mecanicosConCarga();
     }
 
     /** PATCH /api/mantenimientos/asignar: asigna o cambia el mecánico de uno o varios. */

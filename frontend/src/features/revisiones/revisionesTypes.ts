@@ -41,14 +41,6 @@ export interface RevisionesRenta {
   revisiones: Revision[];
 }
 
-// Equivale a MecanicoCargaResponse
-export interface MecanicoCarga {
-  id: number;
-  codigo: string;
-  nombre: string;
-  equiposActivos: number;
-}
-
 // Equivale a AsignarRevisionesRequest
 export interface AsignarRevisionesRequest {
   revisionIds: number[];
