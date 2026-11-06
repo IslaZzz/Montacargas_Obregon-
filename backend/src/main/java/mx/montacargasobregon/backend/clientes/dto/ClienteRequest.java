@@ -33,7 +33,7 @@ public record ClienteRequest(
         @NotBlank @Pattern(regexp = "\\d{10}", message = "El teléfono debe tener 10 dígitos") String telefono,
 
         // Obligatorio, debe ser un correo válido, hasta 150 caracteres
-        @NotBlank @Email @Size(max = 150, message = "El correo admite máximo 150 caracteres") String correo,
+        @NotBlank @Email(message = "Escribe un correo válido, por ejemplo nombre@empresa.com") @Size(max = 150, message = "El correo admite máximo 150 caracteres") String correo,
 
         // Obligatorio, no puede estar vacío ni nulo, y cada elemento debe ser válido
         @NotEmpty @Valid List<RazonSocialRequest> razonesSociales) {
