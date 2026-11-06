@@ -12,6 +12,8 @@ import StyleTest from "../features/testComponentes/StyleTest";
 import Mantenimientos from "../features/mantenimientos/Mantenimientos";
 import Revisiones from "../features/revisiones/Revisiones";
 import ApartadosProximos from "../features/avisos/ApartadosProximos";
+import CartaRenta from "../features/cartas/CartaRenta";
+import VistaPreviaCarta from "../features/cartas/VistaPreviaCarta";
 
 import DetalleCliente from "../features/clientes/DetalleCliente";
 
@@ -52,6 +54,10 @@ export default function AppRoutes() {
 
         {/* Avisos */}
         <Route path="/apartados-proximos" element={<ApartadosProximos />} />
+
+        {/* Carta responsiva. Provisional hasta que exista el detalle de la renta (OHU-03) */}
+        <Route path="/rentas/:id/carta" element={<CartaRenta />} />
+        <Route path="/rentas/:id/carta/vista-previa" element={<VistaPreviaCarta />} />
 
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />
