@@ -48,6 +48,29 @@ export const chipDeResultado: Record<ResultadoRevision, ChipStatus> = {
   REQUIERE_MANTENIMIENTO: "requiere-mantenimiento",
 };
 
+// Opciones del modal de resultado, en orden
+export const RESULTADOS: {
+  valor: ResultadoRevision;
+  etiqueta: string;
+  descripcion: string;
+}[] = [
+  { valor: "SIN_NOVEDAD", etiqueta: "Sin novedad", descripcion: "El equipo está bien." },
+  {
+    valor: "CON_OBSERVACIONES",
+    etiqueta: "Con observaciones",
+    descripcion: "Algo que vale la pena anotar, pero no impide usarlo.",
+  },
+  {
+    valor: "REQUIERE_MANTENIMIENTO",
+    etiqueta: "Requiere mantenimiento",
+    descripcion: "Tiene una falla que hay que reparar.",
+  },
+];
+
+// El resultado se registra cuando ya tiene mecánico y no ha terminado
+export const puedeRegistrar = (r: Revision) =>
+  r.estado === "ASIGNADO" || r.estado === "EN_PROCESO";
+
 // Se pueden asignar o cambiar mientras no estén terminadas ni canceladas
 export const esAsignable = (r: Revision) =>
   r.estado === "PENDIENTE" || r.estado === "ASIGNADO" || r.estado === "EN_PROCESO";

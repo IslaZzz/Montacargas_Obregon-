@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
-import type { ReactNode } from "react";
 import AsignarMecanicoModal from "../../components/AsignarMecanicoModal";
 import type { ElementoAsignar, MecanicoOpcion } from "../../components/AsignarMecanicoModal";
 import Aviso from "../../components/Aviso";
 import Avatar from "../../components/Avatar";
 import { Button } from "../../components/buttons";
-import Chip from "../../components/chips";
+import Chip, { claseDeChip } from "../../components/chips";
 import FilterRow from "../../components/filters/filterRow";
 import DataTable from "../../components/table";
 import type { TableColumn } from "../../components/table";
 import { useTitulo } from "../../hooks/useTitulo";
 import { listarMecanicos } from "../../services/personalApi";
 import { formatoDiaCorto, formatoHora } from "../../utils/fechas";
-import { asignarRevisiones, listarRevisiones } from "./revisionesApi";
-import type { Revision, RevisionesRenta } from "./revisionesTypes";
+import RegistrarResultadoModal from "./RegistrarResultadoModal";
+import { asignarRevisiones, listarRevisiones, registrarResultado } from "./revisionesApi";
+import type { ResultadoRevision, Revision, RevisionesRenta } from "./revisionesTypes";
 import {
   ESTADOS,
   TIPOS,
@@ -24,13 +24,21 @@ import {
   etiquetaDeEstado,
   mecanicoComun,
   mecanicosDelGrupo,
+  puedeRegistrar,
 } from "./revisionesUtils";
+import "../../styles/operacion.css";
 import "../../styles/revisiones/revisiones.css";
 
 // Lo que se está asignando en el modal: la renta completa o una sola revisión
 interface Asignacion {
   grupo: RevisionesRenta;
   revisiones: Revision[];
+}
+
+// Una revisión junto con su renta: para las filas de equipos y el modal de resultado
+interface RevisionDeRenta {
+  grupo: RevisionesRenta;
+  revision: Revision;
 }
 
 export default function Revisiones() {
@@ -49,6 +57,7 @@ export default function Revisiones() {
 
   // Lo que se está asignando; null = modal cerrado
   const [enModal, setEnModal] = useState<Asignacion | null>(null);
+  const [enResultado, setEnResultado] = useState<RevisionDeRenta | null>(null);
 
   // Confirmación después de asignar y fila que se resalta
   const [exito, setExito] = useState<string | null>(null);
@@ -66,16 +75,18 @@ export default function Revisiones() {
     (g) => (estado === "all" || g.estado === estado) && (tipo === "all" || g.tipo === tipo),
   );
 
-  // Un chip por estado y por tipo, con cuántas rentas tiene cada uno
+  // Un chip por estado y por tipo, con cuántas rentas tiene cada uno y el color de su estado
   const filtrosEstado = ESTADOS.map((e) => ({
     label: e.etiqueta,
     value: e.valor,
     count: grupos.filter((g) => g.estado === e.valor).length,
+    dotClassName: claseDeChip("revision", e.chip),
   }));
   const filtrosTipo = TIPOS.map((t) => ({
     label: t.etiqueta,
     value: t.valor,
     count: grupos.filter((g) => g.tipo === t.valor).length,
+    dotClassName: claseDeChip("revision", t.chip),
   }));
 
   function alternar(clave: string) {
@@ -118,6 +129,37 @@ export default function Revisiones() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function abrirResultado(g: RevisionesRenta, r: Revision) {
+    setExito(null);
+    setEnResultado({ grupo: g, revision: r });
+  }
+
+  // Si el backend responde error, el modal lo muestra y no se cierra
+  async function confirmarResultado(resultado: ResultadoRevision, notas: string) {
+    if (!enResultado) return;
+    const { grupo, revision } = enResultado;
+    const lista = await registrarResultado(revision.id, { resultado, notas: notas || null });
+
+    setGrupos(lista);
+    // Con todas las de salida bien, el backend ya creó el traslado de entrega
+    const actualizado = lista.find((g) => g.clave === grupo.clave);
+    const todasBien =
+      actualizado?.tipo === "SALIDA" &&
+      actualizado.revisiones.every(
+        (r) => r.estado === "COMPLETADA" && r.resultado !== "REQUIERE_MANTENIMIENTO",
+      );
+    setExito(
+      resultado === "REQUIERE_MANTENIMIENTO"
+        ? `${revision.numeroUnidad} requiere mantenimiento: ya está en Mantenimientos por asignar`
+        : todasBien
+          ? `La renta ${grupo.folioRenta} pasó todas sus revisiones de salida: ya está su traslado de entrega por asignar`
+          : `La revisión de ${revision.numeroUnidad} quedó registrada`,
+    );
+    setResaltadas(new Set([grupo.clave]));
+    setEnResultado(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function accionRenta(g: RevisionesRenta) {
     // Si todas están terminadas o canceladas, no hay nada que asignar
     if (!g.revisiones.some(esAsignable)) return null;
@@ -137,57 +179,78 @@ export default function Revisiones() {
     );
   }
 
-  // Los equipos de la renta, cuando está desplegada
-  function detalle(g: RevisionesRenta): ReactNode {
-    if (!abiertas.has(g.clave)) return null;
+  // Acciones de un equipo de la renta desplegada
+  function accionRevision(g: RevisionesRenta, r: Revision) {
+    if (!puedeRegistrar(r) && !esAsignable(r)) return null;
     return (
-      <ul className="revisiones-equipos">
-        {g.revisiones.map((r) => (
-          <li key={r.id}>
-            <div>
-              <span className="celda-principal">{r.numeroUnidad}</span>
-              <span className="celda-secundaria">{r.descripcionEquipo}</span>
-            </div>
-
-            <div className="revisiones-equipo-mecanico">
-              {r.mecanicoNombre ? (
-                <>
-                  <Avatar nombre={r.mecanicoNombre} />
-                  {r.mecanicoNombre}
-                </>
-              ) : (
-                <span className="celda-secundaria">Sin mecánico</span>
-              )}
-            </div>
-
-            <div className="revisiones-equipo-estado">
-              <Chip category="revision" status={chipDeEstado(r.estado)}>
-                {etiquetaDeEstado(r.estado)}
-              </Chip>
-              {r.resultado && (
-                <Chip category="revision" status={chipDeResultado[r.resultado]} />
-              )}
-            </div>
-
-            <div className="revisiones-equipo-notas">{r.notas}</div>
-
-            <div className="celda-accion">
-              {esAsignable(r) && (
-                <Button
-                  type="button"
-                  variant="tertiary"
-                  className="btn-chico"
-                  onClick={() => abrirParaRevision(g, r)}
-                >
-                  {r.mecanicoId ? "Cambiar" : "Asignar"}
-                </Button>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
+      <span className="acciones">
+        {puedeRegistrar(r) && (
+          <Button type="button" variant="primary" className="btn-chico" onClick={() => abrirResultado(g, r)}>
+            <span className="material-symbols-rounded" aria-hidden="true">task_alt</span>
+            Registrar resultado
+          </Button>
+        )}
+        {esAsignable(r) && (
+          <Button type="button" variant="tertiary" className="btn-chico" onClick={() => abrirParaRevision(g, r)}>
+            <span className="material-symbols-rounded" aria-hidden="true">
+              {r.mecanicoId ? "swap_horiz" : "person_add"}
+            </span>
+            {r.mecanicoId ? "Cambiar" : "Asignar"}
+          </Button>
+        )}
+      </span>
     );
   }
+
+  // Al desplegar una renta, sus equipos se muestran como filas con las mismas columnas
+  const subcolumnas: TableColumn<RevisionDeRenta>[] = [
+    { header: "", accessor: () => null, className: "celda-desplegar" },
+    {
+      header: "Renta",
+      accessor: ({ revision: r }) => (
+        <>
+          <span className="celda-principal">{r.numeroUnidad}</span>
+          <span className="celda-secundaria">{r.descripcionEquipo}</span>
+        </>
+      ),
+    },
+    { header: "Tipo", accessor: () => null },
+    { header: "Programada", accessor: () => null },
+    {
+      header: "Avance",
+      accessor: ({ revision: r }) =>
+        r.resultado ? (
+          <>
+            <Chip category="revision" status={chipDeResultado[r.resultado]} />
+            {r.notas && <span className="celda-secundaria revisiones-notas">{r.notas}</span>}
+          </>
+        ) : (
+          <span className="celda-secundaria">Sin resultado</span>
+        ),
+    },
+    {
+      header: "Mecánico",
+      accessor: ({ revision: r }) =>
+        r.mecanicoNombre ? (
+          <CeldaMecanico nombres={[r.mecanicoNombre]} />
+        ) : (
+          <span className="celda-secundaria">Sin mecánico</span>
+        ),
+    },
+    {
+      header: "Estado",
+      accessor: ({ revision: r }) => (
+        <Chip category="revision" status={chipDeEstado(r.estado)}>
+          {etiquetaDeEstado(r.estado)}
+        </Chip>
+      ),
+    },
+    {
+      header: "Acción",
+      accessor: ({ grupo, revision }) => accionRevision(grupo, revision),
+      className: "celda-accion",
+    },
+  ];
 
   const columnas: TableColumn<RevisionesRenta>[] = [
     {
@@ -273,11 +336,11 @@ export default function Revisiones() {
     })) ?? [];
 
   return (
-    <div className="pagina revisiones">
+    <div className="pagina operacion revisiones">
       {/* Título */}
-      <div className="revisiones-titulo">
+      <div className="operacion-titulo">
         <h1>Revisiones</h1>
-        <p>Asigna a un mecánico la revisión de los equipos de cada renta.</p>
+        <p>Asigna las revisiones a un mecánico y registra el resultado que te reporte.</p>
       </div>
 
       {/* Avisos */}
@@ -293,25 +356,28 @@ export default function Revisiones() {
       )}
 
       {/* Filtros */}
-      <div className="revisiones-filtros">
-        <div className="revisiones-filtro">
-          <span className="revisiones-filtro-etiqueta">Mostrar:</span>
-          <FilterRow
-            options={filtrosEstado}
-            selectedValue={estado}
-            allLabel="Todas"
-            allCount={grupos.length}
-            onChange={setEstado}
-          />
-        </div>
-        <div className="revisiones-filtro">
-          <span className="revisiones-filtro-etiqueta">Tipo:</span>
-          <FilterRow
-            options={filtrosTipo}
-            selectedValue={tipo}
-            allLabel="Todas"
-            onChange={setTipo}
-          />
+      <div className="operacion-filtros">
+        <div className="operacion-filtros-izquierda">
+          <div className="operacion-filtro">
+            <span className="operacion-filtro-etiqueta">Mostrar:</span>
+            <FilterRow
+              options={filtrosEstado}
+              selectedValue={estado}
+              allLabel="Todas"
+              allCount={grupos.length}
+              onChange={setEstado}
+            />
+          </div>
+          <div className="operacion-filtro">
+            <span className="operacion-filtro-etiqueta">Tipo:</span>
+            <FilterRow
+              options={filtrosTipo}
+              selectedValue={tipo}
+              allLabel="Todas"
+              allCount={grupos.length}
+              onChange={setTipo}
+            />
+          </div>
         </div>
       </div>
 
@@ -322,7 +388,11 @@ export default function Revisiones() {
         getRowKey={(g) => g.clave}
         getRowClassName={(g) => (resaltadas.has(g.clave) ? "fila-resaltada" : undefined)}
         onRowClick={(g) => alternar(g.clave)}
-        renderDetalle={detalle}
+        getSubfilas={(g) =>
+          abiertas.has(g.clave) ? g.revisiones.map((revision) => ({ grupo: g, revision })) : null
+        }
+        subcolumnas={subcolumnas}
+        getSubfilaKey={(sub) => sub.revision.id}
         emptyMessage={cargando ? "Cargando revisiones…" : "No hay revisiones con estos filtros."}
       />
 
@@ -337,6 +407,16 @@ export default function Revisiones() {
         onConfirmar={confirmar}
         onCerrar={() => setEnModal(null)}
       />
+
+      {enResultado && (
+        <RegistrarResultadoModal
+          key={enResultado.revision.id}
+          revision={enResultado.revision}
+          tipo={enResultado.grupo.tipo}
+          onConfirmar={confirmarResultado}
+          onCerrar={() => setEnResultado(null)}
+        />
+      )}
     </div>
   );
 }
@@ -363,9 +443,9 @@ function CeldaMecanico({ nombres }: { nombres: string[] }) {
   }
   if (nombres.length === 1) {
     return (
-      <div className="celda-mecanico">
+      <div className="celda-persona">
         <Avatar nombre={nombres[0]} />
-        <span className="celda-mecanico-nombre">{nombres[0]}</span>
+        <span className="celda-persona-nombre">{nombres[0]}</span>
       </div>
     );
   }

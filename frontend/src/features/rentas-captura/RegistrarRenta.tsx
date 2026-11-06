@@ -19,7 +19,7 @@ import "../../styles/rentas-captura/registrar-renta.css";
 /*
  * Captura manual de una renta. Es temporal: no tiene opción en el menú,
  * se entra escribiendo /rentas/nueva. Al guardar se confirma la entrega,
- * así nacen las revisiones de salida y el traslado de entrega.
+ * así nacen las revisiones de salida. El traslado de entrega nace cuando todas pasan.
  */
 
 const formularioVacio = {
@@ -238,7 +238,7 @@ export default function RegistrarRenta() {
         <h1>Registrar renta</h1>
         <p>
           Captura la renta tal como quedó acordada con el cliente. Al guardarla se crean sus
-          revisiones de salida y su traslado de entrega.
+          revisiones de salida; cuando todas salgan bien, se crea su traslado de entrega.
         </p>
 
         {/* Avisos */}
@@ -246,7 +246,7 @@ export default function RegistrarRenta() {
           <Aviso tipo="exito" titulo={`Renta ${creada.folio} registrada`} onCerrar={() => setCreada(null)}>
             {creada.equipos.length} {creada.equipos.length === 1 ? "equipo" : "equipos"} para{" "}
             {creada.cliente} ({creada.equipos.join(", ")}). Ya puedes asignar sus{" "}
-            <Link to="/revisiones">revisiones</Link> y su <Link to="/traslados">traslado</Link>.
+            <Link to="/revisiones">revisiones de salida</Link>.
           </Aviso>
         )}
         {totalErrores > 0 && (

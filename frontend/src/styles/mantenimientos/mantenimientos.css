@@ -1,29 +1,4 @@
-/* Pantalla de Mantenimientos: asignar mantenimientos a mecánicos */
-
-.mantenimientos-titulo {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-/* Filtros: estado a la izquierda, fechas a la derecha */
-.mantenimientos-filtros {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px 32px;
-}
-.mantenimientos-filtro {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
-.mantenimientos-filtro-etiqueta {
-  font-weight: 600;
-  color: var(--primary-teal);
-}
+/* Pantalla de Mantenimientos. Lo común con Revisiones y Traslados está en operacion.css */
 
 /* Barra que aparece al marcar equipos */
 .mantenimientos-seleccion {
@@ -38,7 +13,7 @@
   color: var(--primary-teal);
 }
 
-/* Celdas */
+/* Casillas para marcar */
 .mantenimientos .celda-casilla {
   width: 48px;
 }
@@ -52,18 +27,8 @@
   cursor: not-allowed;
   opacity: 0.4;
 }
-.mantenimientos .celda-principal {
-  display: block;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--primary-teal);
-}
-.mantenimientos .celda-secundaria {
-  display: block;
-  margin-top: 2px;
-  font-size: 12px;
-  color: var(--text-foreground);
-}
+
+/* Falla con su ícono */
 .mantenimientos .celda-falla {
   display: flex;
   align-items: center;
@@ -79,36 +44,13 @@
 .mantenimientos .icono-ok {
   color: var(--ok-green-outline);
 }
-.mantenimientos .celda-mecanico {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.mantenimientos .celda-mecanico > div {
+
+/* Modal de terminar */
+.mantenimientos-terminar {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
+  gap: 8px;
 }
-.mantenimientos .celda-mecanico-nombre {
-  font-weight: 600;
-  color: var(--primary-teal);
-}
-.mantenimientos .celda-accion {
-  text-align: right;
-  white-space: nowrap;
-}
-
-/* Botones: ícono con separación y versión compacta para la tabla */
-.mantenimientos .btn {
-  gap: 6px;
-}
-.mantenimientos .btn-chico {
-  padding: 8px 14px;
-  font-size: 14px;
-}
-
-/* Filas recién asignadas */
-.mantenimientos .data-table tbody tr.fila-resaltada {
-  background-color: rgba(32, 149, 104, 0.1);
+.mantenimientos-terminar p {
+  margin: 0;
 }
