@@ -25,6 +25,21 @@
   color: var(--primary-teal);
 }
 
+/* Fecha a la izquierda y "Registrar renta" a la derecha */
+.inicio-encabezado {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  max-width: 900px;
+}
+.inicio-encabezado .btn {
+  flex-shrink: 0;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 .inicio-seccion {
   width: 100%;
   margin-top: 31px;
@@ -34,7 +49,7 @@
   font-size: 18px;
   color: var(--warning-red-outline);
 }
-.inicio-fecha + .inicio-seccion {
+.inicio-encabezado + .inicio-seccion {
   margin-top: 34px;
 }
 .inicio-titulo {
@@ -436,6 +451,14 @@
 
 /* Celular */
 @media (max-width: 700px) {
+  /* El botón baja debajo de la fecha */
+  .inicio-encabezado {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .inicio-encabezado .btn {
+    margin-top: 0;
+  }
   .inicio-titulo {
     margin-bottom: 16px;
     font-size: 24px;
@@ -448,7 +471,7 @@
     font-size: 36px;
   }
   .inicio-seccion,
-  .inicio-fecha + .inicio-seccion {
+  .inicio-encabezado + .inicio-seccion {
     margin-top: 24px;
   }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FilterRow from "../../components/filters/filterRow";
+import { Button } from "../../components/buttons";
 import { useTitulo } from "../../hooks/useTitulo";
 import { aFecha, formatoDia } from "../../utils/formato";
 import CalendarioOperaciones from "./CalendarioOperaciones";
@@ -141,8 +142,13 @@ export default function Dashboard() {
   return (
     <div className="inicio">
       <div className="inicio-principal">
-        <h1 className="inicio-fecha">{formatoDia(hoy)}.</h1>
-
+      <div className="inicio-encabezado">
+                <h1 className="inicio-fecha">{formatoDia(hoy)}.</h1>
+                <Button type="button" variant="primary" onClick={() => navigate("/rentas/nueva")}>
+                  <span className="material-symbols-rounded" aria-hidden="true">add</span>
+                  Registrar renta
+                </Button>
+              </div>
         {error && (
           <p className="inicio-error" role="alert">
             No se pudo cargar la información de hoy. Revisa que el servidor esté encendido.
