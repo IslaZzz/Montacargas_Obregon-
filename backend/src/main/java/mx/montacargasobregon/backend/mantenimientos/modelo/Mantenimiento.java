@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 import mx.montacargasobregon.backend.personal.modelo.Personal;
+import mx.montacargasobregon.backend.revisiones.modelo.Revision;
 
 /**
  * Reparación o servicio sobre un equipo.
@@ -73,6 +74,11 @@ public class Mantenimiento {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EstadoMantenimiento estado;
+
+    // La revisión en la que se detectó la falla; vacío en los preventivos
+    @ManyToOne
+    @JoinColumn(name = "revision_id")
+    private Revision revision;
 
     public Mantenimiento(Equipo equipo, TipoMantenimiento tipo, String descripcionFalla,
                          Personal reportadoPor, LocalDateTime fechaLimite) {
