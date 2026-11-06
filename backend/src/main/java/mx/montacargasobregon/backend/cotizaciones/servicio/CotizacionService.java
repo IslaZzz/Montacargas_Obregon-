@@ -50,7 +50,7 @@ public class CotizacionService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "La cotización ya no puede cambiar a ese estado");
         }
         // Sin equipos no hay PDF que mandar (HU-18)
-        if (nuevoEstado == EstadoCotizacion.ENVIADA && cotizacion.getPartidas().isEmpty()) {
+        if (nuevoEstado == EstadoCotizacion.ENVIADA && cotizacion.getEquipos().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Agrega al menos un equipo");
         }
 

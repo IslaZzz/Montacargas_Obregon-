@@ -17,9 +17,9 @@ public record CotizacionResumenResponse(Long id, String folio, String cliente, S
                 c.getFolio(),
                 nombreCompleto(c.getCliente()),
                 c.getCliente().getEmpresa(),
-                c.getFechaCreacion(),
-                c.getFechaEntrega(),
-                c.getFechaRecoleccion(),
+                c.getFechaHoraCreacion(),
+                c.getFechaHoraEntrega(),
+                c.getFechaHoraRecoleccion(),
                 c.getTotal(),
                 c.getEstado().name());
     }

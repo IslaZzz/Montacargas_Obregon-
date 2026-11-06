@@ -1,6 +1,7 @@
 package mx.montacargasobregon.backend.cotizaciones.servicio;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -23,6 +24,8 @@ import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 import mx.montacargasobregon.backend.clientes.modelo.DireccionFiscal;
 import mx.montacargasobregon.backend.clientes.modelo.RazonSocial;
 import mx.montacargasobregon.backend.clientes.servicio.ClienteService;
+import mx.montacargasobregon.backend.comun.DatosDireccion;
+import mx.montacargasobregon.backend.comun.dto.DatosDireccionRequest;
 import mx.montacargasobregon.backend.cotizaciones.dto.CrearCotizacionRequest;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion;
@@ -75,12 +78,34 @@ class CrearCotizacionServiceTest {
         assertEquals("COT-0001", c.getFolio());
         assertEquals(EstadoCotizacion.BORRADOR, c.getEstado());
         assertEquals(5L, c.getDias());
-        assertEquals(new BigDecimal("1200.00"), c.getPartidas().get(0).getTarifaDia());
-        assertEquals(new BigDecimal("6000.00"), c.getPartidas().get(0).getImporte());
-        assertEquals(new BigDecimal("1250.00"), c.getPartidas().get(1).getImporte());
+        assertEquals(new BigDecimal("1200.00"), c.getEquipos().get(0).getTarifa());
+        assertEquals(new BigDecimal("6000.00"), c.getEquipos().get(0).getImporte());
+        assertEquals(new BigDecimal("1250.00"), c.getEquipos().get(1).getImporte());
         assertEquals(new BigDecimal("7250.00"), c.getSubtotal());
         assertEquals(new BigDecimal("1160.00"), c.getIva());
         assertEquals(new BigDecimal("8410.00"), c.getTotal());
+    }
+
+    @Test
+    void guardaLaDireccionYElContactoDeLaObraSinEspaciosDeMas() {
+        when(clienteService.obtener(1L)).thenReturn(cliente);
+        when(equipoService.obtener(7L)).thenReturn(equipo(7L, "MC-07", "1200.00"));
+        when(repositorio.ultimoId()).thenReturn(0L);
+        when(repositorio.save(any(Cotizacion.class))).thenAnswer(inv -> inv.getArgument(0));
+        var direccion = new DatosDireccionRequest(" Carretera Guasave–Los Mochis ", "km 4.5", "Parque Industrial",
+                "Guasave", " Sinaloa ", "81100", "   ");
+
+        Cotizacion c = servicio.crear(solicitud(10L, ENTREGA, RECOLECCION, List.of(7L), direccion));
+
+        DatosDireccion obra = c.getDireccionObra();
+        assertEquals("Carretera Guasave–Los Mochis", obra.getCalle());
+        assertEquals("Sinaloa", obra.getEstado());
+        assertEquals("81100", obra.getCodigoPostal());
+        assertNull(obra.getReferencias());
+        assertEquals("Ing. Raúl Soto", c.getContactoObra().getNombre());
+        assertEquals("6872104455", c.getContactoObra().getTelefono());
+        assertEquals(BigDecimal.ZERO, c.getTrasladoEntrega());
+        assertNull(c.getDescuento());
     }
 
     @Test
@@ -148,9 +173,16 @@ class CrearCotizacionServiceTest {
 
     private static CrearCotizacionRequest solicitud(Long razonSocialId, LocalDateTime entrega,
                                                     LocalDateTime recoleccion, List<Long> equipoIds) {
+        return solicitud(razonSocialId, entrega, recoleccion, equipoIds,
+                new DatosDireccionRequest("Carretera Guasave–Los Mochis", "km 4.5", "Parque Industrial", "Guasave",
+                        "Sinaloa", "81100", "Portón azul. Preguntar por el Ing. Soto."));
+    }
+
+    private static CrearCotizacionRequest solicitud(Long razonSocialId, LocalDateTime entrega,
+                                                    LocalDateTime recoleccion, List<Long> equipoIds,
+                                                    DatosDireccionRequest direccionObra) {
         return new CrearCotizacionRequest(
-                1L, razonSocialId, entrega, recoleccion,
-                "Carretera Guasave–Los Mochis km 4.5, Parque Industrial, Guasave, Sinaloa",
+                1L, razonSocialId, entrega, recoleccion, direccionObra,
                 "Ing. Raúl Soto", "6872104455", equipoIds);
     }
 }
