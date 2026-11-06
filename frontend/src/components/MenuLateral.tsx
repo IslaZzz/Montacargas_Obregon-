@@ -30,6 +30,7 @@ const opciones: Opcion[] = [
     icono: "event_available",
   },
   { texto: "Cotizaciones", ruta: "/cotizaciones", icono: "description" },
+  { texto: "Revisiones", ruta: "/revisiones", icono: "fact_check" },
   { texto: "Traslados", ruta: "/traslados", icono: "swap_horiz" },
   { texto: "Mantenimientos", ruta: "/mantenimientos", icono: "build" },
   { texto: "Historial de rentas", ruta: "/historial-rentas", icono: "history" },
