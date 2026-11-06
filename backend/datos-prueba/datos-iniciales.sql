@@ -60,3 +60,13 @@ INSERT IGNORE INTO equipo_etiquetas (equipo_id, etiqueta)
 SELECT e.id, 'USO_INTERIORES'
 FROM equipos e
 WHERE e.numero_unidad = 'MC-11';
+
+
+-- Personal operativo: mecánicos y operadores de traslado
+INSERT IGNORE INTO personal (codigo, nombres, apellido_paterno, apellido_materno, tipo, activo) VALUES
+  ('MEC-10', 'Rafael', 'Amaya',      NULL, 'MECANICO',    1),
+  ('MEC-11', 'Martín', 'Cota',       NULL, 'MECANICO',    1),
+  ('MEC-12', 'Jorge',  'Ibarra',     NULL, 'MECANICO',    1),
+  ('OPT-10', 'Luis',   'Valenzuela', NULL, 'OP_TRASLADO', 1),
+  ('OPT-11', 'Ana',    'Soto',       NULL, 'OP_TRASLADO', 1),
+  ('OPT-12', 'Ramón',  'Félix',      NULL, 'OP_TRASLADO', 1);
