@@ -11,6 +11,7 @@ import FilterTest from "../features/testComponentes/FilterTest";
 import StyleTest from "../features/testComponentes/StyleTest";
 import Mantenimientos from "../features/mantenimientos/Mantenimientos";
 import Rentas from "../features/rentas/rentas";
+import DetalleRenta from "../features/rentas/detalleRenta";
 
 export default function AppRoutes() {
   return (
@@ -36,6 +37,7 @@ export default function AppRoutes() {
 
         {/* Rentas (consulta y detalle)*/}
         <Route path="/rentas" element={<Rentas />} />
+        <Route path="/rentas/:id" element={<DetalleRenta />} />
 
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />
