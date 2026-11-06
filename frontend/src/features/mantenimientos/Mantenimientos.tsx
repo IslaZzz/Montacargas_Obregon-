@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useEffect, useState } from "react";
 import AsignarMecanicoModal from "../../components/AsignarMecanicoModal";
 import type { ElementoAsignar, MecanicoOpcion } from "../../components/AsignarMecanicoModal";
 import Aviso from "../../components/Aviso";
