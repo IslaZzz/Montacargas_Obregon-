@@ -86,6 +86,9 @@ public class Renta {
     @OneToMany(mappedBy = "renta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EquipoRenta> equipos = new ArrayList<>();
 
+    @OneToMany(mappedBy = "renta")
+    private List<mx.montacargasobregon.backend.traslados.modelo.Traslado> traslados = new ArrayList<>();
+
     public Renta(String folio, Cliente cliente, LocalDate fechaInicio, LocalDate fechaFin,
                  String direccionObra, String contactoObra, String telefonoContacto) {
         this.folio = folio;

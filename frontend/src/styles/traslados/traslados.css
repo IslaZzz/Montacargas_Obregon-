@@ -1,0 +1,570 @@
+/* Contenedor principal de traslados */
+.traslados-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Encabezado */
+.traslados-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.traslados-titulo-bloque h1 {
+  margin: 0;
+  font: 800 32px/1.2 var(--title-font-manrope, 'Manrope', sans-serif);
+  color: var(--primary-teal, #0F3D4C);
+}
+
+.traslados-titulo-bloque p {
+  margin: 6px 0 0 0;
+  font-size: 15px;
+  color: var(--text-foreground, #2E2D37);
+}
+
+/* Botón de fecha en cabecera */
+.traslados-fecha-picker-rel {
+  position: relative;
+}
+
+.btn-filtro-fecha {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: var(--primary-teal, #0F3D4C);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--btn-radious, 10px);
+  font-family: var(--main-font-inter, sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-filtro-fecha:hover {
+  background-color: #175366;
+}
+
+.popover-filtro-fecha {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 100;
+  background-color: #FFFFFF;
+  border: 1px solid var(--secondary-mint, #267C93);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(15, 61, 76, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 280px;
+}
+
+.popover-fecha-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Fila de Filtros (Chips superiores) */
+.traslados-filtros-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.traslados-filtros-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-foreground, #2E2D37);
+  margin-right: 4px;
+}
+
+.chip-filtro-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-family: var(--main-font-inter, sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1.5px solid #CDD2D1;
+  background-color: var(--off-white-background, #FFFFF8);
+  color: var(--primary-teal, #0F3D4C);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chip-filtro-btn:hover {
+  border-color: var(--secondary-mint, #267C93);
+  background-color: #F0F4F2;
+}
+
+.chip-filtro-btn.activo {
+  background-color: var(--primary-teal, #0F3D4C);
+  color: #FFFFFF;
+  border-color: var(--primary-teal, #0F3D4C);
+}
+
+.chip-filtro-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Tabla - Contenido de celdas */
+.col-traslado-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.col-traslado-folio {
+  font-weight: 700;
+  color: var(--primary-teal, #0F3D4C);
+}
+
+.col-traslado-renta {
+  font-size: 13px;
+  color: #64748B;
+}
+
+/* Badges de Tipo */
+.badge-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-tipo .material-symbols-rounded {
+  font-size: 16px;
+}
+
+.badge-tipo-entrega {
+  background-color: #E2F3EA;
+  color: #0F3D4C;
+}
+
+.badge-tipo-recoleccion {
+  background-color: #FEF3D6;
+  color: #7A4F01;
+}
+
+/* Fecha y Horario */
+.col-fecha-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.col-fecha-dia {
+  font-weight: 700;
+  color: var(--primary-teal, #0F3D4C);
+}
+
+.col-fecha-horas {
+  font-size: 13px;
+  color: #475569;
+}
+
+/* Cliente y Domicilio */
+.col-cliente-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.col-cliente-nombre {
+  font-weight: 700;
+  color: var(--primary-teal, #0F3D4C);
+}
+
+.col-cliente-domicilio {
+  font-size: 13px;
+  color: #64748B;
+  max-width: 320px;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+/* Responsable */
+.col-responsable-bloque {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.responsable-nombre-txt {
+  font-weight: 600;
+  color: var(--primary-teal, #0F3D4C);
+}
+
+.badge-sin-asignar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #FBEAEA;
+  color: #BA3636;
+}
+
+.badge-sin-asignar .material-symbols-rounded {
+  font-size: 15px;
+}
+
+/* Botones de acción en tabla */
+.col-acciones-celda {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-accion-traslado {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: var(--main-font-inter, sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-accion-traslado .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.btn-accion-asignar {
+  background-color: var(--primary-teal, #0F3D4C);
+  color: #FFFFFF;
+  border: 1px solid var(--primary-teal, #0F3D4C);
+}
+
+.btn-accion-asignar:hover {
+  background-color: #175366;
+}
+
+.btn-accion-cambiar {
+  background-color: var(--off-white-background, #FFFFF8);
+  color: var(--primary-teal, #0F3D4C);
+  border: 1.5px solid var(--primary-teal, #0F3D4C);
+}
+
+.btn-accion-cambiar:hover {
+  background-color: var(--primary-teal, #0F3D4C);
+  color: #FFFFFF;
+}
+
+.btn-accion-ya-inicio {
+  background-color: #DDE2E1;
+  color: #718080;
+  border: none;
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+/* ========================================================== */
+/* PANEL LATERAL (DRAWER)                                     */
+/* ========================================================== */
+
+.panel-lateral-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(15, 61, 76, 0.45);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.panel-lateral-drawer {
+  width: min(540px, 100vw);
+  height: 100vh;
+  background-color: var(--off-white-background, #FFFFF8);
+  box-shadow: -8px 0 32px rgba(15, 61, 76, 0.2);
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.panel-lateral-header {
+  padding: 24px 28px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.panel-lateral-titulo-bloque h2 {
+  margin: 0;
+  font: 800 24px/1.2 var(--title-font-manrope, 'Manrope', sans-serif);
+  color: var(--primary-teal, #0F3D4C);
+}
+
+.panel-lateral-titulo-bloque p {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: var(--text-foreground, #2E2D37);
+}
+
+.panel-cerrar-btn {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  border-radius: 8px;
+  color: var(--primary-teal, #0F3D4C);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-cerrar-btn:hover {
+  background-color: rgba(15, 61, 76, 0.08);
+}
+
+.panel-lateral-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Card Resumen del Traslado */
+.panel-resumen-card {
+  background-color: #FFFFFF;
+  border: 1.5px solid var(--secondary-mint, #267C93);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel-resumen-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13.5px;
+  gap: 16px;
+}
+
+.resumen-col-label {
+  color: #64748B;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.resumen-col-valor {
+  color: var(--primary-teal, #0F3D4C);
+  font-weight: 700;
+  text-align: right;
+}
+
+/* Sección de Operadores */
+.panel-seccion-operadores {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.seccion-op-titulo {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--primary-teal, #0F3D4C);
+}
+
+.seccion-op-subtitulo {
+  margin: 2px 0 6px 0;
+  font-size: 13px;
+  color: #64748B;
+}
+
+/* Alerta de Error Contextual */
+.panel-error-contextual {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background-color: #FBEAEA;
+  border: 1.5px solid var(--warning-red-outline, #BA3636);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--warning-red-outline, #BA3636);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.panel-error-contextual .material-symbols-rounded {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+/* Lista de Tarjetas de Operadores */
+.lista-operadores {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-operador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #CDD2D1;
+  background-color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.card-operador:hover {
+  border-color: var(--secondary-mint, #267C93);
+  background-color: #F8FAF8;
+}
+
+.card-operador.seleccionado {
+  border: 2px solid var(--primary-teal, #0F3D4C);
+  background-color: #F0F8F6;
+}
+
+.card-operador-izq {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.radio-circulo {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #94A3B8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.2s ease;
+}
+
+.card-operador.seleccionado .radio-circulo {
+  border-color: var(--primary-teal, #0F3D4C);
+}
+
+.radio-punto-interno {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--primary-teal, #0F3D4C);
+}
+
+.operador-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.operador-datos-nombre {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary-teal, #0F3D4C);
+}
+
+.operador-datos-motivo {
+  font-size: 12px;
+  color: #64748B;
+}
+
+/* Badges de Disponibilidad */
+.badge-disponibilidad {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-disponible {
+  background-color: #E2F3EA;
+  color: #209568;
+}
+
+.badge-ocupado {
+  background-color: #FBEAEA;
+  color: #BA3636;
+}
+
+.badge-ocupado .material-symbols-rounded {
+  font-size: 14px;
+}
+
+/* Aviso de notificación al operador */
+.aviso-notificacion-operador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background-color: #F5F6E8;
+  border: 1px solid #E2E8DF;
+  color: var(--primary-teal, #0F3D4C);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.aviso-notificacion-operador .material-symbols-rounded {
+  font-size: 20px;
+  color: var(--secondary-mint, #267C93);
+  flex-shrink: 0;
+}
+
+/* Pie del Panel Lateral */
+.panel-lateral-footer {
+  padding: 16px 28px;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background-color: var(--off-white-background, #FFFFF8);
+}
+
