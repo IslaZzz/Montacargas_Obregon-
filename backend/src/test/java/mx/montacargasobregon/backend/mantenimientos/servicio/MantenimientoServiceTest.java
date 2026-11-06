@@ -1,15 +1,19 @@
 package mx.montacargasobregon.backend.mantenimientos.servicio;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -21,15 +25,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
+import mx.montacargasobregon.backend.equipos.modelo.EstadoEquipo;
 import mx.montacargasobregon.backend.mantenimientos.dto.AsignarRequest;
 import mx.montacargasobregon.backend.mantenimientos.modelo.EstadoMantenimiento;
 import mx.montacargasobregon.backend.mantenimientos.modelo.Mantenimiento;
 import mx.montacargasobregon.backend.mantenimientos.modelo.TipoMantenimiento;
 import mx.montacargasobregon.backend.mantenimientos.repositorio.MantenimientoRepository;
+import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
 import mx.montacargasobregon.backend.personal.modelo.Personal;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.personal.servicio.PersonalService;
+import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
+import mx.montacargasobregon.backend.rentas.modelo.Renta;
+import mx.montacargasobregon.backend.revisiones.modelo.Revision;
+import mx.montacargasobregon.backend.revisiones.modelo.TipoRevision;
 
 @ExtendWith(MockitoExtension.class)
 class MantenimientoServiceTest {
@@ -40,6 +51,9 @@ class MantenimientoServiceTest {
     @Mock
     private PersonalService personalServicio;
 
+    @Mock
+    private AvanceRentaService avanceRenta;
+
     private MantenimientoService servicio;
 
     private Personal rafael;
@@ -48,7 +62,7 @@ class MantenimientoServiceTest {
 
     @BeforeEach
     void setUp() {
-        servicio = new MantenimientoService(repositorio, personalServicio);
+        servicio = new MantenimientoService(repositorio, personalServicio, avanceRenta);
 
         rafael = new Personal("MEC-10", "Rafael", "Amaya", null, TipoPersonal.MECANICO);
         ReflectionTestUtils.setField(rafael, "id", 1L);
@@ -125,5 +139,99 @@ class MantenimientoServiceTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         verifyNoInteractions(repositorio);
+    }
+
+    // Mantenimiento asignado a Rafael por una falla encontrada en una revisión de ese tipo
+    private Mantenimiento deRevision(TipoRevision tipo) {
+        Cliente cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
+                "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
+        Renta renta = new Renta("R-2091", cliente, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 20),
+                "Calle Sufragio Efectivo 300", "Ramón Gutiérrez", "6441000001");
+        Revision revision = new Revision(renta.agregarEquipo(new Equipo("MC-030", "SN-030", 2021, null)),
+                tipo, LocalDateTime.of(2026, 11, 10, 8, 0));
+        revision.asignar(rafael);
+
+        Mantenimiento m = Mantenimiento.deRevision(revision, "Fuga de aceite", revision.getFechaProgramada());
+        ReflectionTestUtils.setField(m, "id", 12L);
+        m.asignar(rafael);
+        return m;
+    }
+
+    @Test
+    void terminar_loCompletaYElEquipoVuelveAEstarOperativo() {
+        fuga.asignar(rafael);
+        fuga.getEquipo().cambiarEstado(EstadoEquipo.EN_MANTENIMIENTO);
+        when(repositorio.findById(10L)).thenReturn(Optional.of(fuga));
+
+        Mantenimiento terminado = servicio.terminar(10L);
+
+        assertEquals(EstadoMantenimiento.COMPLETADO, terminado.getEstado());
+        assertNotNull(terminado.getFechaFin());
+        assertEquals(EstadoEquipo.OPERATIVO, terminado.getEquipo().getEstado());
+        // No viene de una revisión: no hay renta que avanzar
+        verifyNoInteractions(avanceRenta);
+    }
+
+    @Test
+    void terminar_dejaListoParaEntrega_cuandoLaFallaSalioEnLaRevisionDeSalida() {
+        Mantenimiento m = deRevision(TipoRevision.SALIDA);
+        when(repositorio.findById(12L)).thenReturn(Optional.of(m));
+
+        servicio.terminar(12L);
+
+        verify(avanceRenta).equipoListoParaEntrega(m.getRevision().getEquipoRenta());
+    }
+
+    @Test
+    void terminar_noAvanzaLaRenta_cuandoYaSeEntrego() {
+        Mantenimiento m = deRevision(TipoRevision.SALIDA);
+        m.getRevision().getEquipoRenta().getRenta().cambiarEstado(EstadoRenta.EN_CURSO);
+        when(repositorio.findById(12L)).thenReturn(Optional.of(m));
+
+        servicio.terminar(12L);
+
+        verifyNoInteractions(avanceRenta);
+    }
+
+    @Test
+    void terminar_noAvanzaLaRenta_cuandoLaFallaSalioEnLaRevisionDeEntrada() {
+        Mantenimiento m = deRevision(TipoRevision.ENTRADA);
+        when(repositorio.findById(12L)).thenReturn(Optional.of(m));
+
+        servicio.terminar(12L);
+
+        assertEquals(EstadoMantenimiento.COMPLETADO, m.getEstado());
+        verifyNoInteractions(avanceRenta);
+    }
+
+    @Test
+    void terminar_rechazaConConflicto_cuandoNoTieneMecanico() {
+        when(repositorio.findById(10L)).thenReturn(Optional.of(fuga));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> servicio.terminar(10L));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        assertTrue(ex.getReason().contains("Primero asigna un mecánico"));
+        assertEquals(EstadoMantenimiento.PENDIENTE, fuga.getEstado());
+    }
+
+    @Test
+    void terminar_rechazaConConflicto_cuandoYaTermino() {
+        fuga.asignar(rafael);
+        fuga.terminar();
+        when(repositorio.findById(10L)).thenReturn(Optional.of(fuga));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> servicio.terminar(10L));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+    }
+
+    @Test
+    void terminar_responde404_cuandoNoExiste() {
+        when(repositorio.findById(99L)).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> servicio.terminar(99L));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
     }
 }

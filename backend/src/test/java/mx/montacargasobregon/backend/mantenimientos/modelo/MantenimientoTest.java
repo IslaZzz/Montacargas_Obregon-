@@ -16,6 +16,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 import mx.montacargasobregon.backend.personal.modelo.Personal;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
+import java.time.LocalDate;
+import mx.montacargasobregon.backend.clientes.modelo.Cliente;
+import mx.montacargasobregon.backend.rentas.modelo.Renta;
+import mx.montacargasobregon.backend.revisiones.modelo.Revision;
+import mx.montacargasobregon.backend.revisiones.modelo.TipoRevision;
+
 
 class MantenimientoTest {
 
@@ -80,5 +86,44 @@ class MantenimientoTest {
     void puedeAsignarse_esFalso_cuandoEstaCancelado() {
         ReflectionTestUtils.setField(mantenimiento, "estado", EstadoMantenimiento.CANCELADO);
         assertFalse(mantenimiento.puedeAsignarse());
+    }
+
+    @Test
+    void terminar_loDejaCompletado() {
+        mantenimiento.asignar(rafael);
+        assertTrue(mantenimiento.puedeTerminarse());
+
+        mantenimiento.terminar();
+
+        assertEquals(EstadoMantenimiento.COMPLETADO, mantenimiento.getEstado());
+        assertNotNull(mantenimiento.getFechaInicio());
+        assertNotNull(mantenimiento.getFechaFin());
+        assertFalse(mantenimiento.puedeTerminarse());
+    }
+
+    @Test
+    void puedeTerminarse_esFalso_cuandoNoTieneMecanico() {
+        assertFalse(mantenimiento.puedeTerminarse());
+    }
+
+    @Test
+    void deRevision_quedaLigadoALaRevisionYLoReportaSuMecanico() {
+        Cliente cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
+                "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
+        Renta renta = new Renta("R-2091", cliente, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 20),
+                "Calle Sufragio Efectivo 300", "Ramón Gutiérrez", "6441000001");
+        Equipo equipo = new Equipo("MC-030", "SN-030", 2021, null);
+        Revision revision = new Revision(renta.agregarEquipo(equipo), TipoRevision.SALIDA,
+                LocalDateTime.of(2026, 11, 10, 8, 0));
+        revision.asignar(rafael);
+
+        Mantenimiento m = Mantenimiento.deRevision(revision, "Fuga de aceite", revision.getFechaProgramada());
+
+        assertSame(revision, m.getRevision());
+        assertSame(equipo, m.getEquipo());
+        assertSame(rafael, m.getReportadoPor());
+        assertEquals(TipoMantenimiento.CORRECTIVO, m.getTipo());
+        assertEquals(EstadoMantenimiento.PENDIENTE, m.getEstado());
+        assertEquals(revision.getFechaProgramada(), m.getFechaLimite());
     }
 }

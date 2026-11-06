@@ -13,6 +13,8 @@ import mx.montacargasobregon.backend.mantenimientos.dto.AsignarRequest;
 import mx.montacargasobregon.backend.mantenimientos.dto.MantenimientoResponse;
 import mx.montacargasobregon.backend.mantenimientos.servicio.MantenimientoService;
 
+import org.springframework.web.bind.annotation.PathVariable;
+
 
 /** Rutas HTTP de los mantenimientos. */
 @RestController
@@ -39,5 +41,11 @@ public class MantenimientoController {
         return servicio.asignar(datos).stream()
                 .map(MantenimientoResponse::toMantenimientoResponse)
                 .toList();
+    }
+
+    /** PATCH /api/mantenimientos/5/terminar: el mecánico avisó que el equipo quedó reparado. */
+    @PatchMapping("/{id}/terminar")
+    public MantenimientoResponse terminar(@PathVariable Long id) {
+        return MantenimientoResponse.toMantenimientoResponse(servicio.terminar(id));
     }
 }

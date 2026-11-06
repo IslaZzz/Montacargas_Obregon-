@@ -25,9 +25,6 @@ import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.revisiones.modelo.Revision;
 import mx.montacargasobregon.backend.revisiones.modelo.TipoRevision;
 import mx.montacargasobregon.backend.revisiones.repositorio.RevisionRepository;
-import mx.montacargasobregon.backend.traslados.modelo.TipoTraslado;
-import mx.montacargasobregon.backend.traslados.modelo.Traslado;
-import mx.montacargasobregon.backend.traslados.repositorio.TrasladoRepository;
 
 /**
  * Captura manual de rentas y confirmación del horario de entrega.
@@ -39,20 +36,20 @@ public class CapturaRentaService {
     // Rentas que todavía ocupan sus equipos
     private static final List<EstadoRenta> VIGENTES = List.of(EstadoRenta.PROGRAMADA, EstadoRenta.EN_CURSO);
 
+    // Fases en las que el equipo ya no ocupa lugar en su renta
+    private static final List<FaseEquipoRenta> LIBRES = List.of(FaseEquipoRenta.CANCELADO, FaseEquipoRenta.COMPLETADO);
+
     private final CapturaRentaRepository repositorio;
     private final ClienteRepository clienteRepositorio;
     private final EquipoRepository equipoRepositorio;
     private final RevisionRepository revisionRepositorio;
-    private final TrasladoRepository trasladoRepositorio;
 
     public CapturaRentaService(CapturaRentaRepository repositorio, ClienteRepository clienteRepositorio,
-                               EquipoRepository equipoRepositorio, RevisionRepository revisionRepositorio,
-                               TrasladoRepository trasladoRepositorio) {
+                               EquipoRepository equipoRepositorio, RevisionRepository revisionRepositorio) {
         this.repositorio = repositorio;
         this.clienteRepositorio = clienteRepositorio;
         this.equipoRepositorio = equipoRepositorio;
         this.revisionRepositorio = revisionRepositorio;
-        this.trasladoRepositorio = trasladoRepositorio;
     }
 
     /** Equipos operativos que no están en otra renta en esas fechas. */
@@ -60,7 +57,7 @@ public class CapturaRentaService {
     public List<EquipoDisponibleResponse> equiposDisponibles(LocalDate inicio, LocalDate fin) {
         validarPeriodo(inicio, fin);
         Set<Long> ocupados = new HashSet<>(
-                repositorio.equiposOcupados(inicio, fin, VIGENTES, FaseEquipoRenta.CANCELADO));
+                repositorio.equiposOcupados(inicio, fin, VIGENTES, LIBRES));
 
         return equipoRepositorio.findAll().stream()
                 .filter(e -> e.getEstado() == EstadoEquipo.OPERATIVO && !ocupados.contains(e.getId()))
@@ -102,7 +99,7 @@ public class CapturaRentaService {
         }
 
         Set<Long> ocupados = new HashSet<>(repositorio.equiposOcupados(
-                datos.fechaInicio(), datos.fechaFin(), VIGENTES, FaseEquipoRenta.CANCELADO));
+                datos.fechaInicio(), datos.fechaFin(), VIGENTES, LIBRES));
         List<String> enOtraRenta = equipos.stream()
                 .filter(e -> ocupados.contains(e.getId()))
                 .map(Equipo::getNumeroUnidad)
@@ -145,8 +142,8 @@ public class CapturaRentaService {
     }
 
     /**
-     * Guarda el horario y crea lo que nace con él:
-     * una revisión de salida por equipo y el traslado de entrega, todos pendientes.
+     * Guarda el horario y crea una revisión de salida pendiente por equipo.
+     * El traslado de entrega nace después, cuando todos los equipos pasan su revisión.
      */
     private void programarEntrega(Renta renta, LocalDateTime desde, LocalDateTime hasta) {
         renta.confirmarEntrega(desde, hasta);
@@ -154,7 +151,6 @@ public class CapturaRentaService {
         for (EquipoRenta equipoRenta : renta.getEquipos()) {
             revisionRepositorio.save(new Revision(equipoRenta, TipoRevision.SALIDA, desde));
         }
-        trasladoRepositorio.save(new Traslado(siguienteFolioTraslado(), renta, TipoTraslado.ENTREGA, desde, hasta));
     }
 
     private static void validarPeriodo(LocalDate inicio, LocalDate fin) {
@@ -186,11 +182,5 @@ public class CapturaRentaService {
     private String siguienteFolio() {
         Integer ultimo = repositorio.ultimoNumeroFolio();
         return String.format("R-%04d", ultimo == null ? 1 : ultimo + 1);
-    }
-
-    // TR-0086 -> TR-0087
-    private String siguienteFolioTraslado() {
-        Integer ultimo = repositorio.ultimoNumeroFolioTraslado();
-        return String.format("TR-%04d", ultimo == null ? 1 : ultimo + 1);
     }
 }

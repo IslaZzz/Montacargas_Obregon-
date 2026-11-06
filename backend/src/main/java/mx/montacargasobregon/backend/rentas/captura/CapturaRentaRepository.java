@@ -18,24 +18,21 @@ import mx.montacargasobregon.backend.rentas.modelo.Renta;
  */
 public interface CapturaRentaRepository extends JpaRepository<Renta, Long> {
 
-    // Equipos que ya están en una renta vigente que se cruza con esas fechas
+    // Equipos que siguen en una renta vigente que se cruza con esas fechas.
+    // Los que ya regresaron (o se cancelaron) cuentan como libres aunque su renta siga abierta
     @Query("""
         select distinct er.equipo.id from EquipoRenta er
         where er.renta.estado in :estados
-          and er.fase <> :cancelado
+          and er.fase not in :libres
           and er.renta.fechaInicio <= :fin
           and er.renta.fechaFin >= :inicio
         """)
     List<Long> equiposOcupados(@Param("inicio") LocalDate inicio,
                                @Param("fin") LocalDate fin,
                                @Param("estados") Collection<EstadoRenta> estados,
-                               @Param("cancelado") FaseEquipoRenta cancelado);
+                               @Param("libres") Collection<FaseEquipoRenta> libres);
 
     // Número del último folio de renta: "R-2090" -> 2090. Null si no hay rentas
     @Query("select max(cast(substring(r.folio, 3) as Integer)) from Renta r")
     Integer ultimoNumeroFolio();
-
-    // Número del último folio de traslado: "TR-0086" -> 86. Está aquí para no modificar TrasladoRepository
-    @Query("select max(cast(substring(t.folio, 4) as Integer)) from Traslado t")
-    Integer ultimoNumeroFolioTraslado();
 }
