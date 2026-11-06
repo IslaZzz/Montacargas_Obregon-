@@ -64,3 +64,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Programar recolección (temporal): una sola tarjeta, no ocupa todo el ancho */
+.captura-recoleccion .tarjeta {
+  max-width: 640px;
+}
