@@ -7,7 +7,8 @@ export type ChipCategory =
   | 'carta'
   | 'traslado'
   | 'mantenimiento'
-  | 'cotizacion';
+  | 'cotizacion'
+  | 'revision';
 
 export type ChipStatus =
   | 'programado'
@@ -28,7 +29,12 @@ export type ChipStatus =
   | 'finalizado'
   | 'cancelado'
   | 'aceptada'
-  | 'no-aceptada';
+  | 'no-aceptada'
+  | 'salida'
+  | 'regreso'
+  | 'sin-novedad'
+  | 'con-observaciones'
+  | 'requiere-mantenimiento';
 
 interface ChipProps {
   category: ChipCategory;
@@ -76,6 +82,20 @@ const chipClasses: Record<ChipCategory, Partial<Record<ChipStatus, string>>> = {
     aceptada: 'chip-cotizacion chip-cotizacion-aceptada',
     'no-aceptada': 'chip-cotizacion chip-cotizacion-no-aceptada',
   },
+
+  // Mismos colores que mantenimientos para los estados; los demás reutilizan clases existentes
+  revision: {
+    'sin-asignar': 'chip-mantenimiento-sin-asignar',
+    asignado: 'chip-mantenimiento-asignado',
+    'en-proceso': 'chip-mantenimiento-en-proceso',
+    finalizado: 'chip-mantenimiento-finalizado',
+    cancelado: 'chip-mantenimiento-cancelado',
+    salida: 'chip-equipo-disponible',
+    regreso: 'chip-carta-generada',
+    'sin-novedad': 'chip-ok',
+    'con-observaciones': 'chip-pendiente',
+    'requiere-mantenimiento': 'chip-equipo-fuera-servicio',
+  },
 };
 
 const defaultLabels: Record<ChipStatus, string> = {
@@ -98,6 +118,11 @@ const defaultLabels: Record<ChipStatus, string> = {
   cancelado: 'Cancelado',
   aceptada: 'Aceptada',
   'no-aceptada': 'No aceptada',
+  salida: 'Salida',
+  regreso: 'Regreso',
+  'sin-novedad': 'Sin novedad',
+  'con-observaciones': 'Con observaciones',
+  'requiere-mantenimiento': 'Requiere mantenimiento',
 };
 
 export default function Chip({
