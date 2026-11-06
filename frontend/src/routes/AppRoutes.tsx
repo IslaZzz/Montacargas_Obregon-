@@ -12,7 +12,11 @@ import StyleTest from "../features/testComponentes/StyleTest";
 import Mantenimientos from "../features/mantenimientos/Mantenimientos";
 import Revisiones from "../features/revisiones/Revisiones";
 import ApartadosProximos from "../features/avisos/ApartadosProximos";
+
 import DetalleCliente from "../features/clientes/DetalleCliente";
+
+import DashboardTraslados from "../features/traslados/DashboardTraslados";
+
 
 export default function AppRoutes() {
   return (
@@ -36,6 +40,8 @@ export default function AppRoutes() {
 
         {/* Revisiones */}
         <Route path="/revisiones" element={<Revisiones />} />
+        {/* Traslados */}
+        <Route path="/traslados" element={<DashboardTraslados />} />
         {/* Mantenimientos */}
         <Route path="/mantenimientos" element={<Mantenimientos />} />
 
