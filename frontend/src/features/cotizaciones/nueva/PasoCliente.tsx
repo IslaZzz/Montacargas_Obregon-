@@ -15,6 +15,7 @@ interface Props {
 }
 
 const ESPERA_BUSQUEDA_MS = 300;
+const SIN_CLIENTES = "No hay clientes con ese dato. Regístralo primero en Clientes.";
 
 function useBusquedaClientes(texto: string) {
   const [resultados, setResultados] = useState<Cliente[]>([]);
@@ -113,8 +114,35 @@ function BuscadorClientes({ cambiar }: Pick<Props, "cambiar">) {
       <Campo etiqueta="Buscar cliente" value={texto} onChange={setTexto}
         placeholder="Nombre, empresa, teléfono o RFC" autoFocus />
       {error && <p className="campo-error" role="alert">No se pudo buscar. Revisa que el servidor esté encendido.</p>}
-      <DataTable columns={columnas} data={resultados} getRowKey={(c) => c.id}
-        emptyMessage="No hay clientes con ese dato. Regístralo primero en Clientes." />
+      {/* En computadora se ve la tabla; en celular, las tarjetas (nueva-cotizacion.css) */}
+      <div className="nc-clientes-tabla">
+        <DataTable columns={columnas} data={resultados} getRowKey={(c) => c.id}
+          emptyMessage={SIN_CLIENTES} />
+      </div>
+      <div className="nc-clientes-tarjetas">
+        {resultados.length === 0 ? (
+          <p>{SIN_CLIENTES}</p>
+        ) : (
+          <>
+            <p className="nc-secundario">
+              {resultados.length} {resultados.length === 1 ? "cliente" : "clientes"} · toca uno para elegirlo
+            </p>
+            <ul className="nc-resultados">
+              {resultados.map((c) => (
+                <li key={c.id}>
+                  <button type="button" className="nc-resultado" onClick={() => elegir(c)}>
+                    <span className="nc-resultado-datos">
+                      <strong className="nc-resultado-nombre">{nombreCompleto(c)}</strong>
+                      <span>{[c.empresa, formatoTelefono(c.telefono)].filter(Boolean).join(" · ")}</span>
+                    </span>
+                    <span className="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
     </section>
   );
 }
