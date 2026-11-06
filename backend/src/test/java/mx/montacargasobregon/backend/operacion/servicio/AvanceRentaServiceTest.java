@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
+import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
 import mx.montacargasobregon.backend.rentas.modelo.EquipoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.FaseEquipoRenta;
