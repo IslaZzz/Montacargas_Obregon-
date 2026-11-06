@@ -1,4 +1,4 @@
--- Datos de prueba para Cotizaciones (HU-18 y HU-20), mientras no exista Crear cotización (HU-12).
+-- Datos de prueba para Cotizaciones (HU-12, HU-18 y HU-20).
 -- Clientes y equipos de la hoja «Datos de prueba» de los casos de Delivery S1.
 -- Ejecutar después de iniciar el backend una vez, para que existan las tablas.
 -- Se puede correr varias veces: no duplica catálogos ni clientes y reinicia las cotizaciones.
@@ -81,84 +81,118 @@ SET @mc07 = (SELECT id FROM equipos WHERE numero_unidad = 'MC-07');
 SET @gr02 = (SELECT id FROM equipos WHERE numero_unidad = 'GR-02');
 SET @pt03 = (SELECT id FROM equipos WHERE numero_unidad = 'PT-03');
 
--- Cotizaciones: se borran y se vuelven a crear.
+-- Bases creadas antes de ajustar Cotizacion al diagrama de dominio: la dirección de la obra era un texto
+-- y los equipos iban en partidas_cotizacion. Se quitan para guardar con la estructura nueva.
+DROP TABLE IF EXISTS partidas_cotizacion;
+SET @sql = IF(EXISTS (SELECT 1 FROM information_schema.columns
+                      WHERE table_schema = DATABASE() AND table_name = 'cotizaciones' AND column_name = 'direccion_obra'),
+              'ALTER TABLE cotizaciones DROP COLUMN direccion_obra', 'DO 0');
+PREPARE paso FROM @sql;
+EXECUTE paso;
+DEALLOCATE PREPARE paso;
+
+-- Cotizaciones: se borran y se vuelven a crear, cada una con su dirección de obra.
 -- Las fechas son relativas a hoy. Importe = días (contando entrega y recolección) × tarifa; IVA 16%.
-DELETE FROM partidas_cotizacion;
+-- Traslados en 0 y sin descuento: llegan con HU-14 y HU-15.
+DELETE FROM equipos_cotizacion;
 DELETE FROM cotizaciones;
+DELETE FROM direcciones_obra;
 
 -- No aceptada (TC-20-09): GR-02 5 días
-INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra, contacto_obra,
-                          telefono_contacto, subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
+VALUES ('Calle 200', '1500', 'Centro', 'Cd. Obregón', 'Sonora', '85000', 'Portón azul. Preguntar por el Ing. Soto.');
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0001', @juan, @rs_yaqui,
         TIMESTAMP(CURDATE() + INTERVAL 12 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 16 DAY, '18:00:00'),
-        'Calle 200 No. 1500, Cd. Obregón, Son.', 'Ing. Raúl Soto', '6442104455',
+        LAST_INSERT_ID(), 'Ing. Raúl Soto', '6442104455', 0.00, 0.00,
         6000.00, 960.00, 6960.00, 'NO_ACEPTADA',
         TIMESTAMP(CURDATE() - INTERVAL 7 DAY, '10:15:00'), CURDATE() - INTERVAL 7 DAY, CURDATE() - INTERVAL 4 DAY);
-INSERT INTO partidas_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
+INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@gr02, 1200.00, 6000.00, LAST_INSERT_ID());
 
 -- Aceptada (TC-20-09): PT-03 1 día, entrega y recolección el mismo día
-INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra, contacto_obra,
-                          telefono_contacto, subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
+VALUES ('Calle Jalisco', '312', 'Centro', 'Navojoa', 'Sonora', '85800', NULL);
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0002', @carlos, @rs_carlos,
         TIMESTAMP(CURDATE() + INTERVAL 3 DAY, '07:30:00'), TIMESTAMP(CURDATE() + INTERVAL 3 DAY, '19:00:00'),
-        'Calle Jalisco 312, Navojoa, Son.', 'Carlos Ramírez', '6445551234',
+        LAST_INSERT_ID(), 'Carlos Ramírez', '6445551234', 0.00, 0.00,
         150.00, 24.00, 174.00, 'ACEPTADA',
         TIMESTAMP(CURDATE() - INTERVAL 5 DAY, '12:00:00'), CURDATE() - INTERVAL 5 DAY, CURDATE() - INTERVAL 3 DAY);
-INSERT INTO partidas_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
+INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@pt03, 150.00, 150.00, LAST_INSERT_ID());
 
 -- Enviada, para marcar como aceptada (TC-20-04, 06 y 07): MC-07 3 días
-INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra, contacto_obra,
-                          telefono_contacto, subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
+VALUES ('Calle Jalisco', '312', 'Centro', 'Navojoa', 'Sonora', '85800', NULL);
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0003', @carlos, @rs_carlos,
         TIMESTAMP(CURDATE() + INTERVAL 6 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 8 DAY, '18:00:00'),
-        'Calle Jalisco 312, Navojoa, Son.', 'Carlos Ramírez', '6445551234',
+        LAST_INSERT_ID(), 'Carlos Ramírez', '6445551234', 0.00, 0.00,
         1500.00, 240.00, 1740.00, 'ENVIADA',
         TIMESTAMP(CURDATE() - INTERVAL 3 DAY, '09:40:00'), CURDATE() - INTERVAL 2 DAY, NULL);
-INSERT INTO partidas_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
+INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@mc07, 500.00, 1500.00, LAST_INSERT_ID());
 
 -- Enviada, para marcar como no aceptada (TC-20-08): GR-02 2 días
-INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra, contacto_obra,
-                          telefono_contacto, subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
+VALUES ('Calle 200', '1500', 'Centro', 'Cd. Obregón', 'Sonora', '85000', 'Portón azul. Preguntar por el Ing. Soto.');
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0004', @juan, @rs_yaqui,
         TIMESTAMP(CURDATE() + INTERVAL 7 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 8 DAY, '18:00:00'),
-        'Calle 200 No. 1500, Cd. Obregón, Son.', 'Ing. Raúl Soto', '6442104455',
+        LAST_INSERT_ID(), 'Ing. Raúl Soto', '6442104455', 0.00, 0.00,
         2400.00, 384.00, 2784.00, 'ENVIADA',
         TIMESTAMP(CURDATE() - INTERVAL 2 DAY, '16:40:00'), CURDATE() - INTERVAL 1 DAY, NULL);
-INSERT INTO partidas_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
+INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@gr02, 1200.00, 2400.00, LAST_INSERT_ID());
 
 -- Borrador, para el PDF y descargarlo (TC-18-02 a 06 y TC-20-03): MC-07 y GR-02 5 días, total $9,860.00
-INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra, contacto_obra,
-                          telefono_contacto, subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
+VALUES ('Carretera Internacional', 'km 4.5', 'Parque Industrial', 'Cd. Obregón', 'Sonora', '85065',
+        'Entrada por la caseta norte. Preguntar por la Arq. Medina.');
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0005', @maria, @rs_maquinaria,
         TIMESTAMP(CURDATE() + INTERVAL 5 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 9 DAY, '18:00:00'),
-        'Parque Industrial km 4.5, Cd. Obregón, Son.', 'Arq. Laura Medina', '6441112233',
+        LAST_INSERT_ID(), 'Arq. Laura Medina', '6441112233', 0.00, 0.00,
         8500.00, 1360.00, 9860.00, 'BORRADOR',
         TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '11:20:00'), NULL, NULL);
 SET @c = LAST_INSERT_ID();
-INSERT INTO partidas_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
+INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@mc07, 500.00, 2500.00, @c),
   (@gr02, 1200.00, 6000.00, @c);
 
 -- Borrador, para compartir el PDF (TC-18-07): MC-07 5 días, total $2,900.00
-INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra, contacto_obra,
-                          telefono_contacto, subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
+VALUES ('Calle 200', '1500', 'Centro', 'Cd. Obregón', 'Sonora', '85000', NULL);
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0006', @juan, @rs_yaqui,
         TIMESTAMP(CURDATE() + INTERVAL 5 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 9 DAY, '18:00:00'),
-        'Calle 200 No. 1500, Cd. Obregón, Son.', 'Ing. Raúl Soto', '6442104455',
+        LAST_INSERT_ID(), 'Ing. Raúl Soto', '6442104455', 0.00, 0.00,
         2500.00, 400.00, 2900.00, 'BORRADOR',
         TIMESTAMP(CURDATE(), '09:30:00'), NULL, NULL);
-INSERT INTO partidas_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
+INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@mc07, 500.00, 2500.00, LAST_INSERT_ID());
 
 -- Borrador sin equipos: «Ver PDF» deshabilitado (TC-18-08)
-INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra, contacto_obra,
-                          telefono_contacto, subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
+VALUES ('Carretera Internacional', 'km 4.5', 'Parque Industrial', 'Cd. Obregón', 'Sonora', '85065', NULL);
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0007', @maria, @rs_mayo,
         TIMESTAMP(CURDATE() + INTERVAL 10 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 10 DAY, '18:00:00'),
-        'Parque Industrial km 4.5, Cd. Obregón, Son.', 'Arq. Laura Medina', '6441112233',
+        LAST_INSERT_ID(), 'Arq. Laura Medina', '6441112233', 0.00, 0.00,
         0.00, 0.00, 0.00, 'BORRADOR',
         TIMESTAMP(CURDATE(), '10:10:00'), NULL, NULL);
