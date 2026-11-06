@@ -8,6 +8,7 @@ import {
   formatoFecha,
   formatoFechaHora,
   formatoMoneda,
+  formatoDireccion,
   formatoTelefono,
 } from "../../utils/formato";
 import BotonVerPdf from "./BotonVerPdf";
@@ -202,7 +203,10 @@ export default function DetalleCotizacion() {
               <Dato etiqueta="Recolección">
                 {formatoFechaHora(c.fechaRecoleccion)}
               </Dato>
-              <Dato etiqueta="Lugar de entrega">{c.direccionObra}</Dato>
+              <Dato etiqueta="Lugar de entrega">{formatoDireccion(c.direccionObra)}</Dato>
+              {c.direccionObra.referencias && (
+                <Dato etiqueta="Referencias para llegar">{c.direccionObra.referencias}</Dato>
+              )}
               <Dato etiqueta="Contacto en la obra">
                 {c.contactoObra} · {formatoTelefono(c.telefonoContacto)}
               </Dato>
