@@ -67,6 +67,13 @@ public class CartaResponsiva {
     @Column(name = "pdf", columnDefinition = "LONGBLOB")
     private byte[] pdf;
 
+    // Cuándo y a qué correo se envió la versión vigente; vacíos si no se ha enviado
+    @Column(name = "fecha_envio")
+    private LocalDateTime fechaEnvio;
+
+    @Column(name = "correo_envio", length = 150)
+    private String correoEnvio;
+
     /** Crea la carta recién generada, versión 1. */
     public CartaResponsiva(Renta renta, String datos, byte[] pdf) {
         this.renta = renta;
@@ -85,6 +92,16 @@ public class CartaResponsiva {
         this.pdf = pdf;
         this.estado = EstadoCarta.GENERADA;
         this.fechaGeneracion = LocalDateTime.now(ZONA_HORARIA);
+        // La versión nueva todavía no se envía
+        this.fechaEnvio = null;
+        this.correoEnvio = null;
+    }
+
+    /** La versión vigente ya se envió al cliente: pasa a Enviada. */
+    public void registrarEnvio(String correo) {
+        this.estado = EstadoCarta.ENVIADA;
+        this.fechaEnvio = LocalDateTime.now(ZONA_HORARIA);
+        this.correoEnvio = correo;
     }
 
     public void cambiarEstado(EstadoCarta nuevoEstado) {

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { ErrorApi } from "../../services/apiClient";
-import { generarCarta, obtenerCarta } from "./cartasApi";
+import { enviarCarta, generarCarta, obtenerCarta } from "./cartasApi";
 import type { Carta, DatosFaltantes } from "./cartasTypes";
-import { ModalDatosFaltantes, ModalRegenerar } from "./ModalesCarta";
+import { ModalDatosFaltantes, ModalEnviar, ModalRegenerar } from "./ModalesCarta";
 
 // Carga la carta de una renta
 export function useCarta(rentaId: string | undefined) {
@@ -88,5 +88,70 @@ export function useGenerarCarta(carta: Carta | null, onActualizada: (carta: Cart
       setExito("");
     },
     modales,
+  };
+}
+
+// Enviar la carta al cliente, con su modal. Si el envío falla, `error` trae el motivo
+// y `reintentar` lo vuelve a intentar con el mismo mensaje.
+export function useEnviarCarta(carta: Carta | null, onActualizada: (carta: Carta) => void) {
+  const [abierto, setAbierto] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  // El error es de una versión: si se regenera la carta, deja de mostrarse
+  const [fallo, setFallo] = useState<{ texto: string; version: number | null } | null>(null);
+  const [exito, setExito] = useState("");
+  const [ultimoMensaje, setUltimoMensaje] = useState<string | null>(null);
+
+  const enviar = useCallback(
+    async (mensaje: string) => {
+      if (!carta) return;
+      setEnviando(true);
+      setFallo(null);
+      setExito("");
+      setUltimoMensaje(mensaje);
+      try {
+        const nueva = await enviarCarta(carta.rentaId, mensaje);
+        onActualizada(nueva);
+        setExito(`Carta enviada a ${nueva.correoEnvio ?? nueva.correoCliente}.`);
+      } catch (e) {
+        setFallo({
+          texto: e instanceof ErrorApi ? e.message : "No hubo conexión con el servidor.",
+          version: carta.version,
+        });
+      } finally {
+        setEnviando(false);
+        setAbierto(false);
+      }
+    },
+    [carta, onActualizada],
+  );
+
+  const cancelar = useCallback(() => setAbierto(false), []);
+  const limpiarMensajes = useCallback(() => {
+    setFallo(null);
+    setExito("");
+  }, []);
+
+  const modal =
+    carta && abierto ? (
+      <ModalEnviar
+        carta={carta}
+        mensajeInicial={ultimoMensaje ?? carta.mensajeSugerido}
+        enviando={enviando}
+        onCancelar={cancelar}
+        onEnviar={enviar}
+      />
+    ) : null;
+
+  return {
+    pedirEnvio: () => {
+      limpiarMensajes();
+      setAbierto(true);
+    },
+    reintentar: () => enviar(ultimoMensaje ?? carta?.mensajeSugerido ?? ""),
+    enviando,
+    error: fallo && carta && fallo.version === carta.version ? fallo.texto : "",
+    exito,
+    limpiarMensajes,
+    modal,
   };
 }

@@ -9,6 +9,11 @@ export const obtenerCarta = (rentaId: number | string) =>
 export const generarCarta = (rentaId: number) =>
   postApi<Carta>(`/rentas/${rentaId}/carta`, {});
 
+// Envía la carta al correo del cliente. Si el correo falla lanza ErrorApi (502 o 503)
+// y la carta se queda como estaba.
+export const enviarCarta = (rentaId: number, mensaje: string) =>
+  postApi<Carta>(`/rentas/${rentaId}/carta/envio`, { mensaje });
+
 // La versión va en la dirección para que, al regenerarla, el navegador no muestre la anterior
 export function urlPdfCarta(carta: Carta, descargar = false) {
   const url = `/api/rentas/${carta.rentaId}/carta/pdf?v=${carta.version ?? 0}`;

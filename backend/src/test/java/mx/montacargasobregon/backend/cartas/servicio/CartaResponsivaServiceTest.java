@@ -2,10 +2,14 @@ package mx.montacargasobregon.backend.cartas.servicio;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -51,6 +55,8 @@ class CartaResponsivaServiceTest {
     private RentaRepository rentas;
     @Mock
     private CartaResponsivaRepository cartas;
+    @Mock
+    private CorreoCartaService correo;
 
     private CartaResponsivaService servicio;
     private Renta renta;
@@ -58,7 +64,7 @@ class CartaResponsivaServiceTest {
     @BeforeEach
     void preparar() {
         // El PDF se arma de verdad: así también se prueba que no truena con datos reales
-        servicio = new CartaResponsivaService(rentas, cartas, new CartaPdfService());
+        servicio = new CartaResponsivaService(rentas, cartas, new CartaPdfService(), correo);
 
         Cliente cliente = new Cliente("Juan", "Pérez", null, "Constructora Valle Yaqui",
                 "6440000000", "juan.perez@ejemplo.com", LocalDate.of(2026, 9, 1));
@@ -222,6 +228,95 @@ class CartaResponsivaServiceTest {
         assertEquals(datos, ResumenCarta.leer(ResumenCarta.texto(datos)));
         assertEquals("12 de octubre de 2026", datos.get("Fecha de entrega"));
         assertEquals("MC-09 Toyota 8FGU25 (serie AT0000000)", datos.get("Equipos"));
+    }
+
+    @Test
+    void alEnviarlaQuedaEnviadaConFechaYCorreo() {
+        CartaResponsiva carta = cartaGenerada();
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.of(carta));
+
+        CartaResponse enviada = servicio.enviar(RENTA_ID, "Hola Juan, aquí va la carta.");
+
+        verify(correo).enviar(eq("juan.perez@ejemplo.com"), eq("R-1042"), eq("Hola Juan, aquí va la carta."),
+                eq("Carta_responsiva_R-1042_v1.pdf"), any());
+        assertEquals(EstadoCarta.ENVIADA, enviada.estado());
+        assertNotNull(enviada.fechaEnvio());
+        assertEquals("juan.perez@ejemplo.com", enviada.correoEnvio());
+        assertTrue(enviada.puedeEnviar()); // Se puede reenviar
+    }
+
+    @Test
+    void sinMensajeSeEnviaElSugerido() {
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.of(cartaGenerada()));
+        String sugerido = "Hola Juan, te compartimos la carta responsiva de la renta R-1042, "
+                + "con el equipo Toyota 8FGU25 (MC-09), para tu firma electrónica.";
+
+        CartaResponse enviada = servicio.enviar(RENTA_ID, "  ");
+
+        verify(correo).enviar(anyString(), anyString(), eq(sugerido), anyString(), any());
+        assertEquals(sugerido, enviada.mensajeSugerido());
+    }
+
+    @Test
+    void siFallaElEnvioSeQuedaGenerada() {
+        CartaResponsiva carta = cartaGenerada();
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.of(carta));
+        doThrow(new ResponseStatusException(HttpStatus.BAD_GATEWAY, "No hubo conexión con el servicio de correo."))
+                .when(correo).enviar(anyString(), anyString(), anyString(), anyString(), any());
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> servicio.enviar(RENTA_ID, null));
+
+        assertEquals(HttpStatus.BAD_GATEWAY, error.getStatusCode());
+        assertEquals(EstadoCarta.GENERADA, carta.getEstado());
+        assertNull(carta.getFechaEnvio());
+    }
+
+    @Test
+    void noSeEnviaSinHaberlaGenerado() {
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.empty());
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> servicio.enviar(RENTA_ID, null));
+
+        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
+        verify(correo, never()).enviar(anyString(), anyString(), anyString(), anyString(), any());
+        assertFalse(servicio.consultar(RENTA_ID).puedeEnviar());
+    }
+
+    @Test
+    void unaCartaFirmadaNoSeEnvia() {
+        CartaResponsiva firmada = cartaGenerada();
+        firmada.cambiarEstado(EstadoCarta.FIRMADA);
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.of(firmada));
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> servicio.enviar(RENTA_ID, null));
+
+        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
+        verify(correo, never()).enviar(anyString(), anyString(), anyString(), anyString(), any());
+    }
+
+    @Test
+    void alRegenerarHayQueVolverAEnviarla() {
+        CartaResponsiva carta = cartaGenerada();
+        carta.registrarEnvio("juan.perez@ejemplo.com");
+        when(cartas.findByRentaId(RENTA_ID)).thenReturn(Optional.of(carta));
+
+        CartaResponse regenerada = servicio.generar(RENTA_ID);
+
+        assertEquals(EstadoCarta.GENERADA, regenerada.estado());
+        assertNull(regenerada.fechaEnvio());
+        assertNull(regenerada.correoEnvio());
+    }
+
+    @Test
+    void elMensajeSugeridoNombraTodosLosEquipos() {
+        renta.agregarEquipo(equipo("MC-10", "AT0000001"));
+
+        assertEquals("Hola Juan, te compartimos la carta responsiva de la renta R-1042, con los equipos "
+                + "Toyota 8FGU25 (MC-09) y Toyota 8FGU25 (MC-10), para tu firma electrónica.",
+                CartaResponsivaService.mensajeSugerido(renta, DatosCarta.de(renta)));
     }
 
     // Carta generada con los datos actuales de la renta

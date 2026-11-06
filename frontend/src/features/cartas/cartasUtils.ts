@@ -18,10 +18,6 @@ export const CHIP_ESTADO: Record<EstadoCarta, { category: ChipCategory; status: 
   FIRMADA: { category: "traslado", status: "ok" },
 };
 
-// Mientras no se decide con qué cuenta se envían los correos
-export const ENVIO_PENDIENTE =
-  "El envío por correo todavía no está disponible. Mientras, descarga la carta y mándala al cliente.";
-
 // "2026-10-09T10:42:00" → "9 oct, 10:42"
 export function textoFecha(fecha: string) {
   const [, dia, mes] = formatoDiaCorto(fecha).split(" "); // "Vie 9 oct"

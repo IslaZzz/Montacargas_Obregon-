@@ -19,9 +19,13 @@ export interface Carta {
   version: number | null; // null mientras no se genera
   nombreArchivo: string | null;
   fechaGeneracion: string | null;
-  correoCliente: string; // A dónde se enviaría
+  correoCliente: string; // A dónde se envía
   tieneArchivo: boolean;
   puedeGenerar: boolean; // Renta Programada y carta sin firmar
+  puedeEnviar: boolean; // Lo mismo y ya tiene archivo
+  fechaEnvio: string | null; // Cuándo se envió la versión vigente
+  correoEnvio: string | null;
+  mensajeSugerido: string; // Con lo que se llena el mensaje del correo
   cambios: CambioCarta[];
 }
 

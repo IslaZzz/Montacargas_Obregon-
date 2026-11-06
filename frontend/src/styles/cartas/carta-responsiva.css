@@ -92,6 +92,13 @@
 .carta-bloque-firmada .carta-bloque-titulo .material-symbols-rounded {
   color: var(--ok-green-outline);
 }
+/* Rojo si falló el envío */
+.carta-bloque-error {
+  border-color: var(--warning-red-outline);
+}
+.carta-bloque-error .carta-bloque-titulo .material-symbols-rounded {
+  color: var(--warning-red-outline);
+}
 
 .pagina .carta-bloque p,
 .carta-panel p {
@@ -341,6 +348,75 @@
   margin: 0;
   font-size: 16px;
   color: var(--text-foreground);
+}
+
+/* Enviar carta: Para (sin cambiar), Mensaje y el archivo adjunto */
+.carta-envio {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--primary-teal);
+}
+.carta-envio label {
+  font:
+    600 16px "Inter",
+    sans-serif;
+}
+.carta-envio label:not(:first-child) {
+  margin-top: 12px;
+}
+.carta-envio-para {
+  position: relative;
+}
+.carta-envio-para input,
+.carta-envio textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 4px;
+  color: var(--primary-teal);
+  font:
+    400 18px "Inter",
+    sans-serif;
+}
+.carta-envio-para input {
+  padding-right: 48px;
+  border: 1px solid var(--selection-gray);
+  background: var(--selection-gray);
+  cursor: not-allowed;
+}
+.carta-envio-para .material-symbols-rounded {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: var(--tertiary-mineral-blue);
+}
+.carta-envio-nota {
+  margin: 0;
+  font-size: 14px;
+  color: var(--tertiary-mineral-blue);
+}
+.carta-envio textarea {
+  min-height: 110px;
+  border: 2px solid var(--primary-teal);
+  background: var(--off-white-background);
+  resize: vertical;
+}
+.carta-envio-adjunto {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  overflow-wrap: anywhere;
+  background: var(--selection-gray);
+  border-radius: 4px;
+  font-size: 16px;
+}
+.carta-envio-adjunto .material-symbols-rounded {
+  color: var(--warning-red-outline);
 }
 
 /* ===== Vista previa ===== */

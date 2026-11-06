@@ -5,9 +5,9 @@ import { useTitulo } from "../../hooks/useTitulo";
 import { AccionesArchivo } from "./CartaResponsiva";
 import { urlPdfCarta } from "./cartasApi";
 import type { Carta } from "./cartasTypes";
-import { ENVIO_PENDIENTE, textoVersion } from "./cartasUtils";
+import { NOMBRE_ESTADO, textoFecha, textoVersion } from "./cartasUtils";
 import ChipCarta from "./ChipCarta";
-import { useCarta, useGenerarCarta } from "./useCarta";
+import { useCarta, useEnviarCarta, useGenerarCarta } from "./useCarta";
 import "../../styles/cartas/carta-responsiva.css";
 
 // Vista previa de la carta antes de enviarla: /rentas/:id/carta/vista-previa (Figma OHU-04)
@@ -16,6 +16,7 @@ export default function VistaPreviaCarta() {
   const { carta, setCarta, error } = useCarta(id);
   const actualizar = useCallback((nueva: Carta) => setCarta(nueva), [setCarta]);
   const regenerar = useGenerarCarta(carta, actualizar);
+  const envio = useEnviarCarta(carta, actualizar);
 
   useTitulo(carta ? `Vista previa de la carta ${carta.folio}` : "Vista previa de la carta");
 
@@ -40,6 +41,8 @@ export default function VistaPreviaCarta() {
   }
 
   const firmada = carta.estado === "FIRMADA";
+  const enviada = carta.estado === "ENVIADA";
+  const fallo = envio.error !== "";
 
   return (
     <div className="carta-previa">
@@ -57,6 +60,7 @@ export default function VistaPreviaCarta() {
         {regenerar.exito && (
           <Aviso tipo="exito" titulo={regenerar.exito} onCerrar={regenerar.limpiarMensajes} />
         )}
+        {envio.exito && <Aviso tipo="exito" titulo={envio.exito} onCerrar={envio.limpiarMensajes} />}
 
         <div className="carta-visor">
           <div className="carta-visor-barra">
@@ -88,8 +92,12 @@ export default function VistaPreviaCarta() {
 
         <div className="carta-panel-dato">
           <span>Destinatario</span>
-          <strong>{carta.correoCliente}</strong>
-          <p>Correo registrado del cliente</p>
+          <strong>{carta.correoEnvio ?? carta.correoCliente}</strong>
+          <p>
+            {carta.fechaEnvio
+              ? `Enviada el ${textoFecha(carta.fechaEnvio)}`
+              : "Correo registrado del cliente"}
+          </p>
         </div>
 
         <div className="carta-panel-dato">
@@ -100,23 +108,33 @@ export default function VistaPreviaCarta() {
 
         <div className="carta-panel-acciones">
           <span>Acciones</span>
-          {!firmada && (
-            <>
-              <button
-                type="button"
-                className="btn btn-primary carta-boton-principal"
-                disabled
-                aria-describedby="carta-envio-pendiente"
-              >
-                <span className="material-symbols-rounded" aria-hidden="true">
-                  send
-                </span>
-                Enviar al cliente
-              </button>
-              <p id="carta-envio-pendiente" className="carta-bloque-ayuda">
-                {ENVIO_PENDIENTE}
-              </p>
-            </>
+          {fallo && (
+            <Aviso tipo="error" titulo={envio.error}>
+              La carta sigue como {NOMBRE_ESTADO[carta.estado]}. Puedes reintentar el envío.
+            </Aviso>
+          )}
+          {carta.puedeEnviar && (
+            <button
+              type="button"
+              className="btn btn-primary carta-boton-principal"
+              onClick={() => {
+                regenerar.limpiarMensajes();
+                if (fallo) envio.reintentar();
+                else envio.pedirEnvio();
+              }}
+              disabled={envio.enviando}
+            >
+              <span className="material-symbols-rounded" aria-hidden="true">
+                {fallo ? "refresh" : "send"}
+              </span>
+              {envio.enviando
+                ? "Enviando…"
+                : fallo
+                  ? "Reintentar envío"
+                  : enviada
+                    ? "Reenviar al cliente"
+                    : "Enviar al cliente"}
+            </button>
           )}
           <AccionesArchivo carta={carta} />
           {carta.puedeGenerar && (
@@ -131,6 +149,7 @@ export default function VistaPreviaCarta() {
       </aside>
 
       {regenerar.modales}
+      {envio.modal}
     </div>
   );
 }

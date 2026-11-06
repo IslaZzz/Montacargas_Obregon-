@@ -11,11 +11,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import mx.montacargasobregon.backend.cartas.dto.CartaResponse;
+import mx.montacargasobregon.backend.cartas.dto.EnviarCartaRequest;
 import mx.montacargasobregon.backend.cartas.servicio.CartaResponsivaService;
 import mx.montacargasobregon.backend.cartas.servicio.CartaResponsivaService.ArchivoCarta;
 import mx.montacargasobregon.backend.cartas.servicio.DatosFaltantesException;
@@ -44,6 +47,16 @@ public class CartaResponsivaController {
     @PostMapping
     public CartaResponse generar(@PathVariable Long rentaId) {
         return servicio.generar(rentaId);
+    }
+
+    /**
+     * POST /api/rentas/5/carta/envio { mensaje }: envía la carta al correo del cliente y pasa a Enviada.
+     * Si el correo no está configurado responde 503; si falla el servidor de correo, 502.
+     */
+    @PostMapping("/envio")
+    public CartaResponse enviar(@PathVariable Long rentaId,
+                                @Valid @RequestBody(required = false) EnviarCartaRequest datos) {
+        return servicio.enviar(rentaId, datos == null ? null : datos.mensaje());
     }
 
     /** GET /api/rentas/5/carta/pdf: el PDF vigente para verlo o imprimirlo; con ?descargar=true se descarga. */

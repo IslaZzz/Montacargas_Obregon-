@@ -3,8 +3,8 @@ import Aviso from "../../components/Aviso";
 import Chip from "../../components/chips";
 import { urlPdfCarta } from "./cartasApi";
 import type { Carta } from "./cartasTypes";
-import { ENVIO_PENDIENTE, imprimirPdf, textoVersion } from "./cartasUtils";
-import { useGenerarCarta } from "./useCarta";
+import { imprimirPdf, NOMBRE_ESTADO, textoFecha, textoVersion } from "./cartasUtils";
+import { useEnviarCarta, useGenerarCarta } from "./useCarta";
 import "../../styles/cartas/carta-responsiva.css";
 
 interface CartaResponsivaProps {
@@ -19,12 +19,22 @@ const icono = (nombre: string) => (
 );
 
 /**
- * Bloque "Carta responsiva" del detalle de la renta (Figma OHU-04): generarla, verla,
+ * Bloque "Carta responsiva" del detalle de la renta (Figma OHU-04): generarla, verla, enviarla,
  * descargarla, imprimirla y regenerarla. Pensado para ir dentro del detalle de la renta (OHU-03).
  */
 export default function CartaResponsiva({ carta, onActualizada }: CartaResponsivaProps) {
   const { generar, pedirRegenerar, generando, error, exito, limpiarMensajes, modales } =
     useGenerarCarta(carta, onActualizada);
+  const envio = useEnviarCarta(carta, onActualizada);
+  // Al enviar se quitan los avisos de generar, para que no se mezclen con los del envío
+  const pedirEnvio = () => {
+    limpiarMensajes();
+    envio.pedirEnvio();
+  };
+  const reintentar = () => {
+    limpiarMensajes();
+    envio.reintentar();
+  };
 
   const mensajes = (
     <>
@@ -67,16 +77,34 @@ export default function CartaResponsiva({ carta, onActualizada }: CartaResponsiv
   const enviada = carta.estado === "ENVIADA";
   const firmada = carta.estado === "FIRMADA";
   const cambio = carta.cambios.length > 0;
+  const fallo = envio.error !== "";
+
+  const clase = fallo
+    ? " carta-bloque-error"
+    : firmada
+      ? " carta-bloque-firmada"
+      : enviada
+        ? ""
+        : " carta-bloque-pendiente";
 
   return (
-    <section
-      className={`carta-bloque${firmada ? " carta-bloque-firmada" : enviada ? "" : " carta-bloque-pendiente"}`}
-      aria-labelledby="carta-titulo"
-    >
+    <section className={`carta-bloque${clase}`} aria-labelledby="carta-titulo">
       <h2 id="carta-titulo" className="carta-bloque-titulo">
-        {icono(firmada ? "task" : enviada ? "outgoing_mail" : "description")}
-        {firmada ? "Carta firmada" : enviada ? "Carta enviada" : "Carta generada"}
+        {icono(fallo ? "error" : firmada ? "task" : enviada ? "outgoing_mail" : "description")}
+        {fallo
+          ? "No se pudo enviar la carta"
+          : firmada
+            ? "Carta firmada"
+            : enviada
+              ? "Carta enviada"
+              : "Carta generada"}
       </h2>
+
+      {fallo && (
+        <Aviso tipo="error" titulo={envio.error}>
+          La carta sigue como {NOMBRE_ESTADO[carta.estado]}. Puedes reintentar el envío.
+        </Aviso>
+      )}
 
       {cambio && (
         <div className="carta-cambio-aviso" role="status">
@@ -90,38 +118,45 @@ export default function CartaResponsiva({ carta, onActualizada }: CartaResponsiv
 
       <ArchivoCarta carta={carta} />
 
-      {!firmada && (
-        <p className="carta-destinatario">
-          {icono("mail")}
-          Se enviará a {carta.correoCliente}
-        </p>
-      )}
+      {!firmada && <Destinatario carta={carta} />}
 
       {mensajes}
+      {envio.exito && <Aviso tipo="exito" titulo={envio.exito} onCerrar={envio.limpiarMensajes} />}
 
-      {!firmada && (
-        <>
-          {/* TODO: enviar por correo cuando se decida con qué cuenta (criterios 6, 8, 13 y 14) */}
-          <button
-            type="button"
-            className="btn btn-primary carta-boton-principal"
-            disabled
-            aria-describedby="carta-envio-pendiente"
-          >
-            {icono("send")}
-            {enviada ? "Reenviar al cliente" : "Enviar al cliente"}
-          </button>
-          <p id="carta-envio-pendiente" className="carta-bloque-ayuda">
-            {ENVIO_PENDIENTE}
-          </p>
-        </>
+      {carta.puedeEnviar && !enviada && (
+        <button
+          type="button"
+          className="btn btn-primary carta-boton-principal"
+          onClick={fallo ? reintentar : pedirEnvio}
+          disabled={envio.enviando}
+        >
+          {icono(fallo ? "refresh" : "send")}
+          {envio.enviando ? "Enviando…" : fallo ? "Reintentar envío" : "Enviar al cliente"}
+        </button>
+      )}
+      {/* Enviada: el botón principal será "Registrar firma" (otra historia: Registrar carta responsiva firmada) */}
+      {enviada && fallo && (
+        <button
+          type="button"
+          className="btn btn-primary carta-boton-principal"
+          onClick={reintentar}
+          disabled={envio.enviando}
+        >
+          {icono("refresh")}
+          {envio.enviando ? "Enviando…" : "Reintentar envío"}
+        </button>
       )}
 
       <AccionesArchivo carta={carta} conVistaPrevia />
 
       {carta.puedeGenerar && (
         <div className="carta-enlaces">
-          {/* TODO: "Registrar firma" es otra historia (Registrar carta responsiva firmada) */}
+          {enviada && carta.puedeEnviar && (
+            <button type="button" className="carta-enlace" onClick={pedirEnvio} disabled={envio.enviando}>
+              {icono("forward_to_inbox")}
+              Reenviar al cliente
+            </button>
+          )}
           <button type="button" className="carta-enlace" onClick={pedirRegenerar}>
             {icono("autorenew")}
             Regenerar carta
@@ -130,7 +165,20 @@ export default function CartaResponsiva({ carta, onActualizada }: CartaResponsiv
       )}
 
       {modales}
+      {envio.modal}
     </section>
+  );
+}
+
+// "Se enviará a…" o, si ya se envió, cuándo y a quién
+function Destinatario({ carta }: { carta: Carta }) {
+  return (
+    <p className="carta-destinatario">
+      {icono(carta.fechaEnvio ? "mark_email_read" : "mail")}
+      {carta.fechaEnvio
+        ? `Enviada el ${textoFecha(carta.fechaEnvio)} a ${carta.correoEnvio}`
+        : `Se enviará a ${carta.correoCliente}`}
+    </p>
   );
 }
 
