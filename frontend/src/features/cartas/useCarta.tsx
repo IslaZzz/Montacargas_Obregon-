@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { ErrorApi } from "../../services/apiClient";
-import { enviarCarta, generarCarta, obtenerCarta } from "./cartasApi";
+import { enviarCarta, generarCarta, obtenerCarta, registrarFirma } from "./cartasApi";
+import type { DatosFirma } from "./cartasApi";
 import type { Carta, DatosFaltantes } from "./cartasTypes";
 import { ModalDatosFaltantes, ModalEnviar, ModalRegenerar } from "./ModalesCarta";
+import { ModalRegistrarFirma } from "./ModalFirma";
 
 // Carga la carta de una renta
 export function useCarta(rentaId: string | undefined) {
@@ -152,6 +154,60 @@ export function useEnviarCarta(carta: Carta | null, onActualizada: (carta: Carta
     error: fallo && carta && fallo.version === carta.version ? fallo.texto : "",
     exito,
     limpiarMensajes,
+    modal,
+  };
+}
+
+// Registrar la firma de la carta (OHU-05), con su modal. Si el backend la rechaza,
+// el motivo se muestra dentro del modal y no se cierra.
+export function useRegistrarFirma(carta: Carta | null, onActualizada: (carta: Carta) => void) {
+  const [abierto, setAbierto] = useState(false);
+  const [registrando, setRegistrando] = useState(false);
+  const [error, setError] = useState("");
+  const [exito, setExito] = useState("");
+
+  const registrar = useCallback(
+    async (datos: DatosFirma) => {
+      if (!carta) return;
+      setRegistrando(true);
+      setError("");
+      try {
+        const nueva = await registrarFirma(carta.rentaId, datos);
+        onActualizada(nueva);
+        setAbierto(false);
+        setExito("Firma registrada. La carta quedó como Firmada.");
+      } catch (e) {
+        setError(e instanceof ErrorApi ? e.message : "No hubo conexión con el servidor.");
+      } finally {
+        setRegistrando(false);
+      }
+    },
+    [carta, onActualizada],
+  );
+
+  const cancelar = useCallback(() => {
+    setAbierto(false);
+    setError("");
+  }, []);
+
+  const modal =
+    carta && abierto ? (
+      <ModalRegistrarFirma
+        carta={carta}
+        registrando={registrando}
+        error={error}
+        onCancelar={cancelar}
+        onRegistrar={registrar}
+      />
+    ) : null;
+
+  return {
+    pedirFirma: () => {
+      setExito("");
+      setAbierto(true);
+    },
+    exito,
+    limpiarExito: () => setExito(""),
     modal,
   };
 }

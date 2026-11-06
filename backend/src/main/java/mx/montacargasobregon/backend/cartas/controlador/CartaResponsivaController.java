@@ -1,6 +1,10 @@
 package mx.montacargasobregon.backend.cartas.controlador;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Map;
+
+import org.springframework.format.annotation.DateTimeFormat;
 
 import org.springframework.http.CacheControl;
 import org.springframework.http.ContentDisposition;
@@ -15,10 +19,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import mx.montacargasobregon.backend.cartas.dto.CartaResponse;
 import mx.montacargasobregon.backend.cartas.dto.EnviarCartaRequest;
+import mx.montacargasobregon.backend.cartas.modelo.TipoFirma;
 import mx.montacargasobregon.backend.cartas.servicio.CartaResponsivaService;
 import mx.montacargasobregon.backend.cartas.servicio.CartaResponsivaService.ArchivoCarta;
 import mx.montacargasobregon.backend.cartas.servicio.DatosFaltantesException;
@@ -63,15 +69,41 @@ public class CartaResponsivaController {
     @GetMapping(value = "/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> pdf(@PathVariable Long rentaId,
                                       @RequestParam(defaultValue = "false") boolean descargar) {
-        ArchivoCarta archivo = servicio.archivo(rentaId);
+        // Sin caché (en archivo()): al regenerarla cambia el archivo y el navegador no debe mostrar la anterior
+        return archivo(servicio.archivo(rentaId), descargar);
+    }
+
+    /**
+     * POST /api/rentas/5/carta/firma (multipart): registra que el cliente firmó la carta (OHU-05).
+     * Partes: tipo (ELECTRONICA | FISICA), fecha (2026-10-09T12:30), firmante y archivo (la carta firmada).
+     * Si falta algo o el archivo no sirve responde 400 con el motivo y no registra nada.
+     */
+    @PostMapping(value = "/firma", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public CartaResponse registrarFirma(@PathVariable Long rentaId,
+                                        @RequestParam(required = false) TipoFirma tipo,
+                                        @RequestParam(required = false)
+                                        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fecha,
+                                        @RequestParam(required = false) String firmante,
+                                        @RequestParam(required = false) MultipartFile archivo) throws IOException {
+        byte[] contenido = archivo == null || archivo.isEmpty() ? null : archivo.getBytes();
+        return servicio.registrarFirma(rentaId, tipo, fecha, firmante, contenido);
+    }
+
+    /** GET /api/rentas/5/carta/firmada: la carta firmada para verla; con ?descargar=true se descarga. */
+    @GetMapping("/firmada")
+    public ResponseEntity<byte[]> firmada(@PathVariable Long rentaId,
+                                          @RequestParam(defaultValue = "false") boolean descargar) {
+        return archivo(servicio.archivoFirmado(rentaId), descargar);
+    }
+
+    private static ResponseEntity<byte[]> archivo(ArchivoCarta archivo, boolean descargar) {
         ContentDisposition disposicion = (descargar ? ContentDisposition.attachment() : ContentDisposition.inline())
                 .filename(archivo.nombre())
                 .build();
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposicion.toString())
-                // Al regenerarla cambia el archivo: que el navegador no muestre la versión anterior
                 .cacheControl(CacheControl.noStore())
-                .contentType(MediaType.APPLICATION_PDF)
+                .contentType(MediaType.parseMediaType(archivo.tipo()))
                 .body(archivo.contenido());
     }
 
