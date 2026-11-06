@@ -11,6 +11,7 @@ import FilterTest from "../features/testComponentes/FilterTest";
 import StyleTest from "../features/testComponentes/StyleTest";
 import Mantenimientos from "../features/mantenimientos/Mantenimientos";
 import Revisiones from "../features/revisiones/Revisiones";
+import ApartadosProximos from "../features/avisos/ApartadosProximos";
 
 export default function AppRoutes() {
   return (
@@ -35,6 +36,9 @@ export default function AppRoutes() {
         <Route path="/revisiones" element={<Revisiones />} />
         {/* Mantenimientos */}
         <Route path="/mantenimientos" element={<Mantenimientos />} />
+
+        {/* Avisos */}
+        <Route path="/apartados-proximos" element={<ApartadosProximos />} />
 
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />

@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import MenuLateral from "./MenuLateral";
+import BotonAvisos from "../features/avisos/BotonAvisos";
 import { useState } from "react";
 
 export default function AppLayout() {
@@ -39,10 +40,7 @@ export default function AppLayout() {
             <span className="material-symbols-rounded">search</span>
           </label>
           <span className="espacio" />
-          <button type="button" className="encabezado-btn">
-            <span className="material-symbols-rounded">notifications</span>
-            <span className="encabezado-texto">Avisos</span>
-          </button>
+          <BotonAvisos />
           <button type="button" className="encabezado-btn">
             <span className="material-symbols-rounded">account_circle</span>
             <span className="encabezado-texto">Mi cuenta</span>
