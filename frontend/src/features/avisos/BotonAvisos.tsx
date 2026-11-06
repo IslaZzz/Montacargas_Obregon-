@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { ApartadoProximo } from "./avisosTypes";
-import { accionCarta, claveAviso, nombreCarta, textoInicio, unidades } from "./avisosUtils";
+import { accionCarta, claveAviso, nombreCarta, rutaCarta, textoInicio, unidades } from "./avisosUtils";
 import { useApartadosProximos } from "./useApartadosProximos";
 import "../../styles/apartados/panel-avisos.css";
 
-// Lo que falta para que la acción de la carta funcione
-const FALTA_CARTA = "Disponible cuando exista la carta responsiva (OHU-04)";
+interface ItemAvisoProps {
+  aviso: ApartadoProximo;
+  nuevo: boolean;
+  onIr: () => void; // Cierra la lista al ir a la carta
+}
 
-function ItemAviso({ aviso, nuevo }: { aviso: ApartadoProximo; nuevo: boolean }) {
+function ItemAviso({ aviso, nuevo, onIr }: ItemAvisoProps) {
   const accion = accionCarta(aviso);
   const inicio = textoInicio(aviso).replace(",", ""); // "Inicia mañana jue 8 oct"
   return (
@@ -28,13 +31,12 @@ function ItemAviso({ aviso, nuevo }: { aviso: ApartadoProximo; nuevo: boolean })
         <p>
           {inicio}, carta {nombreCarta(aviso).toLowerCase()}
         </p>
-        {/* TODO: llevar a generar, enviar o ver la carta cuando exista OHU-04 */}
-        <button type="button" className="panel-aviso-accion" aria-disabled="true" title={FALTA_CARTA}>
+        <Link to={rutaCarta(aviso)} className="panel-aviso-accion" onClick={onIr}>
           {accion.texto}
           <span className="material-symbols-rounded" aria-hidden="true">
             arrow_forward
           </span>
-        </button>
+        </Link>
       </div>
     </li>
   );
@@ -117,7 +119,12 @@ export default function BotonAvisos() {
           ) : (
             <ul className="panel-avisos-lista">
               {apartados.map((a) => (
-                <ItemAviso key={a.rentaId} aviso={a} nuevo={nuevos.has(claveAviso(a))} />
+                <ItemAviso
+                  key={a.rentaId}
+                  aviso={a}
+                  nuevo={nuevos.has(claveAviso(a))}
+                  onIr={() => setAbierto(false)}
+                />
               ))}
             </ul>
           )}
