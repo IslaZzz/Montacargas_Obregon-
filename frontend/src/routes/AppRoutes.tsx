@@ -14,7 +14,7 @@ import Revisiones from "../features/revisiones/Revisiones";
 import ApartadosProximos from "../features/avisos/ApartadosProximos";
 import CartaRenta from "../features/cartas/CartaRenta";
 import VistaPreviaCarta from "../features/cartas/VistaPreviaCarta";
-
+import Rentas from "../features/rentas/rentas";
 import DetalleCliente from "../features/clientes/DetalleCliente";
 import Disponibilidad from '../features/equipos/disponibilidad/ConsultarDisponibilidad'
 
@@ -62,6 +62,7 @@ export default function AppRoutes() {
         <Route path="/apartados-proximos" element={<ApartadosProximos />} />
 
         {/* Detalle de renta */}
+        <Route path="/rentas" element={<Rentas />} />
         <Route path="/rentas/:id" element={<DetalleRenta />} />
 
         {/* Carta responsiva. Provisional hasta que exista el detalle de la renta (OHU-03) */}
