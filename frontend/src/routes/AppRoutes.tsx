@@ -23,7 +23,6 @@ import DetalleRenta from "../features/rentas/detalle/DetalleRenta";
 import DashboardTraslados from "../features/traslados/DashboardTraslados";
 
 import ProgramarRecoleccion from "../features/rentas-captura/ProgramarRecoleccion";
-import RegistrarRenta from "../features/rentas-captura/RegistrarRenta";
 
 
 export default function AppRoutes() {
@@ -47,7 +46,6 @@ export default function AppRoutes() {
         <Route path="/cotizaciones/:id/pdf" element={<PdfCotizacion />} />
 
         {/* Captura manual temporal: sin opción en el menú lateral*/}
-        <Route path="/rentas/nueva" element={<RegistrarRenta />} />
 
         <Route path="/rentas/recoleccion" element={<ProgramarRecoleccion />} />
 

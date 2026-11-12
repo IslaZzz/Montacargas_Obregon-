@@ -28,7 +28,6 @@ import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 import mx.montacargasobregon.backend.clientes.modelo.RazonSocial;
 import mx.montacargasobregon.backend.comun.DatosContactoSitio;
 import mx.montacargasobregon.backend.comun.DatosDireccion;
-import mx.montacargasobregon.backend.comun.Direccion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.EquipoCotizacion;
 
@@ -140,7 +139,7 @@ public class CotizacionPdfService {
         tabla.addCell(bloque("FACTURAR A",
                 razon.getNombre(),
                 "RFC: " + razon.getRfc(),
-                direccion(razon.getDireccionFiscal())));
+                razon.getDireccionFiscal().enUnRenglon()));
         return tabla;
     }
 
@@ -153,7 +152,7 @@ public class CotizacionPdfService {
         tabla.addCell(bloque("ENTREGA Y RECOLECCIÓN",
                 "Entrega: " + fechaHora(c.getFechaHoraEntrega()),
                 "Recolección: " + fechaHora(c.getFechaHoraRecoleccion()),
-                "Lugar: " + direccion(obra),
+                "Lugar: " + obra.enUnRenglon(),
                 "Contacto en la obra: " + contacto.getNombre() + " · " + telefono(contacto.getTelefono())));
         return tabla;
     }
@@ -264,13 +263,6 @@ public class CotizacionPdfService {
         int hora = fecha.getHour() % 12 == 0 ? 12 : fecha.getHour() % 12;
         String sufijo = fecha.getHour() < 12 ? "a. m." : "p. m.";
         return "%s, %02d:%02d %s".formatted(fecha.format(FECHA_LARGA), hora, fecha.getMinute(), sufijo);
-    }
-
-    // → "Calle 200 1500, Col. Centro, Cd. Obregón, Sonora, C.P. 85000"; si no hay estado, no lo pone
-    static String direccion(Direccion d) {
-        String ciudad = d.getEstado() == null ? d.getCiudad() : d.getCiudad() + ", " + d.getEstado();
-        return d.getCalle() + " " + d.getNumero() + ", Col. " + d.getColonia() + ", " + ciudad
-                + ", C.P. " + d.getCodigoPostal();
     }
 
     // "6872104455" → "687 210 4455"

@@ -1,5 +1,6 @@
 import type { DatosDireccion } from "../../types/comun";
 import type { Cliente, RazonSocial } from "../clientes/clientesTypes";
+import type { EstadoRenta } from "../rentas/detalle/detalleTypes";
 
 // Los estados de EstadoCotizacion que se usan en Delivery S1 (En autorización, Rechazada y Vencida llegan con HU-16, HU-32 y HU-17)
 export type EstadoCotizacion = "BORRADOR" | "ENVIADA" | "ACEPTADA" | "NO_ACEPTADA";
@@ -26,6 +27,12 @@ export interface PartidaCotizacion {
   importe: number;
 }
 
+// Equivale a RentaDeCotizacionResponse: la renta que nació al aceptar la cotización (HU-37)
+export interface RentaDeCotizacion {
+  folio: string;
+  estado: EstadoRenta;
+}
+
 // Equivale a CotizacionResponse (el detalle)
 export interface Cotizacion {
   id: number;
@@ -46,4 +53,5 @@ export interface Cotizacion {
   subtotal: number;
   iva: number;
   total: number;
+  renta: RentaDeCotizacion | null;
 }

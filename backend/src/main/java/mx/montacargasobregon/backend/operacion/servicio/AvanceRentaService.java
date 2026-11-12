@@ -50,6 +50,16 @@ public class AvanceRentaService {
     }
 
     /**
+     * La entrega quedó programada: crea una revisión de salida pendiente por equipo, para el día de la entrega.
+     * El traslado de entrega nace después, cuando todos los equipos pasan su revisión.
+     */
+    public void programarRevisionesDeSalida(Renta renta) {
+        for (EquipoRenta equipoRenta : renta.getEquipos()) {
+            revisionRepositorio.save(new Revision(equipoRenta, TipoRevision.SALIDA, renta.getEntregaDesde()));
+        }
+    }
+
+    /**
      * Se acordó con el cliente cuándo recoger: guarda el horario y crea el traslado de recolección por asignar.
      * Quien llama revisa el horario y que la renta esté en curso.
      */

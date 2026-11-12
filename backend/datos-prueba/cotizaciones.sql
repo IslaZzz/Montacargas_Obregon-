@@ -1,7 +1,8 @@
--- Datos de prueba para Cotizaciones (HU-12, HU-18 y HU-20).
+-- Datos de prueba para Cotizaciones (HU-12, HU-18, HU-20 y HU-37).
 -- Clientes y equipos de la hoja «Datos de prueba» de los casos de Delivery S1.
 -- Ejecutar después de iniciar el backend una vez, para que existan las tablas.
--- Se puede correr varias veces: no duplica catálogos ni clientes y reinicia las cotizaciones.
+-- Se puede correr varias veces: no duplica catálogos ni clientes y reinicia las cotizaciones de Comercial,
+-- junto con las rentas que nacieron al aceptarlas.
 
 USE montacargas_obregon;
 
@@ -97,12 +98,28 @@ ALTER TABLE cotizaciones
   MODIFY estado ENUM('ACEPTADA', 'BORRADOR', 'EN_AUTORIZACION', 'ENVIADA', 'NO_ACEPTADA', 'RECHAZADA', 'VENCIDA') NOT NULL,
   MODIFY fecha_envio DATETIME(6) NULL;
 
--- Cotizaciones: se borran y se vuelven a crear, cada una con su dirección de obra.
+-- Cotizaciones de Comercial (COT-0001…): se borran y se vuelven a crear, cada una con su dirección de obra.
+-- Las COT-R… son las de las rentas de prueba de Operativo y se quedan.
+-- Primero se borran las rentas que nacieron al aceptar alguna (HU-37), con lo que cuelga de cada una.
+CREATE TEMPORARY TABLE rentas_a_borrar AS
+SELECT r.id FROM rentas r JOIN cotizaciones q ON q.id = r.cotizacion_id WHERE q.folio NOT LIKE 'COT-R%';
+UPDATE mantenimientos SET revision_id = NULL
+WHERE revision_id IN (SELECT rv.id FROM revisiones rv
+                          JOIN equipos_renta er ON er.id = rv.equipo_renta_id
+                          JOIN rentas_a_borrar b ON b.id = er.renta_id);
+DELETE rv FROM revisiones rv JOIN equipos_renta er ON er.id = rv.equipo_renta_id
+    JOIN rentas_a_borrar b ON b.id = er.renta_id;
+DELETE t FROM traslados t JOIN rentas_a_borrar b ON b.id = t.renta_id;
+DELETE c FROM cartas_responsivas c JOIN rentas_a_borrar b ON b.id = c.renta_id;
+DELETE er FROM equipos_renta er JOIN rentas_a_borrar b ON b.id = er.renta_id;
+DELETE r FROM rentas r JOIN rentas_a_borrar b ON b.id = r.id;
+DROP TEMPORARY TABLE rentas_a_borrar;
+DELETE ec FROM equipos_cotizacion ec JOIN cotizaciones q ON q.id = ec.cotizacion_id WHERE q.folio NOT LIKE 'COT-R%';
+DELETE FROM cotizaciones WHERE folio NOT LIKE 'COT-R%';
+DELETE d FROM direcciones_obra d LEFT JOIN cotizaciones q ON q.direccion_obra_id = d.id WHERE q.id IS NULL;
+
 -- Las fechas son relativas a hoy. Importe = días (contando entrega y recolección) × tarifa; IVA 16%.
 -- Traslados en 0 y sin descuento: llegan con HU-14 y HU-15.
-DELETE FROM equipos_cotizacion;
-DELETE FROM cotizaciones;
-DELETE FROM direcciones_obra;
 
 -- No aceptada (TC-20-09): GR-02 5 días
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)

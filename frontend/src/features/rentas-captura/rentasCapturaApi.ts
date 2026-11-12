@@ -1,20 +1,5 @@
-import { getApi, patchApi, postApi } from "../../services/apiClient";
-import type {
-  CrearRentaRequest,
-  EquipoDisponible,
-  HorarioRequest,
-  RentaCreada,
-} from "./rentasCapturaTypes";
-
-// GET /api/rentas/equipos-disponibles, equipos operativos libres en esas fechas
-export const listarEquiposDisponibles = (inicio: string, fin: string) =>
-  getApi<EquipoDisponible[]>(
-    `/rentas/equipos-disponibles?inicio=${inicio}&fin=${fin}`,
-  );
-
-// POST /api/rentas, guarda la renta (responde 201)
-export const crearRenta = (solicitud: CrearRentaRequest) =>
-  postApi<RentaCreada>("/rentas", solicitud);
+import { getApi, patchApi } from "../../services/apiClient";
+import type { HorarioRequest, RentaCreada } from "./rentasCapturaTypes";
 
 // GET /api/rentas/sin-recoleccion, rentas en curso que aún no tienen horario de recolección
 export const listarRentasSinRecoleccion = () =>

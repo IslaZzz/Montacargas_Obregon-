@@ -2,6 +2,7 @@ package mx.montacargasobregon.backend.cotizaciones.servicio;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -11,15 +12,19 @@ import org.springframework.web.server.ResponseStatusException;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion;
 import mx.montacargasobregon.backend.cotizaciones.repositorio.CotizacionRepository;
+import mx.montacargasobregon.backend.rentas.modelo.Renta;
+import mx.montacargasobregon.backend.rentas.servicio.RentaDeCotizacionService;
 
 /** Reglas de negocio para consultar las cotizaciones y cambiar su estado. */
 @Service
 public class CotizacionService {
 
     private final CotizacionRepository repositorio;
+    private final RentaDeCotizacionService rentas;
 
-    public CotizacionService(CotizacionRepository repositorio) {
+    public CotizacionService(CotizacionRepository repositorio, RentaDeCotizacionService rentas) {
         this.repositorio = repositorio;
+        this.rentas = rentas;
     }
 
     /** Todas las cotizaciones, la más nueva primero. */
@@ -55,6 +60,16 @@ public class CotizacionService {
         }
 
         cotizacion.cambiarEstado(nuevoEstado, LocalDateTime.now(Cotizacion.ZONA_HORARIA));
+        // Al aceptarla nace su renta, en la misma transacción: si falla, tampoco queda aceptada (HU-37)
+        if (nuevoEstado == EstadoCotizacion.ACEPTADA) {
+            rentas.crear(cotizacion);
+        }
         return cotizacion; // Dentro de la transacción, JPA guarda el cambio solo
+    }
+
+    /** La renta que salió de la cotización al aceptarla, si ya tiene. */
+    @Transactional(readOnly = true)
+    public Optional<Renta> renta(Long cotizacionId) {
+        return rentas.buscar(cotizacionId);
     }
 }

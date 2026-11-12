@@ -18,6 +18,7 @@ import mx.montacargasobregon.backend.personal.modelo.Personal;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import java.time.LocalDate;
 import mx.montacargasobregon.backend.clientes.modelo.Cliente;
+import mx.montacargasobregon.backend.rentas.RentaDePrueba;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.revisiones.modelo.Revision;
 import mx.montacargasobregon.backend.revisiones.modelo.TipoRevision;
@@ -110,7 +111,7 @@ class MantenimientoTest {
     void deRevision_quedaLigadoALaRevisionYLoReportaSuMecanico() {
         Cliente cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
-        Renta renta = new Renta("R-2091", cliente, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 20),
+        Renta renta = RentaDePrueba.nueva("R-2091", cliente, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 20),
                 "Calle Sufragio Efectivo 300", "Ramón Gutiérrez", "6441000001");
         Equipo equipo = new Equipo("MC-030", "SN-030", 2021, null);
         Revision revision = new Revision(renta.agregarEquipo(equipo), TipoRevision.SALIDA,

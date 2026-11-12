@@ -56,9 +56,6 @@ class CotizacionPdfServiceTest {
     void formatos() {
         assertEquals("$1,432.09", CotizacionPdfService.moneda(new BigDecimal("1432.09")));
         assertEquals("644 123 4567", CotizacionPdfService.telefono("6441234567"));
-        // La dirección fiscal todavía no lleva estado: no se pone
-        assertEquals("Calle Jalisco 312, Col. Centro, Navojoa, C.P. 85800", CotizacionPdfService.direccion(
-                new DireccionFiscal("Calle Jalisco", "312", "Centro", "Navojoa", "85800")));
         assertEquals("jueves 5 de noviembre de 2026, 12:30 p. m.",
                 CotizacionPdfService.fechaHora(LocalDateTime.of(2026, 11, 5, 12, 30)));
     }

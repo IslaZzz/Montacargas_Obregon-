@@ -14,7 +14,7 @@ import {
 import BotonVerPdf from "./BotonVerPdf";
 import { cambiarEstadoCotizacion, obtenerCotizacion } from "./cotizacionesApi";
 import type { Cotizacion } from "./cotizacionesTypes";
-import { chipDeEstado, nombreCompleto, textoDias } from "./cotizacionesUtils";
+import { chipDeEstado, ESTADOS_RENTA, nombreCompleto, textoDias } from "./cotizacionesUtils";
 import "../../styles/cotizaciones/cotizaciones.css";
 
 type Respuesta = "ACEPTADA" | "NO_ACEPTADA";
@@ -124,6 +124,8 @@ export default function DetalleCotizacion() {
           <span className="material-symbols-rounded">check_circle</span>
           <div>
             <strong>Cotización aceptada</strong>
+            {/* Al aceptarla nace su renta para Operativo (HU-37) */}
+            {c.renta && <p>Renta {c.renta.folio} creada.</p>}
           </div>
         </div>
       )}
@@ -207,6 +209,11 @@ export default function DetalleCotizacion() {
               <Dato etiqueta="Contacto en la obra">
                 {c.contactoObra} · {formatoTelefono(c.telefonoContacto)}
               </Dato>
+              {c.renta && (
+                <Dato etiqueta="Renta">
+                  {c.renta.folio} · {ESTADOS_RENTA[c.renta.estado]}
+                </Dato>
+              )}
             </dl>
           </section>
 

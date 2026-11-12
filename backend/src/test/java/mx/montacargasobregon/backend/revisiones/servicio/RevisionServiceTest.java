@@ -39,6 +39,7 @@ import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
 import mx.montacargasobregon.backend.personal.modelo.Personal;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.personal.servicio.PersonalService;
+import mx.montacargasobregon.backend.rentas.RentaDePrueba;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.revisiones.dto.AsignarRevisionesRequest;
 import mx.montacargasobregon.backend.revisiones.dto.RegistrarResultadoRequest;
@@ -83,7 +84,7 @@ class RevisionServiceTest {
 
         Cliente cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
-        renta = new Renta("R-2070", cliente, LocalDate.of(2026, 10, 22), LocalDate.of(2026, 11, 5),
+        renta = RentaDePrueba.nueva("R-2070", cliente, LocalDate.of(2026, 10, 22), LocalDate.of(2026, 11, 5),
                 "Blvd. Rodolfo Elías Calles 1520", "Ramón Gutiérrez", "6441000001");
         ReflectionTestUtils.setField(renta, "id", 20L);
 

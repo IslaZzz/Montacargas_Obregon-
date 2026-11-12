@@ -53,4 +53,10 @@ public abstract class Direccion {
         this.estado = estado;
         this.codigoPostal = codigoPostal;
     }
+
+    /** → "Calle 200 1500, Col. Centro, Cd. Obregón, Sonora, C.P. 85000"; si no hay estado, no lo pone. */
+    public String enUnRenglon() {
+        String ciudadYEstado = estado == null ? ciudad : ciudad + ", " + estado;
+        return calle + " " + numero + ", Col. " + colonia + ", " + ciudadYEstado + ", C.P. " + codigoPostal;
+    }
 }

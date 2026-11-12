@@ -5,12 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,7 @@ import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
 import mx.montacargasobregon.backend.rentas.modelo.EquipoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.FaseEquipoRenta;
+import mx.montacargasobregon.backend.rentas.RentaDePrueba;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.revisiones.modelo.EstadoRevision;
 import mx.montacargasobregon.backend.revisiones.modelo.Revision;
@@ -61,7 +64,7 @@ class AvanceRentaServiceTest {
 
         Cliente cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
-        renta = new Renta("R-2091", cliente, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 20),
+        renta = RentaDePrueba.nueva("R-2091", cliente, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 20),
                 "Calle Sufragio Efectivo 300", "Ramón Gutiérrez", "6441000001");
         renta.confirmarEntrega(ENTREGA_DESDE, ENTREGA_HASTA);
         mc030 = renta.agregarEquipo(new Equipo("MC-030", "SN-030", 2021, null));
@@ -142,6 +145,22 @@ class AvanceRentaServiceTest {
         assertEquals(EstadoRenta.PROGRAMADA, renta.getEstado());
     }
 
+
+    @Test
+    void programarRevisionesDeSalida_creaUnaRevisionPendientePorEquipo() {
+        servicio.programarRevisionesDeSalida(renta);
+
+        ArgumentCaptor<Revision> revisiones = ArgumentCaptor.forClass(Revision.class);
+        verify(revisionRepositorio, times(2)).save(revisiones.capture());
+        assertEquals(List.of(mc030, mc031),
+                revisiones.getAllValues().stream().map(Revision::getEquipoRenta).toList());
+        for (Revision r : revisiones.getAllValues()) {
+            assertEquals(TipoRevision.SALIDA, r.getTipo());
+            assertEquals(EstadoRevision.PENDIENTE, r.getEstado());
+            assertEquals(ENTREGA_DESDE, r.getFechaProgramada());
+        }
+        verifyNoInteractions(trasladoRepositorio);
+    }
 
     @Test
     void programarRecoleccion_guardaElHorarioYCreaElTraslado() {

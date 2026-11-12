@@ -9,6 +9,7 @@ import mx.montacargasobregon.backend.clientes.dto.ClienteResponse;
 import mx.montacargasobregon.backend.clientes.dto.RazonSocialResponse;
 import mx.montacargasobregon.backend.comun.dto.DatosDireccionResponse;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
+import mx.montacargasobregon.backend.rentas.modelo.Renta;
 
 /** Detalle completo de una cotización. */
 public record CotizacionResponse(
@@ -29,9 +30,16 @@ public record CotizacionResponse(
         List<PartidaCotizacionResponse> partidas,
         BigDecimal subtotal,
         BigDecimal iva,
-        BigDecimal total) {
+        BigDecimal total,
+        RentaDeCotizacionResponse renta) {
 
+    // Una cotización recién creada todavía no tiene renta
     public static CotizacionResponse toCotizacionResponse(Cotizacion c) {
+        return toCotizacionResponse(c, null);
+    }
+
+    /** Con la renta que salió de la cotización al aceptarla (HU-37), o null si no tiene. */
+    public static CotizacionResponse toCotizacionResponse(Cotizacion c, Renta renta) {
         return new CotizacionResponse(
                 c.getId(),
                 c.getFolio(),
@@ -50,6 +58,7 @@ public record CotizacionResponse(
                 c.getEquipos().stream().map(PartidaCotizacionResponse::toPartidaCotizacionResponse).toList(),
                 c.getSubtotal(),
                 c.getIva(),
-                c.getTotal());
+                c.getTotal(),
+                renta == null ? null : RentaDeCotizacionResponse.toRentaDeCotizacionResponse(renta));
     }
 }

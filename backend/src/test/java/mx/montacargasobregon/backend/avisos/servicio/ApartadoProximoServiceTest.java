@@ -33,6 +33,7 @@ import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 import mx.montacargasobregon.backend.equipos.modelo.Modelo;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.FaseEquipoRenta;
+import mx.montacargasobregon.backend.rentas.RentaDePrueba;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 
 @ExtendWith(MockitoExtension.class)
@@ -121,7 +122,7 @@ class ApartadoProximoServiceTest {
     void usaElNombreDeLaPersonaSiElClienteNoTieneEmpresa() {
         Cliente persona = new Cliente("Ana", "Castro", "Ruiz", null,
                 "6441000004", "ana@ejemplo.com", LocalDate.of(2026, 9, 1));
-        Renta renta = new Renta("R-0003", persona, HOY.plusDays(3), HOY.plusDays(10),
+        Renta renta = RentaDePrueba.nueva("R-0003", persona, HOY.plusDays(3), HOY.plusDays(10),
                 "Calle 200", "Ana Castro", "6441000004");
         ReflectionTestUtils.setField(renta, "id", 3L);
         when(rentas.listarQueInician(EstadoRenta.PROGRAMADA, HOY, HOY.plusDays(3))).thenReturn(List.of(renta));
@@ -148,7 +149,7 @@ class ApartadoProximoServiceTest {
     }
 
     private Renta renta(Long id, String folio, LocalDate inicio) {
-        Renta renta = new Renta(folio, hotel, inicio, inicio.plusDays(7),
+        Renta renta = RentaDePrueba.nueva(folio, hotel, inicio, inicio.plusDays(7),
                 "Calle Ejemplo 123", "Juan Pérez", "6440000000");
         ReflectionTestUtils.setField(renta, "id", id);
         return renta;

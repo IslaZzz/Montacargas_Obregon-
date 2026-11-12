@@ -33,6 +33,7 @@ import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.rentas.modelo.EquipoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.FaseEquipoRenta;
+import mx.montacargasobregon.backend.rentas.RentaDePrueba;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.rentas.repositorio.RentaRepository;
 import mx.montacargasobregon.backend.revisiones.modelo.EstadoRevision;
@@ -79,7 +80,7 @@ class InicioServiceTest {
     }
 
     private Renta renta(Long id, String folio, LocalDate inicio, LocalDate fin) {
-        Renta r = new Renta(folio, cliente, inicio, fin, "Calle Sufragio Efectivo 300", "Ramón Gutiérrez", "6441000001");
+        Renta r = RentaDePrueba.nueva(folio, cliente, inicio, fin, "Calle Sufragio Efectivo 300", "Ramón Gutiérrez", "6441000001");
         ReflectionTestUtils.setField(r, "id", id);
         return r;
     }
@@ -180,6 +181,26 @@ class InicioServiceTest {
         assertEquals(new InicioResponse.Pendientes(0, 0, 0, 0), inicio.pendientes());
         assertTrue(inicio.avisos().isEmpty());
         assertTrue(inicio.operaciones().isEmpty());
+    }
+
+    @Test
+    void consultar_avisaFaltaRecoleccion_hastaQueTengaSuTraslado() {
+        // En curso, termina mañana y ya trae la hora de recolección de la cotización (HU-37)
+        Renta enCurso = renta(30L, "R-3004", HOY.minusDays(5), HOY.plusDays(1));
+        enCurso.cambiarEstado(EstadoRenta.EN_CURSO);
+        enCurso.confirmarRecoleccion(HOY.plusDays(1).atTime(18, 0), HOY.plusDays(1).atTime(18, 0));
+        when(trasladoRepositorio.listarTodosConRelaciones()).thenReturn(List.of());
+        when(revisionRepositorio.listar()).thenReturn(List.of());
+        when(mantenimientoRepositorio.listar()).thenReturn(List.of());
+        when(rentaRepositorio.findAll()).thenReturn(List.of(enCurso));
+
+        assertEquals(List.of(TipoAviso.FALTA_RECOLECCION),
+                servicio.consultar(AHORA).avisos().stream().map(Aviso::tipo).toList());
+
+        // Con su traslado de recolección ya no hace falta avisar
+        enCurso.getTraslados().add(new Traslado("TR-0100", enCurso, TipoTraslado.RECOLECCION,
+                HOY.plusDays(1).atTime(16, 0), HOY.plusDays(1).atTime(18, 0)));
+        assertTrue(servicio.consultar(AHORA).avisos().isEmpty());
     }
 
     @Test
