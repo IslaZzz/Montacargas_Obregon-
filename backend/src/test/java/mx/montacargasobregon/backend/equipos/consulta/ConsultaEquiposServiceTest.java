@@ -31,6 +31,7 @@ import mx.montacargasobregon.backend.equipos.repositorio.EquipoRepository;
 import mx.montacargasobregon.backend.rentas.modelo.EquipoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.FaseEquipoRenta;
+import mx.montacargasobregon.backend.rentas.RentaDePrueba;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,7 +68,7 @@ class ConsultaEquiposServiceTest {
     }
 
     private Renta renta(Long id, String folio, LocalDate inicio) {
-        Renta r = new Renta(folio, cliente, inicio, inicio.plusDays(10), "Calle Sufragio Efectivo 300",
+        Renta r = RentaDePrueba.nueva(folio, cliente, inicio, inicio.plusDays(10), "Calle Sufragio Efectivo 300",
                 "Ramón Gutiérrez", "6441000001");
         ReflectionTestUtils.setField(r, "id", id);
         return r;

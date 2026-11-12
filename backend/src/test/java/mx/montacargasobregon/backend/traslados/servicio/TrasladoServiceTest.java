@@ -30,6 +30,7 @@ import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 import mx.montacargasobregon.backend.personal.modelo.Personal;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.personal.repositorio.PersonalRepository;
+import mx.montacargasobregon.backend.rentas.RentaDePrueba;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.traslados.dto.AsignarTrasladoRequest;
 import mx.montacargasobregon.backend.traslados.dto.OperadorDisponibilidadResponse;
@@ -67,7 +68,7 @@ class TrasladoServiceTest {
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
         ReflectionTestUtils.setField(cliente, "id", 1L);
 
-        renta = new Renta("R-2046", cliente, LocalDate.of(2026, 10, 7), LocalDate.of(2026, 10, 20),
+        renta = RentaDePrueba.nueva("R-2046", cliente, LocalDate.of(2026, 10, 7), LocalDate.of(2026, 10, 20),
                 "Blvd. Rodolfo Elías Calles 1520", "Ramón Gutiérrez", "6441000001");
         ReflectionTestUtils.setField(renta, "id", 10L);
 

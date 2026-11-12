@@ -29,6 +29,7 @@ import mx.montacargasobregon.backend.equipos.modelo.Categoria;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 import mx.montacargasobregon.backend.equipos.modelo.Modelo;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
+import mx.montacargasobregon.backend.rentas.RentaDePrueba;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.revisiones.modelo.Revision;
 import mx.montacargasobregon.backend.revisiones.repositorio.RevisionRepository;
@@ -81,7 +82,7 @@ class CapturaRentaServiceTest {
 
     // Renta ya guardada con MC-030 y MC-031, para confirmar su entrega
     private Renta rentaGuardada() {
-        Renta renta = new Renta("R-2091", cliente, INICIO, FIN, "Calle Sufragio Efectivo 300",
+        Renta renta = RentaDePrueba.nueva("R-2091", cliente, INICIO, FIN, "Calle Sufragio Efectivo 300",
                 "Ramón Gutiérrez", "6441000001");
         ReflectionTestUtils.setField(renta, "id", 20L);
         renta.agregarEquipo(mc030);

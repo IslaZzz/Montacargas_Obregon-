@@ -19,6 +19,7 @@ import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 import mx.montacargasobregon.backend.personal.modelo.Personal;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.rentas.modelo.EquipoRenta;
+import mx.montacargasobregon.backend.rentas.RentaDePrueba;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 
 class RevisionTest {
@@ -34,7 +35,7 @@ class RevisionTest {
 
         Cliente cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
-        Renta renta = new Renta("R-2070", cliente, LocalDate.of(2026, 10, 22), LocalDate.of(2026, 11, 5),
+        Renta renta = RentaDePrueba.nueva("R-2070", cliente, LocalDate.of(2026, 10, 22), LocalDate.of(2026, 11, 5),
                 "Blvd. Rodolfo Elías Calles 1520", "Ramón Gutiérrez", "6441000001");
         EquipoRenta equipoRenta = renta.agregarEquipo(new Equipo("MC-030", "SN-030", 2021, null));
 

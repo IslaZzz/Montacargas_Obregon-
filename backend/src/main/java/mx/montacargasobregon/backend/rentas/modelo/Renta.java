@@ -16,16 +16,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import mx.montacargasobregon.backend.clientes.modelo.Cliente;
+import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 
 /**
  * Renta de uno o varios equipos a un cliente.
- * Por ahora solo la estructura: crearla a partir del contrato es de comercial.
+ * Nace al aceptar la cotización (HU-37); en Delivery S3 nacerá al registrar el anticipo del contrato.
  * Los datos de la obra se copian para que, si cambian durante la renta,
  * no se altere el documento que el cliente aceptó.
  */
@@ -46,6 +48,11 @@ public class Renta {
     @ManyToOne(optional = false)
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
+
+    // Cotización de la que salió; cada cotización genera una sola renta
+    @OneToOne(optional = false)
+    @JoinColumn(name = "cotizacion_id", nullable = false, unique = true)
+    private Cotizacion cotizacion;
 
     // Periodo contratado: lo que se cobra
     @Column(name = "fecha_inicio", nullable = false)
@@ -68,8 +75,8 @@ public class Renta {
     @Column(name = "recoleccion_hasta")
     private LocalDateTime recoleccionHasta;
 
-    // Mismos tamaños que en Cotizacion, para copiarlos sin recortar
-    @Column(name = "direccion_obra", nullable = false, length = 200)
+    // La dirección de la obra de la cotización, en un renglón. Cabe aunque todos sus campos lleguen al máximo
+    @Column(name = "direccion_obra", nullable = false, length = 400)
     private String direccionObra;
 
     @Column(name = "contacto_obra", nullable = false, length = 100)
@@ -89,16 +96,21 @@ public class Renta {
     @OneToMany(mappedBy = "renta")
     private List<mx.montacargasobregon.backend.traslados.modelo.Traslado> traslados = new ArrayList<>();
 
-    public Renta(String folio, Cliente cliente, LocalDate fechaInicio, LocalDate fechaFin,
-                 String direccionObra, String contactoObra, String telefonoContacto) {
+    /**
+     * Crea la renta a partir de la cotización aceptada: copia el cliente, el periodo, la obra, su contacto
+     * y los equipos, que empiezan RESERVADO. Los horarios de entrega y recolección quedan por confirmar.
+     */
+    public Renta(String folio, Cotizacion cotizacion) {
         this.folio = folio;
-        this.cliente = cliente;
-        this.fechaInicio = fechaInicio;
-        this.fechaFin = fechaFin;
-        this.direccionObra = direccionObra;
-        this.contactoObra = contactoObra;
-        this.telefonoContacto = telefonoContacto;
+        this.cotizacion = cotizacion;
+        this.cliente = cotizacion.getCliente();
+        this.fechaInicio = cotizacion.getFechaHoraEntrega().toLocalDate();
+        this.fechaFin = cotizacion.getFechaHoraRecoleccion().toLocalDate();
+        this.direccionObra = cotizacion.getDireccionObra().enUnRenglon();
+        this.contactoObra = cotizacion.getContactoObra().getNombre();
+        this.telefonoContacto = cotizacion.getContactoObra().getTelefono();
         this.estado = EstadoRenta.PROGRAMADA;
+        cotizacion.getEquipos().forEach(e -> agregarEquipo(e.getEquipo()));
     }
 
     /** Agrega un equipo a la renta; empieza RESERVADO. */

@@ -33,6 +33,7 @@ import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.rentas.modelo.EquipoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.FaseEquipoRenta;
+import mx.montacargasobregon.backend.rentas.RentaDePrueba;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.rentas.repositorio.RentaRepository;
 import mx.montacargasobregon.backend.revisiones.modelo.EstadoRevision;
@@ -79,7 +80,7 @@ class InicioServiceTest {
     }
 
     private Renta renta(Long id, String folio, LocalDate inicio, LocalDate fin) {
-        Renta r = new Renta(folio, cliente, inicio, fin, "Calle Sufragio Efectivo 300", "Ramón Gutiérrez", "6441000001");
+        Renta r = RentaDePrueba.nueva(folio, cliente, inicio, fin, "Calle Sufragio Efectivo 300", "Ramón Gutiérrez", "6441000001");
         ReflectionTestUtils.setField(r, "id", id);
         return r;
     }

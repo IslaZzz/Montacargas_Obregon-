@@ -44,6 +44,7 @@ import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 import mx.montacargasobregon.backend.equipos.modelo.Modelo;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.FaseEquipoRenta;
+import mx.montacargasobregon.backend.rentas.RentaDePrueba;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.rentas.repositorio.RentaRepository;
 
@@ -77,7 +78,7 @@ class CartaResponsivaServiceTest {
         cliente.agregarRazonSocial(new RazonSocial("Constructora Valle Yaqui S.A. de C.V.", "CVY010203AB1",
                 new DireccionFiscal("Calle Ejemplo", "123", "Centro", "Cd. Obregón", "85000")));
 
-        renta = new Renta("R-1042", cliente, INICIO, INICIO.plusDays(30),
+        renta = RentaDePrueba.nueva("R-1042", cliente, INICIO, INICIO.plusDays(30),
                 "Calle Ejemplo 123, Col. Centro, 85000", "Juan Pérez", "6440000000");
         ReflectionTestUtils.setField(renta, "id", RENTA_ID);
         renta.confirmarEntrega(INICIO.atTime(8, 0), INICIO.atTime(9, 30));
