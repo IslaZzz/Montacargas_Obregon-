@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { Button } from "../../../components/buttons";
-import { formatoFechaHora, formatoTelefono } from "../../../utils/formato";
+import { formatoDireccion, formatoFechaHora, formatoTelefono } from "../../../utils/formato";
 import { nombreCompleto, textoDias } from "../cotizacionesUtils";
+import { direccionObra } from "./nuevaCotizacionTypes";
 import type { BorradorCotizacion } from "./nuevaCotizacionTypes";
 import {
   aCentavos,
@@ -42,6 +43,7 @@ function Dato({ etiqueta, children }: { etiqueta: string; children: ReactNode })
 export default function PasoRevisar({ borrador: b, irAPaso }: Props) {
   const dias = calcularDias(b.fechaEntrega, b.fechaRecoleccion) ?? 0;
   const razon = b.cliente?.razonesSociales.find((r) => r.id === b.razonSocialId);
+  const obra = direccionObra(b);
   const importes = b.equipos.map((e) => importeCentavos(dias, e.modelo.tarifaDia));
   const { subtotal, iva, total } = calcularTotales(importes);
 
@@ -68,7 +70,7 @@ export default function PasoRevisar({ borrador: b, irAPaso }: Props) {
               <Dato etiqueta="Entrega">{formatoFechaHora(fechaHoraIso(b.fechaEntrega, b.horaEntrega))}</Dato>
               <Dato etiqueta="Recolección">{formatoFechaHora(fechaHoraIso(b.fechaRecoleccion, b.horaRecoleccion))}</Dato>
               <Dato etiqueta="Duración">{textoDias(dias)}</Dato>
-              <Dato etiqueta="Lugar de entrega">{b.direccionObra}</Dato>
+              <Dato etiqueta="Lugar de entrega">{formatoDireccion(obra)}</Dato>
               <Dato etiqueta="Contacto en la obra">{b.contactoObra} · {formatoTelefono(b.telefonoContacto)}</Dato>
             </dl>
           </Seccion>

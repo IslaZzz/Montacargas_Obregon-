@@ -1,6 +1,7 @@
 import {
   formatoFecha,
   formatoFechaHora,
+  formatoDireccion,
   formatoMoneda,
   formatoTelefono,
 } from "../../utils/formato";
@@ -13,8 +14,6 @@ const enMinuscula = (texto: string) =>
 
 // Vista previa del PDF. Muestra lo mismo que genera el backend (CotizacionPdfService).
 export default function HojaCotizacion({ cotizacion: c }: { cotizacion: Cotizacion }) {
-  const d = c.razonSocial.direccionFiscal;
-
   return (
     <article className="hoja-pdf" aria-label={`Vista previa del PDF de ${c.folio}`}>
       <header className="hoja-encabezado">
@@ -42,9 +41,7 @@ export default function HojaCotizacion({ cotizacion: c }: { cotizacion: Cotizaci
           <h3>FACTURAR A</h3>
           <p>{c.razonSocial.nombre}</p>
           <p>RFC: {c.razonSocial.rfc}</p>
-          <p>
-            {d.calle} {d.numero}, Col. {d.colonia}, {d.ciudad}, C.P. {d.codigoPostal}
-          </p>
+          <p>{formatoDireccion(c.razonSocial.direccionFiscal)}</p>
         </section>
       </div>
 
@@ -52,7 +49,7 @@ export default function HojaCotizacion({ cotizacion: c }: { cotizacion: Cotizaci
         <h3>ENTREGA Y RECOLECCIÓN</h3>
         <p>Entrega: {enMinuscula(formatoFechaHora(c.fechaEntrega))}</p>
         <p>Recolección: {enMinuscula(formatoFechaHora(c.fechaRecoleccion))}</p>
-        <p>Lugar: {c.direccionObra}</p>
+        <p>Lugar: {formatoDireccion(c.direccionObra)}</p>
         <p>
           Contacto en la obra: {c.contactoObra} · {formatoTelefono(c.telefonoContacto)}
         </p>

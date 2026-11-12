@@ -4,7 +4,7 @@ import { Button } from "../../../components/buttons";
 import { useTitulo } from "../../../hooks/useTitulo";
 import { ErrorApi } from "../../../services/apiClient";
 import { crearCotizacion } from "./nuevaCotizacionApi";
-import { borradorVacio } from "./nuevaCotizacionTypes";
+import { borradorVacio, direccionObra } from "./nuevaCotizacionTypes";
 import type {
   BorradorCotizacion,
   CrearCotizacionRequest,
@@ -42,7 +42,7 @@ function aSolicitud(b: BorradorCotizacion): CrearCotizacionRequest | null {
     razonSocialId: b.razonSocialId,
     fechaEntrega: fechaHoraIso(b.fechaEntrega, b.horaEntrega),
     fechaRecoleccion: fechaHoraIso(b.fechaRecoleccion, b.horaRecoleccion),
-    direccionObra: b.direccionObra.trim(),
+    direccionObra: direccionObra(b),
     contactoObra: b.contactoObra.trim(),
     telefonoContacto: b.telefonoContacto,
     equipoIds: b.equipos.map((e) => e.id),

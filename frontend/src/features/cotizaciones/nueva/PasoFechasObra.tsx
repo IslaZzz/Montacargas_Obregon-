@@ -14,8 +14,8 @@ interface CampoConfig {
   campo: CampoTexto;
   etiqueta: string;
   maxLength: number;
+  obligatorio?: boolean;
   soloDigitos?: boolean;
-  placeholder?: string;
 }
 
 const MOMENTOS = [
@@ -23,24 +23,27 @@ const MOMENTOS = [
   { titulo: "Recolección", fecha: "fechaRecoleccion", hora: "horaRecoleccion" },
 ] as const;
 
-const CAMPO_DIRECCION: CampoConfig = {
-  campo: "direccionObra",
-  etiqueta: "Dirección de la obra",
-  maxLength: 200,
-  placeholder: "Calle, número, colonia o parque industrial, ciudad y estado",
-};
+// Los mismos campos que la dirección fiscal de Registrar cliente, más el estado
+const CAMPOS_DIRECCION: CampoConfig[] = [
+  { campo: "calleObra", etiqueta: "Calle", maxLength: 100 },
+  { campo: "numeroObra", etiqueta: "Número", maxLength: 10 },
+  { campo: "coloniaObra", etiqueta: "Colonia", maxLength: 100 },
+  { campo: "ciudadObra", etiqueta: "Ciudad", maxLength: 100 },
+  { campo: "estadoObra", etiqueta: "Estado", maxLength: 50 },
+  { campo: "codigoPostalObra", etiqueta: "Código postal", maxLength: 5, soloDigitos: true },
+];
 
 const CAMPOS_CONTACTO: CampoConfig[] = [
-  { campo: "contactoObra", etiqueta: "Quién recibe en la obra", maxLength: 100 },
-  { campo: "telefonoContacto", etiqueta: "Teléfono (10 dígitos)", maxLength: 10, soloDigitos: true },
+  { campo: "contactoObra", etiqueta: "Quién recibe en la obra", maxLength: 100, obligatorio: true },
+  { campo: "telefonoContacto", etiqueta: "Teléfono (10 dígitos)", maxLength: 10, obligatorio: true, soloDigitos: true },
 ];
 
 export default function PasoFechasObra({ borrador, cambiar, errores }: Props) {
   const dias = calcularDias(borrador.fechaEntrega, borrador.fechaRecoleccion);
 
-  const campoTexto = ({ campo, etiqueta, maxLength, soloDigitos, placeholder }: CampoConfig) => (
-    <Campo key={campo} etiqueta={etiqueta} obligatorio value={borrador[campo]} maxLength={maxLength}
-      placeholder={placeholder} inputMode={soloDigitos ? "numeric" : undefined} error={errores[campo]}
+  const campoTexto = ({ campo, etiqueta, maxLength, obligatorio, soloDigitos }: CampoConfig) => (
+    <Campo key={campo} etiqueta={etiqueta} obligatorio={obligatorio} value={borrador[campo]} maxLength={maxLength}
+      inputMode={soloDigitos ? "numeric" : undefined} error={errores[campo]}
       onChange={(valor) => cambiar({ [campo]: soloDigitos ? valor.replace(/\D/g, "") : valor })} />
   );
 
@@ -74,7 +77,10 @@ export default function PasoFechasObra({ borrador, cambiar, errores }: Props) {
 
       <section className="tarjeta">
         <h2>Lugar de entrega</h2>
-        {campoTexto(CAMPO_DIRECCION)}
+        <p className="campo-etiqueta">
+          Dirección de la obra <small>(obligatorio)</small>
+        </p>
+        <div className="direccion">{CAMPOS_DIRECCION.map(campoTexto)}</div>
         <div className="direccion">{CAMPOS_CONTACTO.map(campoTexto)}</div>
       </section>
     </>

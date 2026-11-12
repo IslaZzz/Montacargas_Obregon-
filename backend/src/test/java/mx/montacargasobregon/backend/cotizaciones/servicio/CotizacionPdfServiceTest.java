@@ -14,8 +14,10 @@ import org.openpdf.text.pdf.parser.PdfTextExtractor;
 import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 import mx.montacargasobregon.backend.clientes.modelo.DireccionFiscal;
 import mx.montacargasobregon.backend.clientes.modelo.RazonSocial;
+import mx.montacargasobregon.backend.comun.DatosContactoSitio;
+import mx.montacargasobregon.backend.comun.DatosDireccion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
-import mx.montacargasobregon.backend.cotizaciones.modelo.PartidaCotizacion;
+import mx.montacargasobregon.backend.cotizaciones.modelo.EquipoCotizacion;
 import mx.montacargasobregon.backend.equipos.modelo.Categoria;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 import mx.montacargasobregon.backend.equipos.modelo.Modelo;
@@ -36,6 +38,7 @@ class CotizacionPdfServiceTest {
         assertContiene(texto, "RFC: OMM180920QW5");
         assertContiene(texto, "martes 10 de noviembre de 2026, 08:00 a. m.");
         assertContiene(texto, "sábado 14 de noviembre de 2026, 06:00 p. m.");
+        assertContiene(texto, "Lugar: Calle 200 1500, Col. Centro, Cd. Obregón, Sonora, C.P. 85000");
         assertContiene(texto, "Contacto en la obra: Ing. Raúl Soto · 644 210 4455");
         assertContiene(texto, "MC-07");
         assertContiene(texto, "GR-02");
@@ -53,6 +56,9 @@ class CotizacionPdfServiceTest {
     void formatos() {
         assertEquals("$1,432.09", CotizacionPdfService.moneda(new BigDecimal("1432.09")));
         assertEquals("644 123 4567", CotizacionPdfService.telefono("6441234567"));
+        // La dirección fiscal todavía no lleva estado: no se pone
+        assertEquals("Calle Jalisco 312, Col. Centro, Navojoa, C.P. 85800", CotizacionPdfService.direccion(
+                new DireccionFiscal("Calle Jalisco", "312", "Centro", "Navojoa", "85800")));
         assertEquals("jueves 5 de noviembre de 2026, 12:30 p. m.",
                 CotizacionPdfService.fechaHora(LocalDateTime.of(2026, 11, 5, 12, 30)));
     }
@@ -74,10 +80,11 @@ class CotizacionPdfServiceTest {
 
         Cotizacion cotizacion = new Cotizacion("COT-0001", cliente, razon,
                 LocalDateTime.of(2026, 11, 10, 8, 0), LocalDateTime.of(2026, 11, 14, 18, 0),
-                "Calle 200 No. 1500, Cd. Obregón", "Ing. Raúl Soto", "6442104455",
+                new DatosDireccion("Calle 200", "1500", "Centro", "Cd. Obregón", "Sonora", "85000"),
+                new DatosContactoSitio("Ing. Raúl Soto", "6442104455"),
                 new BigDecimal("8500.00"), new BigDecimal("1360.00"), new BigDecimal("9860.00"));
-        cotizacion.agregarPartida(new PartidaCotizacion(mc07, new BigDecimal("500.00"), new BigDecimal("2500.00")));
-        cotizacion.agregarPartida(new PartidaCotizacion(gr02, new BigDecimal("1200.00"), new BigDecimal("6000.00")));
+        cotizacion.agregarEquipo(new EquipoCotizacion(mc07, new BigDecimal("500.00"), new BigDecimal("2500.00")));
+        cotizacion.agregarEquipo(new EquipoCotizacion(gr02, new BigDecimal("1200.00"), new BigDecimal("6000.00")));
         return cotizacion;
     }
 

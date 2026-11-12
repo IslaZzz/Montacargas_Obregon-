@@ -14,3 +14,23 @@ export interface DireccionRequest {
   ciudad: string
   codigoPostal: string
 }
+
+// Dirección de la obra (DatosDireccion): como Direccion, más el estado
+export interface DatosDireccion {
+  id: number
+  calle: string
+  numero: string
+  colonia: string
+  ciudad: string
+  estado: string
+  codigoPostal: string
+}
+
+export interface DatosDireccionRequest {
+  calle: string
+  numero: string
+  colonia: string
+  ciudad: string
+  estado: string
+  codigoPostal: string
+}
