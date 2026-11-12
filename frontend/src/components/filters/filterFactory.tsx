@@ -19,7 +19,8 @@ import type {
 interface FilterFactoryProps<T> {
   data: T[];
   filters: FilterDefinition<T>[];
-  children: (filteredData: T[]) => ReactNode;
+  // selectedValues: lo elegido en cada filtro, por id ("all" si no tiene nada)
+  children: (filteredData: T[], selectedValues: Record<string, string>) => ReactNode;
   allLabel?: string;
 }
 
@@ -271,7 +272,7 @@ export default function FilterFactory<T>({
         {filteredData.length} resultados
       </div>
 
-      {children(filteredData)}
+      {children(filteredData, selectedFilters)}
 
     </section>
   );

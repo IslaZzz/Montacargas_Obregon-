@@ -1,4 +1,6 @@
-// Formatos de pesos, fechas y teléfonos como se muestran en las pantallas
+// Formatos de pesos, fechas, teléfonos y direcciones como se muestran en las pantallas
+
+import type { DireccionRequest } from "../types/comun";
 
 const pesos = new Intl.NumberFormat("es-MX", {
   style: "currency",
@@ -58,3 +60,7 @@ export function formatoDia(fecha: Date) {
 // "6872104455" → "687 210 4455"
 export const formatoTelefono = (telefono: string) =>
   telefono.replace(/^(\d{3})(\d{3})(\d{4})$/, "$1 $2 $3");
+
+// → "Calle 200 1500, Col. Centro, Cd. Obregón, Sonora, C.P. 85000". Si no hay estado, no lo pone.
+export const formatoDireccion = (d: DireccionRequest & { estado?: string | null }) =>
+  `${d.calle} ${d.numero}, Col. ${d.colonia}, ${[d.ciudad, d.estado].filter(Boolean).join(", ")}, C.P. ${d.codigoPostal}`;

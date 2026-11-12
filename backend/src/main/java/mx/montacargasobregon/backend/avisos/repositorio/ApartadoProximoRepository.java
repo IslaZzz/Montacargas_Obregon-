@@ -12,7 +12,7 @@ import mx.montacargasobregon.backend.rentas.modelo.Renta;
 
 /**
  * Consultas de rentas que solo usan los avisos.
- * Es de solo lectura y vive aquí para no cambiar RentaRepository.
+ * Es de solo lectura y vive aquí para no cambiar RentaRepository.java.
  */
 public interface ApartadoProximoRepository extends Repository<Renta, Long> {
 

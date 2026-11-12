@@ -7,6 +7,7 @@ import java.util.List;
 
 import mx.montacargasobregon.backend.clientes.dto.ClienteResponse;
 import mx.montacargasobregon.backend.clientes.dto.RazonSocialResponse;
+import mx.montacargasobregon.backend.comun.dto.DatosDireccionResponse;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 
 /** Detalle completo de una cotización. */
@@ -22,7 +23,7 @@ public record CotizacionResponse(
         LocalDateTime fechaEntrega,
         LocalDateTime fechaRecoleccion,
         long dias,
-        String direccionObra,
+        DatosDireccionResponse direccionObra,
         String contactoObra,
         String telefonoContacto,
         List<PartidaCotizacionResponse> partidas,
@@ -35,18 +36,18 @@ public record CotizacionResponse(
                 c.getId(),
                 c.getFolio(),
                 c.getEstado().name(),
-                c.getFechaCreacion(),
-                c.getFechaEnvio(),
+                c.getFechaHoraCreacion(),
+                c.getFechaHoraEnvio() == null ? null : c.getFechaHoraEnvio().toLocalDate(),
                 c.getFechaRespuesta(),
                 ClienteResponse.toClienteResponse(c.getCliente()),
                 RazonSocialResponse.toRazonSocialResponse(c.getRazonSocial()),
-                c.getFechaEntrega(),
-                c.getFechaRecoleccion(),
+                c.getFechaHoraEntrega(),
+                c.getFechaHoraRecoleccion(),
                 c.getDias(),
-                c.getDireccionObra(),
-                c.getContactoObra(),
-                c.getTelefonoContacto(),
-                c.getPartidas().stream().map(PartidaCotizacionResponse::toPartidaCotizacionResponse).toList(),
+                DatosDireccionResponse.toDatosDireccionResponse(c.getDireccionObra()),
+                c.getContactoObra().getNombre(),
+                c.getContactoObra().getTelefono(),
+                c.getEquipos().stream().map(PartidaCotizacionResponse::toPartidaCotizacionResponse).toList(),
                 c.getSubtotal(),
                 c.getIva(),
                 c.getTotal());

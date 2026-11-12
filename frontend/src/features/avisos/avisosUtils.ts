@@ -71,6 +71,9 @@ export function accionCarta(a: ApartadoProximo) {
   return { texto: "Ver carta", icono: "visibility" };
 }
 
+// Pantalla de la carta de la renta (OHU-04). Cuando exista el detalle de la renta (OHU-03), llevar ahí.
+export const rutaCarta = (a: ApartadoProximo) => `/rentas/${a.rentaId}/carta`;
+
 // Identifica un aviso para marcarlo como leído.
 // Incluye el estado de la carta: si la carta avanza (por ejemplo, ya se generó), se vuelve a avisar.
 export const claveAviso = (a: ApartadoProximo) => `${a.rentaId}-${a.estadoCarta}`;

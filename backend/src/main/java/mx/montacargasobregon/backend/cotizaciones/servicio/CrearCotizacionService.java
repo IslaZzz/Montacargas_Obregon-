@@ -13,10 +13,13 @@ import org.springframework.web.server.ResponseStatusException;
 import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 import mx.montacargasobregon.backend.clientes.modelo.RazonSocial;
 import mx.montacargasobregon.backend.clientes.servicio.ClienteService;
+import mx.montacargasobregon.backend.comun.DatosContactoSitio;
+import mx.montacargasobregon.backend.comun.DatosDireccion;
+import mx.montacargasobregon.backend.comun.dto.DatosDireccionRequest;
 import mx.montacargasobregon.backend.cotizaciones.dto.CrearCotizacionRequest;
 import mx.montacargasobregon.backend.cotizaciones.modelo.CalculoPrecio;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
-import mx.montacargasobregon.backend.cotizaciones.modelo.PartidaCotizacion;
+import mx.montacargasobregon.backend.cotizaciones.modelo.EquipoCotizacion;
 import mx.montacargasobregon.backend.cotizaciones.repositorio.CotizacionRepository;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 import mx.montacargasobregon.backend.equipos.modelo.EstadoEquipo;
@@ -43,20 +46,27 @@ public class CrearCotizacionService {
         int dias = diasDeRenta(datos.fechaEntrega(), datos.fechaRecoleccion());
         validarSinRepetidos(datos.equipoIds());
 
-        List<PartidaCotizacion> partidas = datos.equipoIds().stream()
+        List<EquipoCotizacion> equipos = datos.equipoIds().stream()
                 .map(this::equipoRentable)
-                .map(equipo -> partida(equipo, dias))
+                .map(equipo -> equipoCotizado(equipo, dias))
                 .toList();
-        BigDecimal subtotal = CalculoPrecio.calcularSubtotal(partidas.stream().map(PartidaCotizacion::getImporte).toList());
+        BigDecimal subtotal = CalculoPrecio.calcularSubtotal(equipos.stream().map(EquipoCotizacion::getImporte).toList());
         BigDecimal iva = CalculoPrecio.calcularIva(subtotal);
 
         Cotizacion cotizacion = new Cotizacion(
                 siguienteFolio(), cliente, razonSocial,
                 datos.fechaEntrega(), datos.fechaRecoleccion(),
-                datos.direccionObra().trim(), datos.contactoObra().trim(), datos.telefonoContacto(),
+                direccionObra(datos.direccionObra()),
+                new DatosContactoSitio(datos.contactoObra().trim(), datos.telefonoContacto()),
                 subtotal, iva, CalculoPrecio.calcularTotal(subtotal, iva));
-        partidas.forEach(cotizacion::agregarPartida);
+        equipos.forEach(cotizacion::agregarEquipo);
         return repositorio.save(cotizacion);
+    }
+
+    // Sin espacios de más
+    private static DatosDireccion direccionObra(DatosDireccionRequest d) {
+        return new DatosDireccion(d.calle().trim(), d.numero().trim(), d.colonia().trim(), d.ciudad().trim(),
+                d.estado().trim(), d.codigoPostal());
     }
 
     private static RazonSocial razonSocialDelCliente(Cliente cliente, Long razonSocialId) {
@@ -90,9 +100,9 @@ public class CrearCotizacionService {
         return equipo;
     }
 
-    private static PartidaCotizacion partida(Equipo equipo, int dias) {
+    private static EquipoCotizacion equipoCotizado(Equipo equipo, int dias) {
         BigDecimal tarifa = equipo.getModelo().getTarifaDia();
-        return new PartidaCotizacion(equipo, tarifa, CalculoPrecio.calcularImporte(dias, tarifa));
+        return new EquipoCotizacion(equipo, tarifa, CalculoPrecio.calcularImporte(dias, tarifa));
     }
 
     private String siguienteFolio() {

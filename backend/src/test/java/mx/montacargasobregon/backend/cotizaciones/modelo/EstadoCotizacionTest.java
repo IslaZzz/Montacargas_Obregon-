@@ -2,8 +2,11 @@ package mx.montacargasobregon.backend.cotizaciones.modelo;
 
 import static mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion.ACEPTADA;
 import static mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion.BORRADOR;
+import static mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion.EN_AUTORIZACION;
 import static mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion.ENVIADA;
 import static mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion.NO_ACEPTADA;
+import static mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion.RECHAZADA;
+import static mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion.VENCIDA;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
@@ -27,6 +30,14 @@ class EstadoCotizacionTest {
     void aceptadaYNoAceptadaSonFinales() {
         assertSoloPuedePasarA(ACEPTADA, Set.of());
         assertSoloPuedePasarA(NO_ACEPTADA, Set.of());
+    }
+
+    @Test
+    void enAutorizacionRechazadaYVencidaTodaviaNoCambian() {
+        // Sus cambios llegan con HU-16, HU-32 y HU-17
+        assertSoloPuedePasarA(EN_AUTORIZACION, Set.of());
+        assertSoloPuedePasarA(RECHAZADA, Set.of());
+        assertSoloPuedePasarA(VENCIDA, Set.of());
     }
 
     private void assertSoloPuedePasarA(EstadoCotizacion origen, Set<EstadoCotizacion> permitidos) {

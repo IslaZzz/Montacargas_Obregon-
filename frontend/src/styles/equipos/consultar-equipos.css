@@ -1,0 +1,107 @@
+/* Consulta de equipos por estado. Lo común con las otras consultas está en operacion.css */
+
+/* Lista a la izquierda y resumen a la derecha */
+.equipos-estados {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+}
+
+.equipos-encabezado {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+.equipos-encabezado .btn {
+  gap: 8px;
+}
+
+.equipos-estados .pagina .equipos-ayuda {
+  font-size: 14px;
+  color: var(--tertiary-mineral-blue);
+}
+
+/* Los botones deshabilitados no deben verse como si se pudieran usar */
+.equipos-estados .acciones .btn:disabled {
+  opacity: 0.45;
+}
+
+/* ===== Resumen ===== */
+.equipos-resumen {
+  position: sticky;
+  top: 130px; /* Debajo del encabezado */
+  align-self: start;
+  height: calc(100dvh / var(--zoom) - 130px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--off-white-background);
+  border-left: 1px solid var(--secondary-mint);
+  box-shadow: -4px 0 4px rgba(0, 0, 0, 0.25);
+}
+.equipos-resumen-encabezado {
+  display: flex;
+  align-items: center;
+  height: 72px;
+  padding: 0 28px;
+  background: var(--primary-teal);
+}
+.equipos-resumen-encabezado h2 {
+  margin: 0;
+  font:
+    600 22px/normal "Inter",
+    sans-serif;
+  color: var(--selection-gray);
+}
+.equipos-resumen-fechas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 28px;
+  font:
+    500 16px "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+  border-bottom: 1px solid var(--selection-gray);
+}
+.equipos-resumen-fechas .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.equipos-conteo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 24px 28px;
+}
+.equipos-conteo:nth-of-type(odd) {
+  background: var(--selection-gray);
+}
+.equipos-conteo-numero {
+  font:
+    800 64px/1 "Manrope",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.equipos-conteo-texto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font:
+    500 18px "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+
+/* Punto del color del estado, igual que en los filtros */
+.equipos-punto {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}

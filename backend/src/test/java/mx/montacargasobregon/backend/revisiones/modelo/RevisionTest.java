@@ -80,4 +80,25 @@ class RevisionTest {
         ReflectionTestUtils.setField(revision, "estado", EstadoRevision.CANCELADA);
         assertFalse(revision.puedeAsignarse());
     }
+
+
+    @Test
+    void registrarResultado_terminaLaRevisionConLoQueReportoElMecanico() {
+        revision.asignar(rafael);
+        assertTrue(revision.puedeRegistrarResultado());
+
+        revision.registrarResultado(ResultadoRevision.CON_OBSERVACIONES, "Rayón en la cabina");
+
+        assertEquals(EstadoRevision.COMPLETADA, revision.getEstado());
+        assertEquals(ResultadoRevision.CON_OBSERVACIONES, revision.getResultado());
+        assertEquals("Rayón en la cabina", revision.getNotas());
+        assertNotNull(revision.getFechaInicio());
+        assertNotNull(revision.getFechaFin());
+        assertFalse(revision.puedeRegistrarResultado());
+    }
+
+    @Test
+    void puedeRegistrarResultado_esFalso_cuandoNoTieneMecanico() {
+        assertFalse(revision.puedeRegistrarResultado());
+    }
 }

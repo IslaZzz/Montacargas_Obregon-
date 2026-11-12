@@ -1,6 +1,7 @@
+import type { DatosDireccion } from "../../types/comun";
 import type { Cliente, RazonSocial } from "../clientes/clientesTypes";
 
-// Equivale a EstadoCotizacion
+// Los estados de EstadoCotizacion que se usan en Delivery S1 (En autorización, Rechazada y Vencida llegan con HU-16, HU-32 y HU-17)
 export type EstadoCotizacion = "BORRADOR" | "ENVIADA" | "ACEPTADA" | "NO_ACEPTADA";
 
 // Equivale a CotizacionResumenResponse (una fila de la lista)
@@ -38,7 +39,7 @@ export interface Cotizacion {
   fechaEntrega: string;
   fechaRecoleccion: string;
   dias: number;
-  direccionObra: string;
+  direccionObra: DatosDireccion;
   contactoObra: string;
   telefonoContacto: string;
   partidas: PartidaCotizacion[];

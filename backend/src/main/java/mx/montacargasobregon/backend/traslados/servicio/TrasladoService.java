@@ -20,16 +20,21 @@ import mx.montacargasobregon.backend.traslados.modelo.EstadoTraslado;
 import mx.montacargasobregon.backend.traslados.modelo.TipoTraslado;
 import mx.montacargasobregon.backend.traslados.modelo.Traslado;
 import mx.montacargasobregon.backend.traslados.repositorio.TrasladoRepository;
+import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
+import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 
 @Service
 public class TrasladoService {
 
     private final TrasladoRepository repositorio;
     private final PersonalRepository personalRepositorio;
+    private final AvanceRentaService avanceRenta;
 
-    public TrasladoService(TrasladoRepository repositorio, PersonalRepository personalRepositorio) {
+    public TrasladoService(TrasladoRepository repositorio, PersonalRepository personalRepositorio,
+                           AvanceRentaService avanceRenta) {
         this.repositorio = repositorio;
         this.personalRepositorio = personalRepositorio;
+        this.avanceRenta = avanceRenta;
     }
 
     /**
@@ -240,6 +245,34 @@ public class TrasladoService {
         traslado.asignarResponsable(operador);
         Traslado guardado = repositorio.save(traslado);
         return TrasladoResponse.from(guardado);
+    }
+
+    /**
+     * Marca el traslado como realizado, cuando el operador avisa que ya entregó o recogió.
+     * Entrega: la renta pasa a EN_CURSO. Recolección: nacen las revisiones de entrada.
+     */
+    @Transactional
+    public TrasladoResponse completar(Long trasladoId) {
+        Traslado traslado = repositorio.findById(trasladoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Traslado no encontrado"));
+
+        if (traslado.getResponsable() == null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Primero asigna un operador al traslado " + traslado.getFolio());
+        }
+        if (traslado.getEstado() != EstadoTraslado.PROGRAMADO && traslado.getEstado() != EstadoTraslado.EN_CURSO) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "El traslado " + traslado.getFolio() + " ya está realizado o cancelado");
+        }
+        if (traslado.getTipo() == TipoTraslado.RECOLECCION
+                && traslado.getRenta().getEstado() != EstadoRenta.EN_CURSO) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Primero marca como realizada la entrega de la renta " + traslado.getRenta().getFolio());
+        }
+
+        traslado.completar();
+        avanceRenta.trasladoRealizado(traslado);
+        return TrasladoResponse.from(traslado);
     }
 
     private String obtenerIniciales(String nombreCompleto) {

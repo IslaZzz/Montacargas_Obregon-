@@ -1,3 +1,4 @@
+import type { DatosDireccionRequest } from "../../../types/comun";
 import type { Cliente } from "../../clientes/clientesTypes";
 
 export interface EquipoCatalogo {
@@ -24,7 +25,13 @@ export interface BorradorCotizacion {
   horaEntrega: string;
   fechaRecoleccion: string;
   horaRecoleccion: string;
-  direccionObra: string;
+  // Dirección de la obra, campo por campo
+  calleObra: string;
+  numeroObra: string;
+  coloniaObra: string;
+  ciudadObra: string;
+  estadoObra: string;
+  codigoPostalObra: string;
   contactoObra: string;
   telefonoContacto: string;
   equipos: EquipoCatalogo[];
@@ -43,7 +50,12 @@ export const borradorVacio: BorradorCotizacion = {
   horaEntrega: "09:00",
   fechaRecoleccion: "",
   horaRecoleccion: "17:00",
-  direccionObra: "",
+  calleObra: "",
+  numeroObra: "",
+  coloniaObra: "",
+  ciudadObra: "",
+  estadoObra: "",
+  codigoPostalObra: "",
   contactoObra: "",
   telefonoContacto: "",
   equipos: [],
@@ -54,8 +66,18 @@ export interface CrearCotizacionRequest {
   razonSocialId: number;
   fechaEntrega: string;
   fechaRecoleccion: string;
-  direccionObra: string;
+  direccionObra: DatosDireccionRequest;
   contactoObra: string;
   telefonoContacto: string;
   equipoIds: number[];
 }
+
+// La dirección de la obra como la recibe el backend, sin espacios de más
+export const direccionObra = (b: BorradorCotizacion): DatosDireccionRequest => ({
+  calle: b.calleObra.trim(),
+  numero: b.numeroObra.trim(),
+  colonia: b.coloniaObra.trim(),
+  ciudad: b.ciudadObra.trim(),
+  estado: b.estadoObra.trim(),
+  codigoPostal: b.codigoPostalObra,
+});

@@ -1,4 +1,5 @@
 import type { FiltroTraslados, Traslado } from "./trasladosTypes";
+import { claseDeChip } from "../../components/chips";
 
 const DIAS_CORTOS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 const DIAS_LARGOS = [
@@ -103,19 +104,19 @@ export function formatoDisponibilidadSubtitulo(inicioIso: string, finIso: string
 }
 
 /**
- * Configuración de los 4 chips de filtro superior
+ * Chips de filtro superior (el de "Todos" lo pone FilterRow).
+ * El punto usa los mismos colores que el chip de estado que representa
  */
 export interface OpcionFiltroChip {
   id: FiltroTraslados;
   label: string;
-  dotColor?: string;
+  dotClassName: string;
 }
 
 export const CHIPS_FILTRO: OpcionFiltroChip[] = [
-  { id: "TODOS", label: "Todos" },
-  { id: "SIN_ASIGNAR", label: "Sin asignar", dotColor: "#BA3636" },
-  { id: "ENTREGAS", label: "Entregas", dotColor: "#209568" },
-  { id: "RECOLECCIONES", label: "Recolecciones", dotColor: "#D58A11" },
+  { id: "SIN_ASIGNAR", label: "Sin asignar", dotClassName: claseDeChip("traslado", "sin-asignar") },
+  { id: "ENTREGAS", label: "Entregas", dotClassName: claseDeChip("traslado", "entrega") },
+  { id: "RECOLECCIONES", label: "Recolecciones", dotClassName: claseDeChip("traslado", "recoleccion") },
 ];
 
 /**

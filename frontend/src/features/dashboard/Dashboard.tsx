@@ -1,41 +1,54 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import FilterRow from "../../components/filters/filterRow";
+import { Button } from "../../components/buttons";
 import { useTitulo } from "../../hooks/useTitulo";
 import { aFecha, formatoDia } from "../../utils/formato";
 import CalendarioOperaciones from "./CalendarioOperaciones";
-import { contarPreparacionesDeHoy, listarOperaciones } from "./dashboardApi";
-import type { Operacion } from "./dashboardTypes";
-import { claveDia, diasEntre, etiquetaDia, formatoHora, mismoDia } from "./dashboardUtils";
+import { obtenerInicio } from "./dashboardApi";
+import type { Aviso, Inicio, Operacion, TipoAviso, TipoOperacion } from "./dashboardTypes";
+import { claveDia, etiquetaDia, formatoHora } from "./dashboardUtils";
 import "../../styles/dashboard/dashboard.css";
 
-// Cuántas operaciones caben en el panel antes del calendario
-const PROXIMAS_VISIBLES = 4;
+// Cuántas operaciones se muestran en el panel antes del calendario
+const PROXIMAS_VISIBLES = 3;
 
-const NOMBRE_TIPO = { ENTREGA: "Entrega", RECOLECCION: "Recolección" } as const;
+// Cada operación pertenece a uno de los filtros
+const GRUPO: Record<TipoOperacion, string> = {
+  ENTREGA: "TRASLADOS",
+  RECOLECCION: "TRASLADOS",
+  REVISION: "REVISIONES",
+  MANTENIMIENTO: "MANTENIMIENTOS",
+};
 
-// Opciones de "Filtrar"; "all" muestra las dos
+// Opciones de "Filtrar"; "all" muestra todas
 const FILTROS = [
-  { label: "Entregas", value: "ENTREGA" },
-  { label: "Recolecciones", value: "RECOLECCION" },
+  { label: "Traslados", value: "TRASLADOS" },
+  { label: "Revisiones", value: "REVISIONES" },
+  { label: "Mantenimientos", value: "MANTENIMIENTOS" },
 ];
 
 const SIN_PROXIMAS: Record<string, string> = {
   all: "No hay operaciones próximas.",
-  ENTREGA: "No hay entregas próximas.",
-  RECOLECCION: "No hay recolecciones próximas.",
+  TRASLADOS: "No hay traslados próximos.",
+  REVISIONES: "No hay revisiones próximas.",
+  MANTENIMIENTOS: "No hay mantenimientos con fecha próxima.",
 };
 
-// Botón chico "Ver renta" (sin acción hasta que exista la pantalla de la renta)
-function BotonVerRenta({ folio }: { folio: string }) {
+// Texto del botón de los avisos que no llevan a una renta
+const ACCION_AVISO: Record<TipoAviso, string> = {
+  TRASLADO_ATRASADO: "Ir a traslados",
+  TRASLADO_SIN_OPERADOR: "Asignar",
+  ENTREGA_EN_RIESGO: "Ver renta",
+  MANTENIMIENTO_VENCIDO: "Ir a mantenimientos",
+  FALTA_RECOLECCION: "Ver renta",
+};
+
+// Botón chico con flecha
+function BotonVer({ texto, onClick }: { texto: string; onClick: () => void }) {
   return (
-    // TODO: abrir el detalle de la renta cuando exista su pantalla
-    <button
-      type="button"
-      className="inicio-btn-ver"
-      aria-disabled="true"
-      aria-label={`Ver renta ${folio}`}
-    >
-      Ver renta
+    <button type="button" className="inicio-btn-ver" onClick={onClick}>
+      {texto}
       <span className="material-symbols-rounded" aria-hidden="true">
         arrow_forward
       </span>
@@ -43,24 +56,16 @@ function BotonVerRenta({ folio }: { folio: string }) {
   );
 }
 
-// Entrega de hoy a la que todavía le faltan equipos por preparar
-function TarjetaAtencion({ operacion }: { operacion: Operacion }) {
-  const faltan = operacion.equiposPorPreparar;
+// Algo que el auxiliar tiene que resolver
+function TarjetaAviso({ aviso, onIr }: { aviso: Aviso; onIr: (ruta: string) => void }) {
+  const destino = aviso.rentaId !== null ? `/rentas/${aviso.rentaId}` : aviso.ruta ?? "/";
   return (
     <div className="inicio-alerta">
-      <h3>
-        {NOMBRE_TIPO[operacion.tipo]} hoy - Renta {operacion.folioRenta}
-      </h3>
-      <ul>
-        <li>
-          {operacion.equipos} {operacion.equipos === 1 ? "equipo" : "equipos"}{" "}
-          {formatoHora(operacion.desde)}–{formatoHora(operacion.hasta)}
-        </li>
-        <li className="inicio-alerta-faltan">
-          {faltan === 1 ? "Falta 1 equipo" : `Faltan ${faltan} equipos`} por preparar
-        </li>
-      </ul>
-      <BotonVerRenta folio={operacion.folioRenta} />
+      <div className="inicio-alerta-texto">
+        <h3>{aviso.titulo}</h3>
+        <p>{aviso.detalle}</p>
+      </div>
+      <BotonVer texto={ACCION_AVISO[aviso.tipo]} onClick={() => onIr(destino)} />
     </div>
   );
 }
@@ -70,10 +75,12 @@ function TarjetaPendiente({
   numero,
   texto,
   accion,
+  onClick,
 }: {
   numero: number | null;
   texto: string;
   accion: string;
+  onClick: () => void;
 }) {
   return (
     <div className="inicio-pendiente">
@@ -81,8 +88,7 @@ function TarjetaPendiente({
         <span className="inicio-pendiente-numero">{numero ?? "–"}</span>
         <span className="inicio-pendiente-texto">{texto}</span>
       </div>
-      {/* TODO: llevar a su pantalla cuando exista */}
-      <button type="button" className="inicio-pendiente-ver" aria-disabled="true">
+      <button type="button" className="inicio-pendiente-ver" onClick={onClick}>
         {accion}
         <span className="material-symbols-rounded" aria-hidden="true">
           arrow_forward
@@ -92,13 +98,18 @@ function TarjetaPendiente({
   );
 }
 
-// Inicio: lo que hay que atender hoy y las próximas entregas y recolecciones
+// "10:00-12:00" para traslados; "09:00" para revisiones y mantenimientos
+const horario = (o: Operacion) =>
+  o.hasta ? `${formatoHora(o.desde)}-${formatoHora(o.hasta)}` : formatoHora(o.desde);
+
+// Inicio: lo que hay que atender hoy y las próximas operaciones
 export default function Dashboard() {
   useTitulo("Inicio");
+  const navigate = useNavigate();
   // La fecha se toma una sola vez, al abrir la pantalla
   const [hoy] = useState(() => new Date());
-  const [operaciones, setOperaciones] = useState<Operacion[]>([]);
-  const [preparaciones, setPreparaciones] = useState<number | null>(null);
+  const [inicio, setInicio] = useState<Inicio | null>(null);
+  const [error, setError] = useState(false);
   const [filtroAbierto, setFiltroAbierto] = useState(false);
   const [filtro, setFiltro] = useState("all");
 
@@ -109,23 +120,21 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    listarOperaciones(hoy).then(setOperaciones);
-    // Si falla, la tarjeta muestra "–"
-    contarPreparacionesDeHoy(hoy)
-      .then(setPreparaciones)
-      .catch(() => setPreparaciones(null));
-  }, [hoy]);
+    let activo = true;
+    obtenerInicio()
+      .then((datos) => activo && setInicio(datos))
+      .catch(() => activo && setError(true));
+    return () => {
+      activo = false;
+    };
+  }, []);
 
-  const deHoy = operaciones.filter((o) => mismoDia(aFecha(o.desde), hoy));
-  const entregasHoy = deHoy.filter((o) => o.tipo === "ENTREGA");
-  const recoleccionesHoy = deHoy.filter((o) => o.tipo === "RECOLECCION");
-  // Operaciones de hoy con problemas: por ahora, equipos que faltan por preparar
-  const requierenAtencion = deHoy.filter((o) => o.equiposPorPreparar > 0);
+  const pendientes = inicio?.pendientes ?? null;
+  const avisos = inicio?.avisos ?? [];
+  const operaciones = inicio?.operaciones ?? [];
 
   const proximas = operaciones
-    .filter((o) => diasEntre(hoy, aFecha(o.desde)) > 0)
-    .filter((o) => filtro === "all" || o.tipo === filtro)
-    .sort((a, b) => a.desde.localeCompare(b.desde))
+    .filter((o) => filtro === "all" || GRUPO[o.tipo] === filtro)
     .slice(0, PROXIMAS_VISIBLES);
 
   const diasConOperacion = new Set(operaciones.map((o) => claveDia(aFecha(o.desde))));
@@ -133,9 +142,20 @@ export default function Dashboard() {
   return (
     <div className="inicio">
       <div className="inicio-principal">
-        <h1 className="inicio-fecha">{formatoDia(hoy)}.</h1>
+      <div className="inicio-encabezado">
+                <h1 className="inicio-fecha">{formatoDia(hoy)}.</h1>
+                <Button type="button" variant="primary" onClick={() => navigate("/rentas/nueva")}>
+                  <span className="material-symbols-rounded" aria-hidden="true">add</span>
+                  Registrar renta
+                </Button>
+              </div>
+        {error && (
+          <p className="inicio-error" role="alert">
+            No se pudo cargar la información de hoy. Revisa que el servidor esté encendido.
+          </p>
+        )}
 
-        {requierenAtencion.length > 0 && (
+        {avisos.length > 0 && (
           <section className="inicio-seccion" aria-labelledby="titulo-atencion">
             <h2 id="titulo-atencion" className="inicio-titulo inicio-titulo-alerta">
               <span className="material-symbols-rounded" aria-hidden="true">
@@ -143,9 +163,11 @@ export default function Dashboard() {
               </span>
               Requiere atención
             </h2>
-            {requierenAtencion.map((o) => (
-              <TarjetaAtencion key={`${o.rentaId}-${o.tipo}`} operacion={o} />
-            ))}
+            <div className="inicio-alertas">
+              {avisos.map((a, i) => (
+                <TarjetaAviso key={`${a.tipo}-${i}`} aviso={a} onIr={navigate} />
+              ))}
+            </div>
           </section>
         )}
 
@@ -155,19 +177,28 @@ export default function Dashboard() {
           </h2>
           <div className="inicio-pendientes">
             <TarjetaPendiente
-              numero={entregasHoy.length}
+              numero={pendientes?.entregas ?? null}
               texto="Entregas"
               accion="Ver entregas"
+              onClick={() => navigate("/traslados")}
             />
             <TarjetaPendiente
-              numero={recoleccionesHoy.length}
+              numero={pendientes?.recolecciones ?? null}
               texto="Recolecciones"
               accion="Ver recolecciones"
+              onClick={() => navigate("/traslados")}
             />
             <TarjetaPendiente
-              numero={preparaciones}
-              texto="Preparaciones"
-              accion="Ver preparaciones"
+              numero={pendientes?.revisiones ?? null}
+              texto="Revisiones"
+              accion="Ver revisiones"
+              onClick={() => navigate("/revisiones")}
+            />
+            <TarjetaPendiente
+              numero={pendientes?.mantenimientos ?? null}
+              texto="Mantenimientos"
+              accion="Ver mantenimientos"
+              onClick={() => navigate("/mantenimientos")}
             />
           </div>
         </section>
@@ -192,38 +223,27 @@ export default function Dashboard() {
 
         {filtroAbierto && (
           <div id="filtro-operaciones" className="inicio-filtro">
-            <FilterRow
-              options={FILTROS}
-              selectedValue={filtro}
-              allLabel="Todas"
-              onChange={setFiltro}
-            />
+            <FilterRow options={FILTROS} selectedValue={filtro} allLabel="Todas" onChange={setFiltro} />
           </div>
         )}
 
-        {proximas.length === 0 && (
-          <p className="inicio-sin-operaciones">{SIN_PROXIMAS[filtro]}</p>
-        )}
+        {inicio && proximas.length === 0 && <p className="inicio-sin-operaciones">{SIN_PROXIMAS[filtro]}</p>}
         <ul className="inicio-operaciones">
-          {proximas.map((o) => (
-            <li key={`${o.rentaId}-${o.tipo}`}>
-              <span
-                className={`inicio-punto inicio-punto-${o.tipo.toLowerCase()}`}
-                aria-hidden="true"
-              />
+          {proximas.map((o, i) => (
+            <li key={`${o.tipo}-${o.desde}-${i}`}>
+              <span className={`inicio-punto inicio-punto-${o.tipo.toLowerCase()}`} aria-hidden="true" />
               <div className="inicio-operacion-texto">
                 <strong>
-                  {NOMBRE_TIPO[o.tipo]}{" "}
-                  <span>{etiquetaDia(aFecha(o.desde), hoy)}</span>
+                  {o.titulo} <span>{etiquetaDia(aFecha(o.desde), hoy)}</span>
                 </strong>
                 <span>
-                  Folio {o.folioRenta} -{" "}
-                  <span className="inicio-horario">
-                    {formatoHora(o.desde)}-{formatoHora(o.hasta)}
-                  </span>
+                  {o.detalle} · <span className="inicio-horario">{horario(o)}</span>
                 </span>
               </div>
-              <BotonVerRenta folio={o.folioRenta} />
+              <BotonVer
+                texto={o.rentaId !== null ? "Ver renta" : "Ver"}
+                onClick={() => navigate(o.rentaId !== null ? `/rentas/${o.rentaId}` : o.ruta)}
+              />
             </li>
           ))}
         </ul>

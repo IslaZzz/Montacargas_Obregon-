@@ -34,7 +34,9 @@ export type ChipStatus =
   | 'regreso'
   | 'sin-novedad'
   | 'con-observaciones'
-  | 'requiere-mantenimiento';
+  | 'requiere-mantenimiento'
+  | 'entrega'
+  | 'recoleccion';
 
 interface ChipProps {
   category: ChipCategory;
@@ -62,10 +64,14 @@ const chipClasses: Record<ChipCategory, Partial<Record<ChipStatus, string>>> = {
     borrador: 'chip-borrador',
   },
 
+  // Entrega y recolección usan los mismos colores que salida y regreso en revisiones
   traslado: {
     pendiente: 'chip-pendiente',
     translado: 'chip-translado',
     ok: 'chip-ok',
+    'sin-asignar': 'chip-mantenimiento-sin-asignar',
+    entrega: 'chip-equipo-disponible',
+    recoleccion: 'chip-carta-generada',
   },
 
   mantenimiento: {
@@ -123,7 +129,13 @@ const defaultLabels: Record<ChipStatus, string> = {
   'sin-novedad': 'Sin novedad',
   'con-observaciones': 'Con observaciones',
   'requiere-mantenimiento': 'Requiere mantenimiento',
+  entrega: 'Entrega',
+  recoleccion: 'Recolección',
 };
+
+// La clase de colores de un chip, para reutilizarla fuera de él (por ejemplo, el punto de un filtro)
+export const claseDeChip = (category: ChipCategory, status: ChipStatus) =>
+  chipClasses[category][status] ?? '';
 
 export default function Chip({
   category,

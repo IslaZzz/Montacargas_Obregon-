@@ -1,43 +1,52 @@
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
+import Aviso from "../../components/Aviso";
 import Avatar from "../../components/Avatar";
+import { Button } from "../../components/buttons";
+import Chip from "../../components/chips";
 import DateRangePicker from "../../components/filters/dateRangePicker";
+import FilterRow from "../../components/filters/filterRow";
 import type { DateRangeValue } from "../../components/filters/filterTypes";
+import Modal from "../../components/Modal";
 import DataTable from "../../components/table";
 import type { TableColumn } from "../../components/table";
 import { useTitulo } from "../../hooks/useTitulo";
+import { ErrorApi } from "../../services/apiClient";
+import { formatoDiaCorto, formatoHora } from "../../utils/fechas";
 import PanelAsignacion from "./PanelAsignacion";
-import { listarTraslados } from "./trasladosApi";
+import { listarTraslados, marcarRealizado } from "./trasladosApi";
 import type { FiltroTraslados, Traslado } from "./trasladosTypes";
-import {
-  CHIPS_FILTRO,
-  contarPorFiltro,
-  formatoDiaSemanaFecha,
-  formatoRangoHorario,
-  parsearFechaLocal,
-} from "./trasladosUtils";
+import { CHIPS_FILTRO, contarPorFiltro } from "./trasladosUtils";
+import "../../styles/operacion.css";
 import "../../styles/traslados/traslados.css";
 
 export default function DashboardTraslados() {
-  useTitulo("Asignar Traslados");
+  useTitulo("Traslados");
 
   const [traslados, setTraslados] = useState<Traslado[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
-  // Filtro activo de la botonera de chips
+  // Filtro de la fila de chips; "TODOS" es el chip de todos
   const [filtroTipo, setFiltroTipo] = useState<FiltroTraslados>("TODOS");
 
-  // Rango de fechas seleccionado (inicializado con 2026-10-07 a 2026-10-19 según diseño o configurable)
-  const [rangoFechas, setRangoFechas] = useState<DateRangeValue>({
-    from: "",
-    to: "",
-  });
-  const [mostrarPopoverFecha, setMostrarPopoverFecha] = useState(false);
+  // Rango de fechas; vacío muestra todos
+  const [rangoFechas, setRangoFechas] = useState<DateRangeValue>({ from: "", to: "" });
 
-  // Traslado seleccionado para el panel lateral
+  // Traslado que se está asignando en el panel; null = cerrado
   const [trasladoEnPanel, setTrasladoEnPanel] = useState<Traslado | null>(null);
 
-  // Carga inicial y recarga al cambiar filtros de fecha
+  // Traslado que se está marcando como realizado; null = cerrado
+  const [enRealizar, setEnRealizar] = useState<Traslado | null>(null);
+  const [realizando, setRealizando] = useState(false);
+  const [errorRealizar, setErrorRealizar] = useState("");
+
+  // Confirmación después de asignar o marcar realizado, y fila que se resalta
+  const [exito, setExito] = useState<{ titulo: string; detalle: ReactNode } | null>(null);
+  const [resaltados, setResaltados] = useState<Set<number>>(new Set());
+
+  // Carga inicial y recarga al cambiar el rango de fechas
   useEffect(() => {
     const controller = new AbortController();
 
@@ -48,11 +57,9 @@ export default function DashboardTraslados() {
           setCargando(false);
         }
       })
-      .catch((err) => {
+      .catch(() => {
         if (!controller.signal.aborted) {
-          setError(
-            err instanceof Error ? err.message : "No fue posible cargar los traslados."
-          );
+          setError("No fue posible cargar los traslados.");
           setCargando(false);
         }
       });
@@ -70,262 +77,253 @@ export default function DashboardTraslados() {
     return true;
   });
 
+  // Un chip por filtro, con cuántos traslados tiene y el color que lo representa
+  const filtros = CHIPS_FILTRO.map((chip) => ({
+    label: chip.label,
+    value: chip.id,
+    count: contarPorFiltro(traslados, chip.id),
+    dotClassName: chip.dotClassName,
+  }));
+
+  function abrirPanel(t: Traslado) {
+    setExito(null);
+    setTrasladoEnPanel(t);
+  }
+
+  // Reemplaza el traslado en la lista y lo resalta
+  function actualizar(actualizado: Traslado, titulo: string, detalle: ReactNode) {
+    setTraslados((prev) => prev.map((t) => (t.id === actualizado.id ? actualizado : t)));
+    setExito({ titulo, detalle });
+    setResaltados(new Set([actualizado.id]));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function handleAsignacionExitosa(actualizado: Traslado) {
-    setTraslados((prev) =>
-      prev.map((t) => (t.id === actualizado.id ? actualizado : t))
+    actualizar(
+      actualizado,
+      `${actualizado.folio} quedó asignado a ${actualizado.responsableNombre}`,
+      "Te lo marcamos en la tabla.",
     );
   }
 
-  // Texto amigable para el botón de fecha en el encabezado
-  function textoBotonFecha(): string {
-    if (!rangoFechas.from && !rangoFechas.to) {
-      return "Filtrar por fecha";
-    }
-    if (rangoFechas.from && rangoFechas.to) {
-      const d1 = parsearFechaLocal(rangoFechas.from);
-      const d2 = parsearFechaLocal(rangoFechas.to);
-      const pad = (n: number) => String(n).padStart(2, "0");
-      const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-      if (d1.getMonth() === d2.getMonth()) {
-        return `Fecha: ${pad(d1.getDate())} - ${pad(d2.getDate())} ${meses[d1.getMonth()]}`;
-      }
-      return `Fecha: ${pad(d1.getDate())} ${meses[d1.getMonth()]} - ${pad(d2.getDate())} ${meses[d2.getMonth()]}`;
-    }
-    if (rangoFechas.from) {
-      return `Desde: ${rangoFechas.from}`;
-    }
-    return `Hasta: ${rangoFechas.to}`;
+  function abrirRealizar(t: Traslado) {
+    setExito(null);
+    setErrorRealizar("");
+    setEnRealizar(t);
   }
 
-  // Definición de columnas para DataTable
+  function cerrarRealizar() {
+    if (!realizando) setEnRealizar(null);
+  }
+
+  async function confirmarRealizado() {
+    if (!enRealizar) return;
+    setRealizando(true);
+    setErrorRealizar("");
+    try {
+      const actualizado = await marcarRealizado(enRealizar.id);
+      actualizar(
+        actualizado,
+        `${actualizado.folio} quedó realizado`,
+        actualizado.tipo === "ENTREGA" ? (
+          `Los equipos de la renta ${actualizado.rentaFolio} ya están con el cliente.`
+        ) : (
+          <>
+            Ya puedes asignar las <Link to="/revisiones">revisiones de entrada</Link> de la renta{" "}
+            {actualizado.rentaFolio}.
+          </>
+        ),
+      );
+      setEnRealizar(null);
+    } catch (err) {
+      setErrorRealizar(err instanceof ErrorApi ? err.message : "No fue posible guardar. Revisa tu conexión.");
+    } finally {
+      setRealizando(false);
+    }
+  }
+
+  function accion(row: Traslado) {
+    if (row.estado === "COMPLETADO") {
+      return <Chip category="traslado" status="ok" />;
+    }
+    if (row.responsableId === null) {
+      return (
+        <span className="acciones">
+          <Button type="button" variant="primary" className="btn-chico" onClick={() => abrirPanel(row)}>
+            <span className="material-symbols-rounded" aria-hidden="true">person_add</span>
+            Asignar
+          </Button>
+        </span>
+      );
+    }
+    return (
+      <span className="acciones">
+        <Button type="button" variant="primary" className="btn-chico" onClick={() => abrirRealizar(row)}>
+          <span className="material-symbols-rounded" aria-hidden="true">task_alt</span>
+          Marcar realizado
+        </Button>
+        {/* Si el operador ya salió, ya no se puede cambiar */}
+        {!row.yaInicio && (
+          <Button type="button" variant="tertiary" className="btn-chico" onClick={() => abrirPanel(row)}>
+            <span className="material-symbols-rounded" aria-hidden="true">swap_horiz</span>
+            Cambiar
+          </Button>
+        )}
+      </span>
+    );
+  }
+
   const columnas: TableColumn<Traslado>[] = [
     {
       header: "Traslado",
       accessor: (row) => (
-        <div className="col-traslado-info">
-          <span className="col-traslado-folio">{row.folio}</span>
-          <span className="col-traslado-renta">Renta {row.rentaFolio}</span>
-        </div>
+        <>
+          <span className="celda-principal">{row.folio}</span>
+          <span className="celda-secundaria">Renta {row.rentaFolio}</span>
+        </>
       ),
     },
     {
       header: "Tipo",
       accessor: (row) => (
-        <span
-          className={`badge-tipo ${
-            row.tipo === "ENTREGA" ? "badge-tipo-entrega" : "badge-tipo-recoleccion"
-          }`}
-        >
-          <span className="material-symbols-rounded">
-            {row.tipo === "ENTREGA" ? "local_shipping" : "swap_horiz"}
-          </span>
-          {row.tipo === "ENTREGA" ? "Entrega" : "Recolección"}
-        </span>
+        <Chip category="traslado" status={row.tipo === "ENTREGA" ? "entrega" : "recoleccion"} />
       ),
     },
     {
       header: "Fecha y horario",
       accessor: (row) => (
-        <div className="col-fecha-bloque">
-          <span className="col-fecha-dia">
-            {formatoDiaSemanaFecha(row.fechaHoraInicio)}
+        <>
+          <span className="celda-principal">{formatoDiaCorto(row.fechaHoraInicio)}</span>
+          <span className="celda-secundaria">
+            {formatoHora(row.fechaHoraInicio)} – {formatoHora(row.fechaHoraFin)}
           </span>
-          <span className="col-fecha-horas">
-            {formatoRangoHorario(row.fechaHoraInicio, row.fechaHoraFin)}
-          </span>
-        </div>
+        </>
       ),
     },
     {
       header: "Cliente y domicilio",
       accessor: (row) => (
-        <div className="col-cliente-bloque">
-          <span className="col-cliente-nombre">{row.clienteNombre}</span>
-          <span className="col-cliente-domicilio">{row.direccion}</span>
-        </div>
+        <>
+          <span className="celda-principal">{row.clienteNombre}</span>
+          <span className="celda-secundaria traslados-domicilio">{row.direccion}</span>
+        </>
       ),
     },
     {
       header: "Responsable",
-      accessor: (row) => {
-        if (row.responsableId && row.responsableNombre) {
-          return (
-            <div className="col-responsable-bloque">
-              <Avatar nombre={row.responsableNombre} />
-              <span className="responsable-nombre-txt">{row.responsableNombre}</span>
-            </div>
-          );
-        }
-        return (
-          <span className="badge-sin-asignar">
-            <span className="material-symbols-rounded">person_cancel</span>
-            Sin asignar
-          </span>
-        );
-      },
+      accessor: (row) =>
+        row.responsableNombre ? (
+          <div className="celda-persona">
+            <Avatar nombre={row.responsableNombre} />
+            <span className="celda-persona-nombre">{row.responsableNombre}</span>
+          </div>
+        ) : (
+          <Chip category="traslado" status="sin-asignar" />
+        ),
     },
-    {
-      header: "",
-      className: "col-acciones-celda",
-      accessor: (row) => {
-        // Reglas de interfaz para los botones de acción:
-        // 1. Si ya inició en campo -> Botón "Ya inició" (Deshabilitado con candado)
-        if (row.yaInicio) {
-          return (
-            <button
-              type="button"
-              className="btn-accion-traslado btn-accion-ya-inicio"
-              disabled
-              title="El operador ya inició este traslado en campo y no se puede modificar"
-            >
-              <span className="material-symbols-rounded">lock</span>
-              Ya inició
-            </button>
-          );
-        }
-
-        // 2. Si ya tiene responsable -> Botón "Cambiar" (Abre panel para editar)
-        if (row.responsableId) {
-          return (
-            <button
-              type="button"
-              className="btn-accion-traslado btn-accion-cambiar"
-              onClick={() => setTrasladoEnPanel(row)}
-            >
-              <span className="material-symbols-rounded">swap_horiz</span>
-              Cambiar
-            </button>
-          );
-        }
-
-        // 3. Si no tiene responsable -> Botón "Asignar" (Abre panel para asignar)
-        return (
-          <button
-            type="button"
-            className="btn-accion-traslado btn-accion-asignar"
-            onClick={() => setTrasladoEnPanel(row)}
-          >
-            <span className="material-symbols-rounded">person_add</span>
-            Asignar
-          </button>
-        );
-      },
-    },
+    { header: "Acción", accessor: accion, className: "celda-accion" },
   ];
 
   return (
-    <div className="pagina traslados">
-      {/* Encabezado con Título y Filtro de Fechas */}
-      <header className="traslados-header">
-        <div className="traslados-titulo-bloque">
-          <h1>Asignar traslados</h1>
-          <p>Elige quién lleva cada entrega y recolección programada.</p>
-        </div>
-
-        {/* Botón y Popover del Rango de Fechas */}
-        <div className="traslados-fecha-picker-rel">
-          <button
-            type="button"
-            className="btn-filtro-fecha"
-            onClick={() => setMostrarPopoverFecha((prev) => !prev)}
-            aria-expanded={mostrarPopoverFecha}
-          >
-            <span className="material-symbols-rounded">calendar_month</span>
-            <span>{textoBotonFecha()}</span>
-            <span className="material-symbols-rounded">
-              {mostrarPopoverFecha ? "expand_less" : "expand_more"}
-            </span>
-          </button>
-
-          {mostrarPopoverFecha && (
-            <div className="popover-filtro-fecha">
-              <DateRangePicker
-                value={rangoFechas}
-                onChange={(campo, valor) =>
-                  setRangoFechas((prev) => ({ ...prev, [campo]: valor }))
-                }
-              />
-              <div className="popover-fecha-acciones">
-                <button
-                  type="button"
-                  className="btn btn-tertiary"
-                  style={{ padding: "6px 12px", fontSize: "12px" }}
-                  onClick={() => {
-                    setRangoFechas({ from: "", to: "" });
-                    setMostrarPopoverFecha(false);
-                  }}
-                >
-                  Limpiar
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  style={{ padding: "6px 14px", fontSize: "12px" }}
-                  onClick={() => setMostrarPopoverFecha(false)}
-                >
-                  Listo
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* Fila de Filtros en Chips */}
-      <div className="traslados-filtros-row">
-        <span className="traslados-filtros-label">Mostrar:</span>
-        {CHIPS_FILTRO.map((chip) => {
-          const count = contarPorFiltro(traslados, chip.id);
-          const activo = filtroTipo === chip.id;
-
-          return (
-            <button
-              key={chip.id}
-              type="button"
-              className={`chip-filtro-btn ${activo ? "activo" : ""}`}
-              onClick={() => setFiltroTipo(chip.id)}
-            >
-              {chip.dotColor && (
-                <span
-                  className="chip-filtro-dot"
-                  style={{ backgroundColor: chip.dotColor }}
-                />
-              )}
-              <span>
-                {chip.label} ({count})
-              </span>
-            </button>
-          );
-        })}
+    <div className="pagina operacion traslados">
+      {/* Título */}
+      <div className="operacion-titulo">
+        <h1>Traslados</h1>
+        <p>Elige quién lleva cada entrega y recolección, y márcala cuando el operador confirme que la hizo.</p>
       </div>
 
-      {/* Estado de Error o Contenido */}
+      {/* Avisos */}
+      {exito && (
+        <Aviso tipo="exito" titulo={exito.titulo} onCerrar={() => setExito(null)}>
+          {exito.detalle}
+        </Aviso>
+      )}
       {error && (
-        <div className="panel-error-contextual" style={{ marginBottom: "12px" }}>
-          <span className="material-symbols-rounded">error</span>
-          <span>{error}</span>
+        <Aviso tipo="error" titulo={error}>
+          Revisa tu conexión y vuelve a abrir la pantalla.
+        </Aviso>
+      )}
+
+      {/* Filtros: tipo a la izquierda, fechas a la derecha */}
+      <div className="operacion-filtros">
+        <div className="operacion-filtro">
+          <span className="operacion-filtro-etiqueta">Mostrar:</span>
+          <FilterRow
+            options={filtros}
+            selectedValue={filtroTipo === "TODOS" ? "all" : filtroTipo}
+            allLabel="Todos"
+            allCount={traslados.length}
+            onChange={(valor) => setFiltroTipo(valor === "all" ? "TODOS" : (valor as FiltroTraslados))}
+          />
         </div>
-      )}
+        <div className="operacion-filtro">
+          <span className="operacion-filtro-etiqueta">Fecha:</span>
+          <DateRangePicker
+            value={rangoFechas}
+            onChange={(campo, valor) => setRangoFechas((prev) => ({ ...prev, [campo]: valor }))}
+          />
+        </div>
+      </div>
 
-      {/* Tabla Principal */}
-      {cargando ? (
-        <p style={{ color: "#64748B", fontSize: "14px" }}>Cargando traslados...</p>
-      ) : (
-        <DataTable
-          columns={columnas}
-          data={trasladosVisibles}
-          getRowKey={(row) => row.id}
-          emptyMessage="No hay traslados para el filtro y rango de fechas seleccionados."
-        />
-      )}
+      {/* Tabla */}
+      <DataTable
+        columns={columnas}
+        data={trasladosVisibles}
+        getRowKey={(row) => row.id}
+        getRowClassName={(row) => (resaltados.has(row.id) ? "fila-resaltada" : undefined)}
+        emptyMessage={cargando ? "Cargando traslados…" : "No hay traslados con estos filtros."}
+      />
 
-      {/* Panel Lateral de Asignación / Cambio de Responsable */}
+      {/* Panel de asignación o cambio de responsable */}
       <PanelAsignacion
         abierto={trasladoEnPanel !== null}
         traslado={trasladoEnPanel}
         onCerrar={() => setTrasladoEnPanel(null)}
         onAsignacionExitosa={handleAsignacionExitosa}
       />
+
+      {/* Confirmar que el traslado ya se hizo */}
+      <Modal
+        abierto={enRealizar !== null}
+        titulo={
+          enRealizar
+            ? `¿Ya se ${enRealizar.tipo === "ENTREGA" ? "entregó" : "recogió"} ${enRealizar.folio}?`
+            : ""
+        }
+        subtitulo="Márcalo cuando el operador te confirme que lo hizo."
+        onCerrar={cerrarRealizar}
+        acciones={
+          <>
+            <Button type="button" variant="tertiary" onClick={cerrarRealizar} disabled={realizando}>
+              Cancelar
+            </Button>
+            <Button type="button" variant="primary" onClick={confirmarRealizado} disabled={realizando}>
+              {realizando ? "Guardando…" : "Marcar realizado"}
+            </Button>
+          </>
+        }
+      >
+        {enRealizar && (
+          <div className="traslados-realizado">
+            <p>
+              <strong>Cliente:</strong> {enRealizar.clienteNombre}
+            </p>
+            <p>
+              <strong>Operador:</strong> {enRealizar.responsableNombre}
+            </p>
+            <p>
+              {enRealizar.tipo === "ENTREGA"
+                ? `Los equipos quedarán con el cliente y la renta ${enRealizar.rentaFolio} pasará a en curso.`
+                : `Se crearán las revisiones de entrada de los equipos de la renta ${enRealizar.rentaFolio}.`}
+            </p>
+            {errorRealizar && (
+              <p className="campo-error" role="alert">
+                {errorRealizar}
+              </p>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

@@ -12,10 +12,18 @@ import StyleTest from "../features/testComponentes/StyleTest";
 import Mantenimientos from "../features/mantenimientos/Mantenimientos";
 import Revisiones from "../features/revisiones/Revisiones";
 import ApartadosProximos from "../features/avisos/ApartadosProximos";
+import CartaRenta from "../features/cartas/CartaRenta";
+import VistaPreviaCarta from "../features/cartas/VistaPreviaCarta";
 
 import DetalleCliente from "../features/clientes/DetalleCliente";
+import Disponibilidad from '../features/equipos/disponibilidad/ConsultarDisponibilidad'
 
+import ConsultarEquipos from "../features/equipos/estados/ConsultarEquipos";
+import DetalleRenta from "../features/rentas/detalle/DetalleRenta";
 import DashboardTraslados from "../features/traslados/DashboardTraslados";
+
+import ProgramarRecoleccion from "../features/rentas-captura/ProgramarRecoleccion";
+import RegistrarRenta from "../features/rentas-captura/RegistrarRenta";
 
 
 export default function AppRoutes() {
@@ -38,6 +46,11 @@ export default function AppRoutes() {
         <Route path="/cotizaciones/:id" element={<DetalleCotizacion />} />
         <Route path="/cotizaciones/:id/pdf" element={<PdfCotizacion />} />
 
+        {/* Captura manual temporal: sin opción en el menú lateral*/}
+        <Route path="/rentas/nueva" element={<RegistrarRenta />} />
+
+        <Route path="/rentas/recoleccion" element={<ProgramarRecoleccion />} />
+
         {/* Revisiones */}
         <Route path="/revisiones" element={<Revisiones />} />
         {/* Traslados */}
@@ -47,6 +60,19 @@ export default function AppRoutes() {
 
         {/* Avisos */}
         <Route path="/apartados-proximos" element={<ApartadosProximos />} />
+
+        {/* Detalle de renta */}
+        <Route path="/rentas/:id" element={<DetalleRenta />} />
+
+        {/* Carta responsiva. Provisional hasta que exista el detalle de la renta (OHU-03) */}
+        <Route path="/rentas/:id/carta" element={<CartaRenta />} />
+        <Route path="/rentas/:id/carta/vista-previa" element={<VistaPreviaCarta />} />
+
+        {/* Equipos */}
+        <Route path="/equipos" element={<ConsultarEquipos />} />
+
+        {/* Disponibilidad */}
+        <Route path="/disponibilidad" element={<Disponibilidad />} />
 
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />

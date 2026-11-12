@@ -25,10 +25,12 @@ import org.openpdf.text.pdf.PdfPTable;
 import org.openpdf.text.pdf.PdfWriter;
 
 import mx.montacargasobregon.backend.clientes.modelo.Cliente;
-import mx.montacargasobregon.backend.clientes.modelo.DireccionFiscal;
 import mx.montacargasobregon.backend.clientes.modelo.RazonSocial;
+import mx.montacargasobregon.backend.comun.DatosContactoSitio;
+import mx.montacargasobregon.backend.comun.DatosDireccion;
+import mx.montacargasobregon.backend.comun.Direccion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
-import mx.montacargasobregon.backend.cotizaciones.modelo.PartidaCotizacion;
+import mx.montacargasobregon.backend.cotizaciones.modelo.EquipoCotizacion;
 
 /**
  * Genera el PDF de una cotización (HU-18): encabezado con folio y fecha, cliente y razón social,
@@ -71,7 +73,7 @@ public class CotizacionPdfService {
     @Transactional(readOnly = true)
     public ArchivoPdf generar(Long id) {
         Cotizacion cotizacion = cotizaciones.obtener(id);
-        if (cotizacion.getPartidas().isEmpty()) {
+        if (cotizacion.getEquipos().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Agrega al menos un equipo");
         }
         return new ArchivoPdf(cotizacion.getFolio() + ".pdf", generar(cotizacion));
@@ -106,7 +108,7 @@ public class CotizacionPdfService {
         PdfPCell folio = celdaEncabezado();
         folio.addElement(alineado(new Paragraph("COTIZACIÓN", TITULO), Element.ALIGN_RIGHT));
         folio.addElement(alineado(new Paragraph("Folio " + c.getFolio(), NEGRITA), Element.ALIGN_RIGHT));
-        folio.addElement(alineado(new Paragraph("Fecha: " + c.getFechaCreacion().format(FECHA), PEQUENA), Element.ALIGN_RIGHT));
+        folio.addElement(alineado(new Paragraph("Fecha: " + c.getFechaHoraCreacion().format(FECHA), PEQUENA), Element.ALIGN_RIGHT));
         tabla.addCell(folio);
 
         return tabla;
@@ -124,7 +126,6 @@ public class CotizacionPdfService {
     private PdfPTable clienteYFacturacion(Cotizacion c) {
         Cliente cliente = c.getCliente();
         RazonSocial razon = c.getRazonSocial();
-        DireccionFiscal d = razon.getDireccionFiscal();
 
         PdfPTable tabla = tabla(2, 100);
         tabla.setSpacingBefore(14);
@@ -139,19 +140,21 @@ public class CotizacionPdfService {
         tabla.addCell(bloque("FACTURAR A",
                 razon.getNombre(),
                 "RFC: " + razon.getRfc(),
-                d.getCalle() + " " + d.getNumero() + ", Col. " + d.getColonia() + ", " + d.getCiudad()
-                        + ", C.P. " + d.getCodigoPostal()));
+                direccion(razon.getDireccionFiscal())));
         return tabla;
     }
 
     private PdfPTable entregaYRecoleccion(Cotizacion c) {
         PdfPTable tabla = tabla(1, 100);
         tabla.setSpacingBefore(12);
+        DatosDireccion obra = c.getDireccionObra();
+        DatosContactoSitio contacto = c.getContactoObra();
+
         tabla.addCell(bloque("ENTREGA Y RECOLECCIÓN",
-                "Entrega: " + fechaHora(c.getFechaEntrega()),
-                "Recolección: " + fechaHora(c.getFechaRecoleccion()),
-                "Lugar: " + c.getDireccionObra(),
-                "Contacto en la obra: " + c.getContactoObra() + " · " + telefono(c.getTelefonoContacto())));
+                "Entrega: " + fechaHora(c.getFechaHoraEntrega()),
+                "Recolección: " + fechaHora(c.getFechaHoraRecoleccion()),
+                "Lugar: " + direccion(obra),
+                "Contacto en la obra: " + contacto.getNombre() + " · " + telefono(contacto.getTelefono())));
         return tabla;
     }
 
@@ -169,11 +172,11 @@ public class CotizacionPdfService {
         }
 
         String dias = String.valueOf(c.getDias());
-        for (PartidaCotizacion p : c.getPartidas()) {
+        for (EquipoCotizacion p : c.getEquipos()) {
             tabla.addCell(celdaTabla(p.getEquipo().getNumeroUnidad(), NORMAL, false));
             tabla.addCell(celdaTabla(p.getEquipo().getModelo().getNombre(), NORMAL, false));
             tabla.addCell(celdaTabla(dias, NORMAL, true));
-            tabla.addCell(celdaTabla(moneda(p.getTarifaDia()), NORMAL, true));
+            tabla.addCell(celdaTabla(moneda(p.getTarifa()), NORMAL, true));
             tabla.addCell(celdaTabla(moneda(p.getImporte()), NORMAL, true));
         }
         return tabla;
@@ -261,6 +264,13 @@ public class CotizacionPdfService {
         int hora = fecha.getHour() % 12 == 0 ? 12 : fecha.getHour() % 12;
         String sufijo = fecha.getHour() < 12 ? "a. m." : "p. m.";
         return "%s, %02d:%02d %s".formatted(fecha.format(FECHA_LARGA), hora, fecha.getMinute(), sufijo);
+    }
+
+    // → "Calle 200 1500, Col. Centro, Cd. Obregón, Sonora, C.P. 85000"; si no hay estado, no lo pone
+    static String direccion(Direccion d) {
+        String ciudad = d.getEstado() == null ? d.getCiudad() : d.getCiudad() + ", " + d.getEstado();
+        return d.getCalle() + " " + d.getNumero() + ", Col. " + d.getColonia() + ", " + ciudad
+                + ", C.P. " + d.getCodigoPostal();
     }
 
     // "6872104455" → "687 210 4455"

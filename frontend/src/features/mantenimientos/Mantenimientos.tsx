@@ -4,18 +4,21 @@ import type { ElementoAsignar, MecanicoOpcion } from "../../components/AsignarMe
 import Aviso from "../../components/Aviso";
 import Avatar from "../../components/Avatar";
 import { Button } from "../../components/buttons";
-import Chip from "../../components/chips";
+import Chip, { claseDeChip } from "../../components/chips";
 import DateRangePicker from "../../components/filters/dateRangePicker";
 import FilterRow from "../../components/filters/filterRow";
 import type { DateRangeValue } from "../../components/filters/filterTypes";
+import Modal from "../../components/Modal";
 import DataTable from "../../components/table";
 import type { TableColumn } from "../../components/table";
 import { useTitulo } from "../../hooks/useTitulo";
+import { ErrorApi } from "../../services/apiClient";
 import { listarMecanicos } from "../../services/personalApi";
 import { formatoDiaCorto, formatoHora, formatoRelativo } from "../../utils/fechas";
-import { asignarMantenimientos, listarMantenimientos } from "./mantenimientosApi";
+import { asignarMantenimientos, listarMantenimientos, terminarMantenimiento } from "./mantenimientosApi";
 import type { Mantenimiento } from "./mantenimientosTypes";
 import { ESTADOS, chipDeEstado, ordenar } from "./mantenimientosUtils";
+import "../../styles/operacion.css";
 import "../../styles/mantenimientos/mantenimientos.css";
 
 export default function Mantenimientos() {
@@ -34,6 +37,11 @@ export default function Mantenimientos() {
 
   // Lo que se está asignando en el modal; vacío = cerrado
   const [enModal, setEnModal] = useState<Mantenimiento[]>([]);
+
+  // El que se está marcando como terminado; null = cerrado
+  const [enTerminar, setEnTerminar] = useState<Mantenimiento | null>(null);
+  const [terminando, setTerminando] = useState(false);
+  const [errorTerminar, setErrorTerminar] = useState("");
 
   // Confirmación después de asignar y filas que se resaltan
   const [exito, setExito] = useState<{ titulo: string; detalle: string } | null>(null);
@@ -71,6 +79,7 @@ export default function Mantenimientos() {
     label: e.etiqueta,
     value: e.valor,
     count: mantenimientos.filter((m) => m.estado === e.valor).length,
+    dotClassName: claseDeChip("mantenimiento", e.chip),
   }));
 
   // Solo los pendientes se pueden marcar para asignar en grupo
@@ -122,24 +131,65 @@ export default function Mantenimientos() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function abrirTerminar(m: Mantenimiento) {
+    setExito(null);
+    setErrorTerminar("");
+    setEnTerminar(m);
+  }
+
+  function cerrarTerminar() {
+    if (!terminando) setEnTerminar(null);
+  }
+
+  async function confirmarTerminar() {
+    if (!enTerminar) return;
+    setTerminando(true);
+    setErrorTerminar("");
+    try {
+      const actualizado = await terminarMantenimiento(enTerminar.id);
+      setMantenimientos((anterior) =>
+        ordenar(anterior.map((m) => (m.id === actualizado.id ? actualizado : m))),
+      );
+      setExito({
+        titulo: `${actualizado.numeroUnidad} quedó reparado`,
+        detalle: "El equipo vuelve a estar operativo. Te lo marcamos en la tabla.",
+      });
+      setResaltados(new Set([actualizado.id]));
+      setEnTerminar(null);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      setErrorTerminar(err instanceof ErrorApi ? err.message : "No fue posible guardar. Revisa tu conexión.");
+    } finally {
+      setTerminando(false);
+    }
+  }
+
   function accion(m: Mantenimiento) {
     if (m.estado === "PENDIENTE") {
       return (
-        <Button type="button" variant="primary" className="btn-chico" onClick={() => abrirModal([m])}>
-          <span className="material-symbols-rounded" aria-hidden="true">person_add</span>
-          Asignar
-        </Button>
+        <span className="acciones">
+          <Button type="button" variant="primary" className="btn-chico" onClick={() => abrirModal([m])}>
+            <span className="material-symbols-rounded" aria-hidden="true">person_add</span>
+            Asignar
+          </Button>
+        </span>
       );
     }
     if (m.estado === "ASIGNADO" || m.estado === "EN_PROCESO") {
       return (
-        <Button type="button" variant="tertiary" className="btn-chico" onClick={() => abrirModal([m])}>
-          <span className="material-symbols-rounded" aria-hidden="true">swap_horiz</span>
-          Cambiar
-        </Button>
+        <span className="acciones">
+          <Button type="button" variant="primary" className="btn-chico" onClick={() => abrirTerminar(m)}>
+            <span className="material-symbols-rounded" aria-hidden="true">task_alt</span>
+            Terminar
+          </Button>
+          <Button type="button" variant="tertiary" className="btn-chico" onClick={() => abrirModal([m])}>
+            <span className="material-symbols-rounded" aria-hidden="true">swap_horiz</span>
+            Cambiar
+          </Button>
+        </span>
       );
     }
-    // Terminados y cancelados no tienen acción en esta historia
+    // Terminados y cancelados no tienen acción
     return null;
   }
 
@@ -214,10 +264,10 @@ export default function Mantenimientos() {
       header: "Mecánico",
       accessor: (m) =>
         m.mecanicoNombre ? (
-          <div className="celda-mecanico">
+          <div className="celda-persona">
             <Avatar nombre={m.mecanicoNombre} />
             <div>
-              <span className="celda-mecanico-nombre">{m.mecanicoNombre}</span>
+              <span className="celda-persona-nombre">{m.mecanicoNombre}</span>
               <Chip category="mantenimiento" status={chipDeEstado(m.estado)} />
             </div>
           </div>
@@ -248,11 +298,11 @@ export default function Mantenimientos() {
   }));
 
   return (
-    <div className="pagina mantenimientos">
+    <div className="pagina operacion mantenimientos">
       {/* Título */}
-      <div className="mantenimientos-titulo">
+      <div className="operacion-titulo">
         <h1>Mantenimientos</h1>
-        <p>Asigna a un mecánico los equipos con falla.</p>
+        <p>Asigna a un mecánico los equipos con falla y marca los que ya quedaron reparados.</p>
       </div>
 
       {/* Avisos */}
@@ -268,9 +318,9 @@ export default function Mantenimientos() {
       )}
 
       {/* Filtros */}
-      <div className="mantenimientos-filtros">
-        <div className="mantenimientos-filtro">
-          <span className="mantenimientos-filtro-etiqueta">Mostrar:</span>
+      <div className="operacion-filtros">
+        <div className="operacion-filtro">
+          <span className="operacion-filtro-etiqueta">Mostrar:</span>
           <FilterRow
             options={filtros}
             selectedValue={estado}
@@ -279,8 +329,8 @@ export default function Mantenimientos() {
             onChange={cambiarEstado}
           />
         </div>
-        <div className="mantenimientos-filtro">
-          <span className="mantenimientos-filtro-etiqueta">Salida:</span>
+        <div className="operacion-filtro">
+          <span className="operacion-filtro-etiqueta">Salida:</span>
           <DateRangePicker
             value={salida}
             onChange={(campo, valor) => cambiarSalida({ ...salida, [campo]: valor })}
@@ -311,17 +361,56 @@ export default function Mantenimientos() {
         emptyMessage={cargando ? "Cargando mantenimientos…" : "No hay mantenimientos con estos filtros."}
       />
 
-        <AsignarMecanicoModal
-          abierto={total > 0}
-          titulo={titulo}
-          subtitulo="Elige quién revisará y reparará las fallas reportadas."
-          elementos={elementos}
-          mecanicoActualId={actual}
-          textoBoton={textoBoton}
-          cargarMecanicos={listarMecanicos}
-          onConfirmar={confirmar}
-          onCerrar={() => setEnModal([])}
-        />
+      <AsignarMecanicoModal
+        abierto={total > 0}
+        titulo={titulo}
+        subtitulo="Elige quién revisará y reparará las fallas reportadas."
+        elementos={elementos}
+        mecanicoActualId={actual}
+        textoBoton={textoBoton}
+        cargarMecanicos={listarMecanicos}
+        onConfirmar={confirmar}
+        onCerrar={() => setEnModal([])}
+      />
+
+      {/* Confirmar que el equipo ya quedó reparado */}
+      <Modal
+        abierto={enTerminar !== null}
+        titulo={enTerminar ? `¿${enTerminar.numeroUnidad} ya quedó reparado?` : ""}
+        subtitulo="Márcalo cuando el mecánico te confirme que terminó."
+        onCerrar={cerrarTerminar}
+        acciones={
+          <>
+            <Button type="button" variant="tertiary" onClick={cerrarTerminar} disabled={terminando}>
+              Cancelar
+            </Button>
+            <Button type="button" variant="primary" onClick={confirmarTerminar} disabled={terminando}>
+              {terminando ? "Guardando…" : "Marcar terminado"}
+            </Button>
+          </>
+        }
+      >
+        {enTerminar && (
+          <div className="mantenimientos-terminar">
+            <p>
+              <strong>Falla:</strong> {enTerminar.descripcionFalla}
+            </p>
+            <p>
+              <strong>Mecánico:</strong> {enTerminar.mecanicoNombre}
+            </p>
+            <p>
+              El equipo volverá a estar operativo.
+              {enTerminar.folioRenta &&
+                ` Si era el último pendiente de la renta ${enTerminar.folioRenta}, se creará su traslado de entrega.`}
+            </p>
+            {errorTerminar && (
+              <p className="campo-error" role="alert">
+                {errorTerminar}
+              </p>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

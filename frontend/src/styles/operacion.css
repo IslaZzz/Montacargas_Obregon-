@@ -1,0 +1,97 @@
+/* Estilos comunes de las pantallas de operación: Revisiones, Mantenimientos y Traslados.
+   Cada pantalla usa la clase "operacion" junto a la suya, y en su propio CSS deja solo lo que es suyo. */
+
+/* Título y filtros */
+.operacion-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.operacion-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 32px;
+}
+.operacion-filtros-izquierda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 32px;
+}
+.operacion-filtro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.operacion-filtro-etiqueta {
+  font-weight: 600;
+  color: var(--primary-teal);
+}
+
+/* Celdas: dato principal arriba, detalle abajo */
+.operacion .celda-principal {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary-teal);
+}
+.operacion .celda-secundaria {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-foreground);
+}
+
+/* Persona a cargo: mecánico u operador, con sus iniciales */
+.operacion .celda-persona {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.operacion .celda-persona > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.operacion .celda-persona-nombre {
+  font-weight: 600;
+  color: var(--primary-teal);
+}
+
+/* Chips en la misma celda: estado y resultado, por ejemplo */
+.operacion .celda-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Acciones: alineadas a la izquierda, igual que su encabezado */
+.operacion .celda-accion {
+  white-space: nowrap;
+}
+.operacion .acciones {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Botones de la tabla */
+.operacion .btn {
+  gap: 6px;
+}
+.operacion .btn-chico {
+  padding: 8px 14px;
+  font-size: 14px;
+}
+.operacion .btn-chico .material-symbols-rounded {
+  font-size: 20px;
+}
+
+/* Filas recién cambiadas */
+.operacion .data-table tbody tr.fila-resaltada {
+  background-color: rgba(32, 149, 104, 0.1);
+}
