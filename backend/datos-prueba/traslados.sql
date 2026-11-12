@@ -30,11 +30,134 @@ FROM (
      ) d
 WHERE NOT EXISTS (SELECT 1 FROM clientes c WHERE c.correo = d.correo);
 
+-- Las cotizaciones piden la razón social del cliente: a quien no tenga se le crea una
+SET @cliente = (SELECT id FROM clientes WHERE correo = 'compras@industriascajeme.mx' ORDER BY id LIMIT 1);
+SET @falta = @cliente IS NOT NULL AND NOT EXISTS (SELECT 1 FROM razones_sociales WHERE cliente_id = @cliente);
+INSERT INTO direcciones_fiscales (calle, numero, colonia, ciudad, codigo_postal)
+SELECT 'Blvd. Rodolfo Elías Calles', '1520', 'Centro', 'Cd. Obregón', '85000' FROM DUAL WHERE @falta;
+INSERT INTO razones_sociales (nombre, rfc, direccion_fiscal_id, cliente_id)
+SELECT 'Industrias Cajeme S.A. de C.V.', 'ICA150101AB1', LAST_INSERT_ID(), @cliente FROM DUAL WHERE @falta;
+
+SET @cliente = (SELECT id FROM clientes WHERE correo = 'obra@constructorayaqui.mx' ORDER BY id LIMIT 1);
+SET @falta = @cliente IS NOT NULL AND NOT EXISTS (SELECT 1 FROM razones_sociales WHERE cliente_id = @cliente);
+INSERT INTO direcciones_fiscales (calle, numero, colonia, ciudad, codigo_postal)
+SELECT 'Calle 200', 's/n', 'Valle del Yaqui', 'Cajeme', '85203' FROM DUAL WHERE @falta;
+INSERT INTO razones_sociales (nombre, rfc, direccion_fiscal_id, cliente_id)
+SELECT 'Constructora del Yaqui S.A. de C.V.', 'CYQ160202CD2', LAST_INSERT_ID(), @cliente FROM DUAL WHERE @falta;
+
+SET @cliente = (SELECT id FROM clientes WHERE correo = 'almacen@bodegasnainari.mx' ORDER BY id LIMIT 1);
+SET @falta = @cliente IS NOT NULL AND NOT EXISTS (SELECT 1 FROM razones_sociales WHERE cliente_id = @cliente);
+INSERT INTO direcciones_fiscales (calle, numero, colonia, ciudad, codigo_postal)
+SELECT 'Av. Náinari', '845', 'Centro', 'Cd. Obregón', '85000' FROM DUAL WHERE @falta;
+INSERT INTO razones_sociales (nombre, rfc, direccion_fiscal_id, cliente_id)
+SELECT 'Bodegas Náinari S.A. de C.V.', 'BNA170303EF3', LAST_INSERT_ID(), @cliente FROM DUAL WHERE @falta;
+
+SET @cliente = (SELECT id FROM clientes WHERE correo = 'contacto@empacadoranoroeste.mx' ORDER BY id LIMIT 1);
+SET @falta = @cliente IS NOT NULL AND NOT EXISTS (SELECT 1 FROM razones_sociales WHERE cliente_id = @cliente);
+INSERT INTO direcciones_fiscales (calle, numero, colonia, ciudad, codigo_postal)
+SELECT 'Calle Norte', '300', 'Parque Industrial', 'Cd. Obregón', '85065' FROM DUAL WHERE @falta;
+INSERT INTO razones_sociales (nombre, rfc, direccion_fiscal_id, cliente_id)
+SELECT 'Empacadora del Noroeste S.A. de C.V.', 'ENO190505IJ5', LAST_INSERT_ID(), @cliente FROM DUAL WHERE @falta;
+
+SET @cliente = (SELECT id FROM clientes WHERE correo = 'ana@agricolavalle.mx' ORDER BY id LIMIT 1);
+SET @falta = @cliente IS NOT NULL AND NOT EXISTS (SELECT 1 FROM razones_sociales WHERE cliente_id = @cliente);
+INSERT INTO direcciones_fiscales (calle, numero, colonia, ciudad, codigo_postal)
+SELECT 'Carretera a Esperanza', 'km 6', 'Campo agrícola', 'Cajeme', '85210' FROM DUAL WHERE @falta;
+INSERT INTO razones_sociales (nombre, rfc, direccion_fiscal_id, cliente_id)
+SELECT 'Agrícola Valle del Yaqui S.P.R. de R.L.', 'AVY180404GH4', LAST_INSERT_ID(), @cliente FROM DUAL WHERE @falta;
+
+SET @cliente = (SELECT id FROM clientes WHERE correo = 'reservas@hotelvallegrande.mx' ORDER BY id LIMIT 1);
+SET @falta = @cliente IS NOT NULL AND NOT EXISTS (SELECT 1 FROM razones_sociales WHERE cliente_id = @cliente);
+INSERT INTO direcciones_fiscales (calle, numero, colonia, ciudad, codigo_postal)
+SELECT 'Calle Guerrero', '402 Ote.', 'Centro', 'Cd. Obregón', '85000' FROM DUAL WHERE @falta;
+INSERT INTO razones_sociales (nombre, rfc, direccion_fiscal_id, cliente_id)
+SELECT 'Hotel Valle Grande S.A. de C.V.', 'HVG200606KL6', LAST_INSERT_ID(), @cliente FROM DUAL WHERE @falta;
+
+-- Toda renta sale de una cotización aceptada (HU-37): COT-R2061 es la de R-2061.
+-- Se crean solo si no existen. Sus equipos y totales se llenan después, con los de la renta.
+SET @falta = NOT EXISTS (SELECT 1 FROM cotizaciones WHERE folio = 'COT-R2046'),
+    @entrega = '2026-10-07 08:00:00', @recoleccion = '2026-10-25 18:00:00';
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+SELECT 'Blvd. Rodolfo Elías Calles', '1520', 'Centro', 'Cd. Obregón', 'Sonora', '85000' FROM DUAL WHERE @falta;
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
+                          contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
+                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+SELECT 'COT-R2046', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
+       @entrega, @recoleccion, LAST_INSERT_ID(), 'Ramón Gutiérrez', '6441000001', 0.00, 0.00,
+       0.00, 0.00, 0.00, 'ACEPTADA',
+       @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
+FROM clientes c WHERE c.correo = 'compras@industriascajeme.mx' AND @falta;
+
+SET @falta = NOT EXISTS (SELECT 1 FROM cotizaciones WHERE folio = 'COT-R2048'),
+    @entrega = '2026-10-07 10:00:00', @recoleccion = '2026-10-19 16:00:00';
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+SELECT 'Calle 200', 's/n', 'Valle del Yaqui', 'Cajeme', 'Sonora', '85203' FROM DUAL WHERE @falta;
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
+                          contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
+                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+SELECT 'COT-R2048', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
+       @entrega, @recoleccion, LAST_INSERT_ID(), 'Laura Méndez', '6441000002', 0.00, 0.00,
+       0.00, 0.00, 0.00, 'ACEPTADA',
+       @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
+FROM clientes c WHERE c.correo = 'obra@constructorayaqui.mx' AND @falta;
+
+SET @falta = NOT EXISTS (SELECT 1 FROM cotizaciones WHERE folio = 'COT-R2050'),
+    @entrega = '2026-10-07 13:00:00', @recoleccion = '2026-10-28 18:00:00';
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+SELECT 'Av. Náinari', '845', 'Centro', 'Cd. Obregón', 'Sonora', '85000' FROM DUAL WHERE @falta;
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
+                          contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
+                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+SELECT 'COT-R2050', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
+       @entrega, @recoleccion, LAST_INSERT_ID(), 'Jesús Rivera', '6441000003', 0.00, 0.00,
+       0.00, 0.00, 0.00, 'ACEPTADA',
+       @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
+FROM clientes c WHERE c.correo = 'almacen@bodegasnainari.mx' AND @falta;
+
+SET @falta = NOT EXISTS (SELECT 1 FROM cotizaciones WHERE folio = 'COT-R2051'),
+    @entrega = '2026-10-07 15:00:00', @recoleccion = '2026-10-22 18:00:00';
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+SELECT 'Calle Norte', '300', 'Parque Industrial', 'Cd. Obregón', 'Sonora', '85065' FROM DUAL WHERE @falta;
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
+                          contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
+                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+SELECT 'COT-R2051', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
+       @entrega, @recoleccion, LAST_INSERT_ID(), 'Carlos Vega', '6441000005', 0.00, 0.00,
+       0.00, 0.00, 0.00, 'ACEPTADA',
+       @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
+FROM clientes c WHERE c.correo = 'contacto@empacadoranoroeste.mx' AND @falta;
+
+SET @falta = NOT EXISTS (SELECT 1 FROM cotizaciones WHERE folio = 'COT-R2039'),
+    @entrega = '2026-09-20 09:00:00', @recoleccion = '2026-10-07 16:00:00';
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+SELECT 'Carretera a Esperanza', 'km 6', 'Campo agrícola', 'Cajeme', 'Sonora', '85210' FROM DUAL WHERE @falta;
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
+                          contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
+                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+SELECT 'COT-R2039', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
+       @entrega, @recoleccion, LAST_INSERT_ID(), 'Ana Castro', '6441000004', 0.00, 0.00,
+       0.00, 0.00, 0.00, 'ACEPTADA',
+       @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
+FROM clientes c WHERE c.correo = 'ana@agricolavalle.mx' AND @falta;
+
+SET @falta = NOT EXISTS (SELECT 1 FROM cotizaciones WHERE folio = 'COT-R2044'),
+    @entrega = '2026-09-25 10:00:00', @recoleccion = '2026-10-08 09:00:00';
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+SELECT 'Calle Guerrero', '402 Ote.', 'Centro', 'Cd. Obregón', 'Sonora', '85000' FROM DUAL WHERE @falta;
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
+                          contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
+                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+SELECT 'COT-R2044', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
+       @entrega, @recoleccion, LAST_INSERT_ID(), 'Juan Pérez', '6441000006', 0.00, 0.00,
+       0.00, 0.00, 0.00, 'ACEPTADA',
+       @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
+FROM clientes c WHERE c.correo = 'reservas@hotelvallegrande.mx' AND @falta;
+
 -- Rentas correspondientes a los traslados
 INSERT IGNORE INTO rentas
-  (folio, cliente_id, fecha_inicio, fecha_fin, entrega_desde, entrega_hasta,
+  (folio, cliente_id, cotizacion_id, fecha_inicio, fecha_fin, entrega_desde, entrega_hasta,
    recoleccion_desde, recoleccion_hasta, direccion_obra, contacto_obra, telefono_contacto, estado)
-SELECT d.folio, c.id, d.inicio, d.fin, d.ent_desde, d.ent_hasta,
+SELECT d.folio, c.id, q.id, d.inicio, d.fin, d.ent_desde, d.ent_hasta,
        d.rec_desde, d.rec_hasta, d.direccion, d.contacto, d.tel, d.estado
 FROM (
          SELECT 'R-2046' AS folio, 'compras@industriascajeme.mx' AS correo,
@@ -74,7 +197,8 @@ FROM (
                 'Calle Guerrero 402 Ote., Cd. Obregón',
                 'Juan Pérez', '6441000006', 'EN_CURSO'
      ) d
-         JOIN clientes c ON c.correo = d.correo;
+         JOIN clientes c ON c.correo = d.correo
+         JOIN cotizaciones q ON q.folio = CONCAT('COT-', REPLACE(d.folio, '-', ''));
 
 -- Traslados: se limpian y se vuelven a insertar
 DELETE FROM traslados;

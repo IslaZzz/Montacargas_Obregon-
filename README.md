@@ -21,3 +21,12 @@ Usuarios de Comercial, categorías, modelos con su tarifa por día y equipos de 
    Si no se reconoce `mysql`, está en `C:\Program Files\MySQL\MySQL Server <versión>\bin`. También puedes abrir el archivo en MySQL Workbench y ejecutarlo.
 
 Se puede correr varias veces: solo agrega lo que falte. Los demás scripts de `backend/datos-prueba` son datos de prueba de cada historia.
+
+## Rentas que salen de la cotización (HU-37)
+
+Toda renta nace al aceptar una cotización. Si tu base ya tenía rentas, haz esto una sola vez:
+
+1. Arranca el backend. Avisará que no pudo crear la llave de `rentas.cotizacion_id`; es normal.
+2. Corre `backend/datos-prueba/quitar-rentas-sin-cotizacion.sql`. Borra las rentas sin cotización y lo que cuelga de ellas.
+3. Vuelve a correr los scripts que crean rentas: `revisiones.sql`, `traslados.sql`, `apartados-proximos.sql` y `rentas.sql`. Cada renta de prueba trae su cotización aceptada (COT-R2061 es la de R-2061).
+4. Reinicia el backend.
