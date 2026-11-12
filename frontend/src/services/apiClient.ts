@@ -1,4 +1,12 @@
 
+// Se lanza cuando el backend responde 401: la sesión venció o se cerró (HU-28).
+// SesionProvider lo escucha y manda a «Iniciar sesión».
+export const EVENTO_SIN_SESION = "montacargas:sin-sesion";
+
+function revisarSesion(respuesta: Response) {
+  if (respuesta.status === 401) window.dispatchEvent(new Event(EVENTO_SIN_SESION));
+}
+
 // Función base para llamar a la API. <T> es el tipo de dato que se espera recibir.
 export async function getApi<T>(
   ruta: string,
@@ -9,7 +17,10 @@ export async function getApi<T>(
     ...opciones,
   });
 
-  if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
+  if (!respuesta.ok) {
+    revisarSesion(respuesta);
+    throw new Error(`Error ${respuesta.status}`);
+  }
 
   return respuesta.json() as Promise<T>;
 }
@@ -27,6 +38,7 @@ async function enviarApi<T>(
   });
 
   if (!respuesta.ok) {
+    revisarSesion(respuesta);
     let datos: { mensaje?: string; errores?: Record<string, string> } = {};
     try {
       datos = await respuesta.json();

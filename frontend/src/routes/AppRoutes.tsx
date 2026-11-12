@@ -23,13 +23,24 @@ import DetalleRenta from "../features/rentas/detalle/DetalleRenta";
 import DashboardTraslados from "../features/traslados/DashboardTraslados";
 
 import ProgramarRecoleccion from "../features/rentas-captura/ProgramarRecoleccion";
+import IniciarSesion from "../features/sesion/IniciarSesion";
+import RutaProtegida from "../features/sesion/RutaProtegida";
 
 
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Todo lo que esté dentro de esta ruta muestra el menú y el encabezado */}
-      <Route element={<AppLayout />}>
+      {/* Sin sesión solo se puede abrir esta pantalla (HU-28) */}
+      <Route path="/iniciar-sesion" element={<IniciarSesion />} />
+
+      {/* Todo lo que esté dentro de esta ruta pide sesión y muestra el menú y el encabezado */}
+      <Route
+        element={
+          <RutaProtegida>
+            <AppLayout />
+          </RutaProtegida>
+        }
+      >
         {/* La dirección raíz redirige a Dashboard */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />

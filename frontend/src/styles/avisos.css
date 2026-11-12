@@ -65,3 +65,12 @@
 .aviso-tipo-error .aviso-icono {
   color: var(--warning-red-outline);
 }
+
+/* Advertencia, amarillo: falta algo antes de seguir */
+.aviso-tipo-advertencia {
+  background: #fcf1d6;
+  border-color: #965f05;
+}
+.aviso-tipo-advertencia .aviso-icono {
+  color: #965f05;
+}

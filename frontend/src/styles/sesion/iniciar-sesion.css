@@ -1,0 +1,300 @@
+/* Pantalla «Iniciar sesión» (HU-28): panel de marca a la izquierda y el acceso a la derecha */
+
+.sesion {
+  display: flex;
+  min-height: 100vh;
+  min-height: calc(100dvh / var(--zoom));
+  background: var(--off-white-background);
+}
+
+/* Panel de marca */
+.sesion-marca {
+  flex-shrink: 0;
+  width: 760px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 96px 80px;
+  background: var(--primary-teal);
+  color: var(--selection-gray);
+}
+.sesion-marca p {
+  margin: 0;
+}
+.sesion-marca-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.sesion-logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font:
+    800 28px/1.35 "Manrope",
+    sans-serif;
+}
+.sesion-logo span {
+  font-size: 30px;
+}
+.sesion-lema {
+  font:
+    800 56px/1.35 "Manrope",
+    sans-serif;
+}
+.sesion-resumen {
+  font-size: 22px;
+  line-height: 1.4;
+}
+.sesion-beneficios {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sesion-beneficios li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font:
+    500 20px/1.35 "Inter",
+    sans-serif;
+}
+.sesion-beneficios .material-symbols-rounded {
+  font-size: 28px;
+  font-variation-settings: "FILL" 1;
+}
+.sesion-ciudad {
+  font-size: 18px;
+}
+
+/* Barra con la marca: solo en tableta y celular */
+.sesion-barra {
+  display: none;
+}
+
+/* Área de acceso */
+.sesion-acceso {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 48px;
+}
+.sesion-tarjeta {
+  width: 720px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 40px;
+  background: var(--off-white-background);
+  border: 2px solid var(--secondary-mint);
+  border-radius: 16px;
+}
+.sesion-titulos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sesion-titulos h1 {
+  margin: 0;
+  font:
+    800 48px/1.35 "Manrope",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.sesion-titulos p {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.35;
+  color: var(--text-foreground);
+}
+.sesion-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Avisos más compactos dentro del formulario */
+.sesion-form .aviso {
+  gap: 12px;
+  padding: 14px 18px;
+  border-width: 1px;
+  border-radius: 8px;
+}
+.sesion-form .aviso-icono {
+  font-size: 22px;
+}
+.sesion-form .aviso-texto strong {
+  font-size: 16px;
+}
+.sesion-form .aviso-detalle {
+  font-size: 14px;
+  color: var(--text-foreground);
+}
+.sesion-form .aviso-tipo-error strong {
+  color: var(--warning-red-outline);
+}
+.sesion-form .aviso-tipo-advertencia strong {
+  color: #965f05;
+}
+
+/* Campos con ícono */
+.sesion-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sesion-campo label {
+  font:
+    500 16px "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.sesion-caja {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 14px 16px;
+  background: var(--off-white-background);
+  border: 1.5px solid var(--primary-teal);
+  border-radius: 8px;
+  color: var(--primary-teal);
+}
+.sesion-caja:focus-within {
+  outline: 2px solid var(--secondary-mint);
+  outline-offset: 2px;
+}
+.sesion-caja.con-error {
+  border: 2px solid var(--warning-red-outline);
+  padding: 13.5px 15.5px;
+}
+.sesion-caja > .material-symbols-rounded {
+  font-size: 22px;
+  font-variation-settings: "FILL" 1;
+}
+.sesion-caja input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--primary-teal);
+  font:
+    400 18px "Inter",
+    sans-serif;
+}
+.sesion-caja input::placeholder {
+  color: #5a6b71;
+  opacity: 1;
+}
+.sesion-ojo {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--primary-teal);
+  cursor: pointer;
+}
+.sesion-ojo .material-symbols-rounded {
+  font-size: 24px;
+}
+
+.btn.sesion-entrar {
+  gap: 8px;
+  height: 56px;
+  border-radius: 8px;
+  font-size: 18px;
+}
+.sesion-entrar .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.sesion-nota {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.35;
+  color: var(--text-foreground);
+}
+.sesion-nota .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 22px;
+  font-variation-settings: "FILL" 1;
+  color: var(--primary-teal);
+}
+
+/* Tableta y celular: barra con la marca arriba, títulos fuera del recuadro */
+@media (max-width: 1100px) {
+  .sesion {
+    flex-direction: column;
+    background: var(--beige-background);
+  }
+  .sesion-marca {
+    display: none;
+  }
+  .sesion-barra {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 64px;
+    padding: 0 16px;
+    background: var(--off-white-background);
+    border-bottom: 2px solid var(--primary-teal);
+    color: var(--primary-teal);
+    font:
+      800 18px/1.35 "Manrope",
+      sans-serif;
+  }
+  .sesion-acceso {
+    align-items: flex-start;
+    padding: 24px 16px;
+  }
+  .sesion-tarjeta {
+    width: 560px;
+    gap: 16px;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+  }
+  .sesion-titulos h1 {
+    font-size: 28px;
+  }
+  .sesion-titulos p {
+    font-size: 16px;
+  }
+  .sesion-form {
+    gap: 16px;
+    padding: 20px;
+    background: var(--off-white-background);
+    border: 2px solid var(--secondary-mint);
+    border-radius: 16px;
+  }
+  .sesion-caja {
+    min-height: 52px;
+  }
+  /* 16 px evita que el celular haga zoom al tocar el campo */
+  .sesion-caja input {
+    font-size: 16px;
+  }
+  .btn.sesion-entrar {
+    height: 52px;
+    font-size: 16px;
+  }
+  .sesion-nota {
+    align-items: flex-start;
+    font-size: 15px;
+  }
+}
