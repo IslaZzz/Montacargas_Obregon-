@@ -18,6 +18,7 @@ import jakarta.validation.Valid;
 import mx.montacargasobregon.backend.cotizaciones.dto.CambiarEstadoCotizacionRequest;
 import mx.montacargasobregon.backend.cotizaciones.dto.CotizacionResponse;
 import mx.montacargasobregon.backend.cotizaciones.dto.CotizacionResumenResponse;
+import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.cotizaciones.servicio.CotizacionPdfService;
 import mx.montacargasobregon.backend.cotizaciones.servicio.CotizacionPdfService.ArchivoPdf;
 import mx.montacargasobregon.backend.cotizaciones.servicio.CotizacionService;
@@ -46,7 +47,7 @@ public class CotizacionController {
     /** GET /api/cotizaciones/5: obtiene el detalle de la cotización con id 5; si no existe, responde 404. */
     @GetMapping("/{id}")
     public CotizacionResponse obtener(@PathVariable Long id) {
-        return CotizacionResponse.toCotizacionResponse(servicio.obtener(id));
+        return respuesta(servicio.obtener(id));
     }
 
     /**
@@ -70,6 +71,11 @@ public class CotizacionController {
     @PatchMapping("/{id}/estado")
     public CotizacionResponse cambiarEstado(@PathVariable Long id,
                                             @Valid @RequestBody CambiarEstadoCotizacionRequest datos) {
-        return CotizacionResponse.toCotizacionResponse(servicio.cambiarEstado(id, datos.estado()));
+        return respuesta(servicio.cambiarEstado(id, datos.estado()));
+    }
+
+    // El detalle lleva la renta que salió de la cotización, si ya tiene (HU-37)
+    private CotizacionResponse respuesta(Cotizacion c) {
+        return CotizacionResponse.toCotizacionResponse(c, servicio.renta(c.getId()).orElse(null));
     }
 }
