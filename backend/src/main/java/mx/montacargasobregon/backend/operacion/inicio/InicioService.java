@@ -174,11 +174,13 @@ public class InicioService {
                 .toList();
     }
 
-    // La renta está por terminar y no se ha acordado cuándo recoger
+    // La renta está por terminar y no se ha acordado cuándo recoger: todavía no tiene traslado de recolección.
+    // Se revisa el traslado y no el horario, porque la renta ya nace con la hora de la cotización (HU-37)
     private static List<Aviso> recoleccionesSinConfirmar(List<Renta> rentas, LocalDate hoy) {
         return rentas.stream()
                 .filter(r -> r.getEstado() == EstadoRenta.EN_CURSO
-                        && r.getRecoleccionDesde() == null
+                        && r.getTraslados().stream().noneMatch(t -> t.getTipo() == TipoTraslado.RECOLECCION
+                                && t.getEstado() != EstadoTraslado.CANCELADO)
                         && !r.getFechaFin().isAfter(hoy.plusDays(DIAS_AVISO_RECOLECCION)))
                 .map(r -> new Aviso(TipoAviso.FALTA_RECOLECCION,
                         "Falta confirmar la recolección - Renta " + r.getFolio(),

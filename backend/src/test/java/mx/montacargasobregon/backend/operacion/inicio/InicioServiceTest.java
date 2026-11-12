@@ -184,6 +184,26 @@ class InicioServiceTest {
     }
 
     @Test
+    void consultar_avisaFaltaRecoleccion_hastaQueTengaSuTraslado() {
+        // En curso, termina mañana y ya trae la hora de recolección de la cotización (HU-37)
+        Renta enCurso = renta(30L, "R-3004", HOY.minusDays(5), HOY.plusDays(1));
+        enCurso.cambiarEstado(EstadoRenta.EN_CURSO);
+        enCurso.confirmarRecoleccion(HOY.plusDays(1).atTime(18, 0), HOY.plusDays(1).atTime(18, 0));
+        when(trasladoRepositorio.listarTodosConRelaciones()).thenReturn(List.of());
+        when(revisionRepositorio.listar()).thenReturn(List.of());
+        when(mantenimientoRepositorio.listar()).thenReturn(List.of());
+        when(rentaRepositorio.findAll()).thenReturn(List.of(enCurso));
+
+        assertEquals(List.of(TipoAviso.FALTA_RECOLECCION),
+                servicio.consultar(AHORA).avisos().stream().map(Aviso::tipo).toList());
+
+        // Con su traslado de recolección ya no hace falta avisar
+        enCurso.getTraslados().add(new Traslado("TR-0100", enCurso, TipoTraslado.RECOLECCION,
+                HOY.plusDays(1).atTime(16, 0), HOY.plusDays(1).atTime(18, 0)));
+        assertTrue(servicio.consultar(AHORA).avisos().isEmpty());
+    }
+
+    @Test
     void consultar_avisaQueElMantenimientoVenceHoy() {
         Equipo equipo = new Equipo("MC-040", "SN-040", 2021, modelo);
         Mantenimiento hoy = new Mantenimiento(equipo, TipoMantenimiento.CORRECTIVO, "Freno", null, HOY.atTime(18, 0));
