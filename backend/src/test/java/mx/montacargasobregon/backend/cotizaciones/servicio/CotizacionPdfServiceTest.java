@@ -39,7 +39,6 @@ class CotizacionPdfServiceTest {
         assertContiene(texto, "martes 10 de noviembre de 2026, 08:00 a. m.");
         assertContiene(texto, "sábado 14 de noviembre de 2026, 06:00 p. m.");
         assertContiene(texto, "Lugar: Calle 200 1500, Col. Centro, Cd. Obregón, Sonora, C.P. 85000");
-        assertContiene(texto, "Referencias: Portón azul. Preguntar por el Ing. Soto.");
         assertContiene(texto, "Contacto en la obra: Ing. Raúl Soto · 644 210 4455");
         assertContiene(texto, "MC-07");
         assertContiene(texto, "GR-02");
@@ -81,8 +80,7 @@ class CotizacionPdfServiceTest {
 
         Cotizacion cotizacion = new Cotizacion("COT-0001", cliente, razon,
                 LocalDateTime.of(2026, 11, 10, 8, 0), LocalDateTime.of(2026, 11, 14, 18, 0),
-                new DatosDireccion("Calle 200", "1500", "Centro", "Cd. Obregón", "Sonora", "85000",
-                        "Portón azul. Preguntar por el Ing. Soto."),
+                new DatosDireccion("Calle 200", "1500", "Centro", "Cd. Obregón", "Sonora", "85000"),
                 new DatosContactoSitio("Ing. Raúl Soto", "6442104455"),
                 new BigDecimal("8500.00"), new BigDecimal("1360.00"), new BigDecimal("9860.00"));
         cotizacion.agregarEquipo(new EquipoCotizacion(mc07, new BigDecimal("500.00"), new BigDecimal("2500.00")));

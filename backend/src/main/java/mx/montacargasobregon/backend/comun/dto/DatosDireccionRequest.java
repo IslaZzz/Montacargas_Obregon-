@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-/** Dirección del lugar de entrega recibida desde el front. Las referencias son opcionales. */
+/** Dirección del lugar de entrega recibida desde el front. */
 public record DatosDireccionRequest(
         @NotBlank(message = "Escribe la calle")
         @Size(max = 100, message = "La calle admite máximo 100 caracteres") String calle,
@@ -17,6 +17,5 @@ public record DatosDireccionRequest(
         @NotBlank(message = "Escribe el estado")
         @Size(max = 50, message = "El estado admite máximo 50 caracteres") String estado,
         @NotBlank(message = "Escribe el código postal")
-        @Pattern(regexp = "\\d{5}", message = "El código postal debe tener 5 dígitos") String codigoPostal,
-        @Size(max = 200, message = "Las referencias admiten máximo 200 caracteres") String referencias) {
+        @Pattern(regexp = "\\d{5}", message = "El código postal debe tener 5 dígitos") String codigoPostal) {
 }

@@ -6,8 +6,6 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 import org.springframework.http.HttpStatus;
@@ -152,16 +150,11 @@ public class CotizacionPdfService {
         DatosDireccion obra = c.getDireccionObra();
         DatosContactoSitio contacto = c.getContactoObra();
 
-        List<String> renglones = new ArrayList<>(List.of(
+        tabla.addCell(bloque("ENTREGA Y RECOLECCIÓN",
                 "Entrega: " + fechaHora(c.getFechaHoraEntrega()),
                 "Recolección: " + fechaHora(c.getFechaHoraRecoleccion()),
-                "Lugar: " + direccion(obra)));
-        if (obra.getReferencias() != null) {
-            renglones.add("Referencias: " + obra.getReferencias());
-        }
-        renglones.add("Contacto en la obra: " + contacto.getNombre() + " · " + telefono(contacto.getTelefono()));
-
-        tabla.addCell(bloque("ENTREGA Y RECOLECCIÓN", renglones.toArray(String[]::new)));
+                "Lugar: " + direccion(obra),
+                "Contacto en la obra: " + contacto.getNombre() + " · " + telefono(contacto.getTelefono())));
         return tabla;
     }
 

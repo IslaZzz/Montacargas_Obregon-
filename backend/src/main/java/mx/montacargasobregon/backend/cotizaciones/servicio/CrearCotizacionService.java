@@ -63,11 +63,10 @@ public class CrearCotizacionService {
         return repositorio.save(cotizacion);
     }
 
-    // Sin espacios de más; si no escribieron referencias, quedan vacías
+    // Sin espacios de más
     private static DatosDireccion direccionObra(DatosDireccionRequest d) {
-        String referencias = d.referencias() == null || d.referencias().isBlank() ? null : d.referencias().trim();
         return new DatosDireccion(d.calle().trim(), d.numero().trim(), d.colonia().trim(), d.ciudad().trim(),
-                d.estado().trim(), d.codigoPostal(), referencias);
+                d.estado().trim(), d.codigoPostal());
     }
 
     private static RazonSocial razonSocialDelCliente(Cliente cliente, Long razonSocialId) {

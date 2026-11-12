@@ -99,8 +99,8 @@ DELETE FROM cotizaciones;
 DELETE FROM direcciones_obra;
 
 -- No aceptada (TC-20-09): GR-02 5 días
-INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
-VALUES ('Calle 200', '1500', 'Centro', 'Cd. Obregón', 'Sonora', '85000', 'Portón azul. Preguntar por el Ing. Soto.');
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+VALUES ('Calle 200', '1500', 'Centro', 'Cd. Obregón', 'Sonora', '85000');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
                           telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)
@@ -113,8 +113,8 @@ INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) V
   (@gr02, 1200.00, 6000.00, LAST_INSERT_ID());
 
 -- Aceptada (TC-20-09): PT-03 1 día, entrega y recolección el mismo día
-INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
-VALUES ('Calle Jalisco', '312', 'Centro', 'Navojoa', 'Sonora', '85800', NULL);
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+VALUES ('Calle Jalisco', '312', 'Centro', 'Navojoa', 'Sonora', '85800');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
                           telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)
@@ -127,8 +127,8 @@ INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) V
   (@pt03, 150.00, 150.00, LAST_INSERT_ID());
 
 -- Enviada, para marcar como aceptada (TC-20-04, 06 y 07): MC-07 3 días
-INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
-VALUES ('Calle Jalisco', '312', 'Centro', 'Navojoa', 'Sonora', '85800', NULL);
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+VALUES ('Calle Jalisco', '312', 'Centro', 'Navojoa', 'Sonora', '85800');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
                           telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)
@@ -141,8 +141,8 @@ INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) V
   (@mc07, 500.00, 1500.00, LAST_INSERT_ID());
 
 -- Enviada, para marcar como no aceptada (TC-20-08): GR-02 2 días
-INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
-VALUES ('Calle 200', '1500', 'Centro', 'Cd. Obregón', 'Sonora', '85000', 'Portón azul. Preguntar por el Ing. Soto.');
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+VALUES ('Calle 200', '1500', 'Centro', 'Cd. Obregón', 'Sonora', '85000');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
                           telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)
@@ -155,9 +155,8 @@ INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) V
   (@gr02, 1200.00, 2400.00, LAST_INSERT_ID());
 
 -- Borrador, para el PDF y descargarlo (TC-18-02 a 06 y TC-20-03): MC-07 y GR-02 5 días, total $9,860.00
-INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
-VALUES ('Carretera Internacional', 'km 4.5', 'Parque Industrial', 'Cd. Obregón', 'Sonora', '85065',
-        'Entrada por la caseta norte. Preguntar por la Arq. Medina.');
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+VALUES ('Carretera Internacional', 'km 4.5', 'Parque Industrial', 'Cd. Obregón', 'Sonora', '85065');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
                           telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)
@@ -172,8 +171,8 @@ INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) V
   (@gr02, 1200.00, 6000.00, @c);
 
 -- Borrador, para compartir el PDF (TC-18-07): MC-07 5 días, total $2,900.00
-INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
-VALUES ('Calle 200', '1500', 'Centro', 'Cd. Obregón', 'Sonora', '85000', NULL);
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+VALUES ('Calle 200', '1500', 'Centro', 'Cd. Obregón', 'Sonora', '85000');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
                           telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)
@@ -186,8 +185,8 @@ INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) V
   (@mc07, 500.00, 2500.00, LAST_INSERT_ID());
 
 -- Borrador sin equipos: «Ver PDF» deshabilitado (TC-18-08)
-INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal, referencias)
-VALUES ('Carretera Internacional', 'km 4.5', 'Parque Industrial', 'Cd. Obregón', 'Sonora', '85065', NULL);
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+VALUES ('Carretera Internacional', 'km 4.5', 'Parque Industrial', 'Cd. Obregón', 'Sonora', '85065');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
                           telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)

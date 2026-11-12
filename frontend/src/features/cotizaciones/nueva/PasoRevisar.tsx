@@ -71,7 +71,6 @@ export default function PasoRevisar({ borrador: b, irAPaso }: Props) {
               <Dato etiqueta="Recolección">{formatoFechaHora(fechaHoraIso(b.fechaRecoleccion, b.horaRecoleccion))}</Dato>
               <Dato etiqueta="Duración">{textoDias(dias)}</Dato>
               <Dato etiqueta="Lugar de entrega">{formatoDireccion(obra)}</Dato>
-              {obra.referencias && <Dato etiqueta="Referencias para llegar">{obra.referencias}</Dato>}
               <Dato etiqueta="Contacto en la obra">{b.contactoObra} · {formatoTelefono(b.telefonoContacto)}</Dato>
             </dl>
           </Seccion>

@@ -32,7 +32,6 @@ export interface BorradorCotizacion {
   ciudadObra: string;
   estadoObra: string;
   codigoPostalObra: string;
-  referenciasObra: string;
   contactoObra: string;
   telefonoContacto: string;
   equipos: EquipoCatalogo[];
@@ -57,7 +56,6 @@ export const borradorVacio: BorradorCotizacion = {
   ciudadObra: "",
   estadoObra: "",
   codigoPostalObra: "",
-  referenciasObra: "",
   contactoObra: "",
   telefonoContacto: "",
   equipos: [],
@@ -82,5 +80,4 @@ export const direccionObra = (b: BorradorCotizacion): DatosDireccionRequest => (
   ciudad: b.ciudadObra.trim(),
   estado: b.estadoObra.trim(),
   codigoPostal: b.codigoPostalObra,
-  referencias: b.referenciasObra.trim() || null,
 });

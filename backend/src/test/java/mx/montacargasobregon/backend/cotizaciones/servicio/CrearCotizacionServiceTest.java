@@ -93,7 +93,7 @@ class CrearCotizacionServiceTest {
         when(repositorio.ultimoId()).thenReturn(0L);
         when(repositorio.save(any(Cotizacion.class))).thenAnswer(inv -> inv.getArgument(0));
         var direccion = new DatosDireccionRequest(" Carretera Guasave–Los Mochis ", "km 4.5", "Parque Industrial",
-                "Guasave", " Sinaloa ", "81100", "   ");
+                "Guasave", " Sinaloa ", "81100");
 
         Cotizacion c = servicio.crear(solicitud(10L, ENTREGA, RECOLECCION, List.of(7L), direccion));
 
@@ -101,7 +101,6 @@ class CrearCotizacionServiceTest {
         assertEquals("Carretera Guasave–Los Mochis", obra.getCalle());
         assertEquals("Sinaloa", obra.getEstado());
         assertEquals("81100", obra.getCodigoPostal());
-        assertNull(obra.getReferencias());
         assertEquals("Ing. Raúl Soto", c.getContactoObra().getNombre());
         assertEquals("6872104455", c.getContactoObra().getTelefono());
         assertEquals(BigDecimal.ZERO, c.getTrasladoEntrega());
@@ -175,7 +174,7 @@ class CrearCotizacionServiceTest {
                                                     LocalDateTime recoleccion, List<Long> equipoIds) {
         return solicitud(razonSocialId, entrega, recoleccion, equipoIds,
                 new DatosDireccionRequest("Carretera Guasave–Los Mochis", "km 4.5", "Parque Industrial", "Guasave",
-                        "Sinaloa", "81100", "Portón azul. Preguntar por el Ing. Soto."));
+                        "Sinaloa", "81100"));
     }
 
     private static CrearCotizacionRequest solicitud(Long razonSocialId, LocalDateTime entrega,

@@ -16,7 +16,6 @@ interface CampoConfig {
   maxLength: number;
   obligatorio?: boolean;
   soloDigitos?: boolean;
-  placeholder?: string;
 }
 
 const MOMENTOS = [
@@ -34,13 +33,6 @@ const CAMPOS_DIRECCION: CampoConfig[] = [
   { campo: "codigoPostalObra", etiqueta: "Código postal", maxLength: 5, soloDigitos: true },
 ];
 
-const CAMPO_REFERENCIAS: CampoConfig = {
-  campo: "referenciasObra",
-  etiqueta: "Referencias para llegar",
-  maxLength: 200,
-  placeholder: "Portón azul. Preguntar por el Ing. Soto.",
-};
-
 const CAMPOS_CONTACTO: CampoConfig[] = [
   { campo: "contactoObra", etiqueta: "Quién recibe en la obra", maxLength: 100, obligatorio: true },
   { campo: "telefonoContacto", etiqueta: "Teléfono (10 dígitos)", maxLength: 10, obligatorio: true, soloDigitos: true },
@@ -49,9 +41,9 @@ const CAMPOS_CONTACTO: CampoConfig[] = [
 export default function PasoFechasObra({ borrador, cambiar, errores }: Props) {
   const dias = calcularDias(borrador.fechaEntrega, borrador.fechaRecoleccion);
 
-  const campoTexto = ({ campo, etiqueta, maxLength, obligatorio, soloDigitos, placeholder }: CampoConfig) => (
+  const campoTexto = ({ campo, etiqueta, maxLength, obligatorio, soloDigitos }: CampoConfig) => (
     <Campo key={campo} etiqueta={etiqueta} obligatorio={obligatorio} value={borrador[campo]} maxLength={maxLength}
-      placeholder={placeholder} inputMode={soloDigitos ? "numeric" : undefined} error={errores[campo]}
+      inputMode={soloDigitos ? "numeric" : undefined} error={errores[campo]}
       onChange={(valor) => cambiar({ [campo]: soloDigitos ? valor.replace(/\D/g, "") : valor })} />
   );
 
@@ -89,7 +81,6 @@ export default function PasoFechasObra({ borrador, cambiar, errores }: Props) {
           Dirección de la obra <small>(obligatorio)</small>
         </p>
         <div className="direccion">{CAMPOS_DIRECCION.map(campoTexto)}</div>
-        {campoTexto(CAMPO_REFERENCIAS)}
         <div className="direccion">{CAMPOS_CONTACTO.map(campoTexto)}</div>
       </section>
     </>

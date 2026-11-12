@@ -204,9 +204,6 @@ export default function DetalleCotizacion() {
                 {formatoFechaHora(c.fechaRecoleccion)}
               </Dato>
               <Dato etiqueta="Lugar de entrega">{formatoDireccion(c.direccionObra)}</Dato>
-              {c.direccionObra.referencias && (
-                <Dato etiqueta="Referencias para llegar">{c.direccionObra.referencias}</Dato>
-              )}
               <Dato etiqueta="Contacto en la obra">
                 {c.contactoObra} · {formatoTelefono(c.telefonoContacto)}
               </Dato>

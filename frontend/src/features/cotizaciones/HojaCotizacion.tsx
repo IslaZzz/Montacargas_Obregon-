@@ -50,7 +50,6 @@ export default function HojaCotizacion({ cotizacion: c }: { cotizacion: Cotizaci
         <p>Entrega: {enMinuscula(formatoFechaHora(c.fechaEntrega))}</p>
         <p>Recolección: {enMinuscula(formatoFechaHora(c.fechaRecoleccion))}</p>
         <p>Lugar: {formatoDireccion(c.direccionObra)}</p>
-        {c.direccionObra.referencias && <p>Referencias: {c.direccionObra.referencias}</p>}
         <p>
           Contacto en la obra: {c.contactoObra} · {formatoTelefono(c.telefonoContacto)}
         </p>

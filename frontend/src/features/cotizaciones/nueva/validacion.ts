@@ -79,7 +79,6 @@ const CAMPO_DEL_BACKEND: Record<string, keyof BorradorCotizacion> = {
   "direccionObra.ciudad": "ciudadObra",
   "direccionObra.estado": "estadoObra",
   "direccionObra.codigoPostal": "codigoPostalObra",
-  "direccionObra.referencias": "referenciasObra",
   contactoObra: "contactoObra",
   telefonoContacto: "telefonoContacto",
   equipoIds: "equipos",

@@ -15,7 +15,7 @@ export interface DireccionRequest {
   codigoPostal: string
 }
 
-// Dirección de la obra (DatosDireccion): además del estado, lleva referencias para llegar
+// Dirección de la obra (DatosDireccion): como Direccion, más el estado
 export interface DatosDireccion {
   id: number
   calle: string
@@ -24,7 +24,6 @@ export interface DatosDireccion {
   ciudad: string
   estado: string
   codigoPostal: string
-  referencias: string | null
 }
 
 export interface DatosDireccionRequest {
@@ -34,5 +33,4 @@ export interface DatosDireccionRequest {
   ciudad: string
   estado: string
   codigoPostal: string
-  referencias: string | null
 }
