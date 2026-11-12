@@ -57,8 +57,9 @@ FROM (
 -- Cartas: las rentas que no aparecen aquí quedan "sin generar"
 DELETE FROM cartas_responsivas;
 
-INSERT INTO cartas_responsivas (renta_id, estado, fecha_generacion)
-SELECT r.id, d.estado, NOW()
+-- version empieza en 1 al generar la carta (OHU-04)
+INSERT INTO cartas_responsivas (renta_id, estado, fecha_generacion, version)
+SELECT r.id, d.estado, NOW(), 1
 FROM (
          SELECT 'R-2061' AS folio, 'GENERADA' AS estado
          UNION ALL SELECT 'R-2080', 'ENVIADA'
