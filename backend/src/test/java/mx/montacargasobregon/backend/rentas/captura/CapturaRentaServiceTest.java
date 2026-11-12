@@ -3,8 +3,6 @@ package mx.montacargasobregon.backend.rentas.captura;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -31,8 +29,6 @@ import mx.montacargasobregon.backend.equipos.modelo.Modelo;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.RentaDePrueba;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
-import mx.montacargasobregon.backend.revisiones.modelo.Revision;
-import mx.montacargasobregon.backend.revisiones.repositorio.RevisionRepository;
 import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,9 +43,6 @@ class CapturaRentaServiceTest {
     private CapturaRentaRepository repositorio;
 
     @Mock
-    private RevisionRepository revisionRepositorio;
-
-    @Mock
     private AvanceRentaService avanceRenta;
 
     private CapturaRentaService servicio;
@@ -61,7 +54,7 @@ class CapturaRentaServiceTest {
 
     @BeforeEach
     void setUp() {
-        servicio = new CapturaRentaService(repositorio, revisionRepositorio, avanceRenta);
+        servicio = new CapturaRentaService(repositorio, avanceRenta);
 
         cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
@@ -99,7 +92,7 @@ class CapturaRentaServiceTest {
 
         assertEquals(ENTREGA_DESDE, respuesta.entregaDesde());
         assertEquals(ENTREGA_HASTA, respuesta.entregaHasta());
-        verify(revisionRepositorio, times(2)).save(any(Revision.class));
+        verify(avanceRenta).programarRevisionesDeSalida(renta);
     }
 
     @Test
@@ -113,7 +106,7 @@ class CapturaRentaServiceTest {
 
         assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
         assertTrue(ex.getReason().contains("R-2091"));
-        verifyNoInteractions(revisionRepositorio);
+        verifyNoInteractions(avanceRenta);
     }
 
     @Test

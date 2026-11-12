@@ -61,7 +61,7 @@ public class Renta {
     @Column(name = "fecha_fin", nullable = false)
     private LocalDate fechaFin;
 
-    // Horarios confirmados con el cliente; vacíos hasta que se confirman.
+    // Horarios de entrega y recolección: nacen con la hora de la cotización y Operativo los ajusta.
     // Son rangos porque los traslados se programan por ventana y se revisan empalmes.
     @Column(name = "entrega_desde")
     private LocalDateTime entregaDesde;
@@ -98,7 +98,8 @@ public class Renta {
 
     /**
      * Crea la renta a partir de la cotización aceptada: copia el cliente, el periodo, la obra, su contacto
-     * y los equipos, que empiezan RESERVADO. Los horarios de entrega y recolección quedan por confirmar.
+     * y los equipos, que empiezan RESERVADO. La entrega y la recolección empiezan como rangos de un solo
+     * momento, la fecha y hora de la cotización; después Operativo los ajusta.
      */
     public Renta(String folio, Cotizacion cotizacion) {
         this.folio = folio;
@@ -109,6 +110,10 @@ public class Renta {
         this.direccionObra = cotizacion.getDireccionObra().enUnRenglon();
         this.contactoObra = cotizacion.getContactoObra().getNombre();
         this.telefonoContacto = cotizacion.getContactoObra().getTelefono();
+        this.entregaDesde = cotizacion.getFechaHoraEntrega();
+        this.entregaHasta = cotizacion.getFechaHoraEntrega();
+        this.recoleccionDesde = cotizacion.getFechaHoraRecoleccion();
+        this.recoleccionHasta = cotizacion.getFechaHoraRecoleccion();
         this.estado = EstadoRenta.PROGRAMADA;
         cotizacion.getEquipos().forEach(e -> agregarEquipo(e.getEquipo()));
     }

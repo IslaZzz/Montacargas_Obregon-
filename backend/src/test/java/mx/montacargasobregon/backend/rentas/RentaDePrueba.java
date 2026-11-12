@@ -13,7 +13,8 @@ import mx.montacargasobregon.backend.rentas.modelo.Renta;
 
 /**
  * Arma rentas para las pruebas. Toda renta sale de una cotización (HU-37): aquí se arma una mínima,
- * sin equipos, con el cliente, el periodo y el contacto de la renta.
+ * sin equipos, con el cliente, el periodo y el contacto de la renta. Los horarios quedan vacíos,
+ * para que cada prueba los confirme como lo necesite.
  */
 public final class RentaDePrueba {
 
@@ -30,6 +31,9 @@ public final class RentaDePrueba {
         Renta renta = new Renta(folio, cotizacion);
         // Cada prueba revisa su propio texto de dirección
         ReflectionTestUtils.setField(renta, "direccionObra", direccionObra);
+        for (String horario : new String[] { "entregaDesde", "entregaHasta", "recoleccionDesde", "recoleccionHasta" }) {
+            ReflectionTestUtils.setField(renta, horario, null);
+        }
         return renta;
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
+import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.rentas.repositorio.RentaRepository;
 
@@ -17,16 +18,24 @@ import mx.montacargasobregon.backend.rentas.repositorio.RentaRepository;
 public class RentaDeCotizacionService {
 
     private final RentaRepository repositorio;
+    private final AvanceRentaService avanceRenta;
 
-    public RentaDeCotizacionService(RentaRepository repositorio) {
+    public RentaDeCotizacionService(RentaRepository repositorio, AvanceRentaService avanceRenta) {
         this.repositorio = repositorio;
+        this.avanceRenta = avanceRenta;
     }
 
-    /** Crea la renta de la cotización; si ya tiene una, regresa esa: cada cotización genera una sola. */
+    /**
+     * Crea la renta de la cotización; si ya tiene una, regresa esa: cada cotización genera una sola.
+     * La entrega nace programada, así que también nacen sus revisiones de salida, como en el flujo de Operativo.
+     */
     @Transactional
     public Renta crear(Cotizacion cotizacion) {
-        return repositorio.findByCotizacionId(cotizacion.getId())
-                .orElseGet(() -> repositorio.save(new Renta(siguienteFolio(), cotizacion)));
+        return repositorio.findByCotizacionId(cotizacion.getId()).orElseGet(() -> {
+            Renta renta = repositorio.save(new Renta(siguienteFolio(), cotizacion));
+            avanceRenta.programarRevisionesDeSalida(renta);
+            return renta;
+        });
     }
 
     /** La renta que salió de esa cotización, si ya se creó. */

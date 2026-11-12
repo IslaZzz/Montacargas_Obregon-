@@ -1,7 +1,6 @@
 package mx.montacargasobregon.backend.rentas.servicio;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -27,6 +26,7 @@ import mx.montacargasobregon.backend.comun.DatosDireccion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.EquipoCotizacion;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
+import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
 import mx.montacargasobregon.backend.rentas.modelo.EquipoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.FaseEquipoRenta;
@@ -40,13 +40,16 @@ class RentaDeCotizacionServiceTest {
     @Mock
     private RentaRepository repositorio;
 
+    @Mock
+    private AvanceRentaService avanceRenta;
+
     private RentaDeCotizacionService servicio;
     private Cliente cliente;
     private Cotizacion cotizacion;
 
     @BeforeEach
     void setUp() {
-        servicio = new RentaDeCotizacionService(repositorio);
+        servicio = new RentaDeCotizacionService(repositorio, avanceRenta);
 
         cliente = new Cliente("María", "López", "Ruiz", "Obras del Mayo", "6449876543",
                 "compras@obrasdelmayo.mx", LocalDate.of(2026, 11, 1));
@@ -86,9 +89,13 @@ class RentaDeCotizacionServiceTest {
                 renta.getEquipos().stream().map(e -> e.getEquipo().getNumeroUnidad()).toList());
         assertEquals(List.of(FaseEquipoRenta.RESERVADO, FaseEquipoRenta.RESERVADO),
                 renta.getEquipos().stream().map(EquipoRenta::getFase).toList());
-        // Los horarios se confirman después
-        assertNull(renta.getEntregaDesde());
-        assertNull(renta.getRecoleccionDesde());
+        // Rangos de un solo momento con la hora de la cotización; Operativo los ajusta
+        assertEquals(LocalDateTime.of(2026, 11, 17, 8, 0), renta.getEntregaDesde());
+        assertEquals(LocalDateTime.of(2026, 11, 17, 8, 0), renta.getEntregaHasta());
+        assertEquals(LocalDateTime.of(2026, 11, 21, 18, 0), renta.getRecoleccionDesde());
+        assertEquals(LocalDateTime.of(2026, 11, 21, 18, 0), renta.getRecoleccionHasta());
+        // Con la entrega programada nacen sus revisiones de salida
+        verify(avanceRenta).programarRevisionesDeSalida(renta);
     }
 
     @Test
@@ -107,5 +114,6 @@ class RentaDeCotizacionServiceTest {
 
         assertSame(existente, servicio.crear(cotizacion));
         verify(repositorio, never()).save(any());
+        verify(avanceRenta, never()).programarRevisionesDeSalida(any());
     }
 }

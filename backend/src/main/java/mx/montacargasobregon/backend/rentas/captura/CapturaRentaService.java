@@ -10,12 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import mx.montacargasobregon.backend.rentas.modelo.EquipoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
-import mx.montacargasobregon.backend.revisiones.modelo.Revision;
-import mx.montacargasobregon.backend.revisiones.modelo.TipoRevision;
-import mx.montacargasobregon.backend.revisiones.repositorio.RevisionRepository;
 
 /**
  * Confirmación temporal de los horarios de entrega y recolección de una renta.
@@ -25,13 +21,10 @@ import mx.montacargasobregon.backend.revisiones.repositorio.RevisionRepository;
 public class CapturaRentaService {
 
     private final CapturaRentaRepository repositorio;
-    private final RevisionRepository revisionRepositorio;
     private final AvanceRentaService avanceRenta;
 
-    public CapturaRentaService(CapturaRentaRepository repositorio, RevisionRepository revisionRepositorio,
-                               AvanceRentaService avanceRenta) {
+    public CapturaRentaService(CapturaRentaRepository repositorio, AvanceRentaService avanceRenta) {
         this.repositorio = repositorio;
-        this.revisionRepositorio = revisionRepositorio;
         this.avanceRenta = avanceRenta;
     }
 
@@ -95,10 +88,7 @@ public class CapturaRentaService {
      */
     private void programarEntrega(Renta renta, LocalDateTime desde, LocalDateTime hasta) {
         renta.confirmarEntrega(desde, hasta);
-
-        for (EquipoRenta equipoRenta : renta.getEquipos()) {
-            revisionRepositorio.save(new Revision(equipoRenta, TipoRevision.SALIDA, desde));
-        }
+        avanceRenta.programarRevisionesDeSalida(renta);
     }
 
     private static void validarHorario(LocalDateTime desde, LocalDateTime hasta, LocalDate fechaFin) {

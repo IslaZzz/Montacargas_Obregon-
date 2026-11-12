@@ -5,12 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -143,6 +145,22 @@ class AvanceRentaServiceTest {
         assertEquals(EstadoRenta.PROGRAMADA, renta.getEstado());
     }
 
+
+    @Test
+    void programarRevisionesDeSalida_creaUnaRevisionPendientePorEquipo() {
+        servicio.programarRevisionesDeSalida(renta);
+
+        ArgumentCaptor<Revision> revisiones = ArgumentCaptor.forClass(Revision.class);
+        verify(revisionRepositorio, times(2)).save(revisiones.capture());
+        assertEquals(List.of(mc030, mc031),
+                revisiones.getAllValues().stream().map(Revision::getEquipoRenta).toList());
+        for (Revision r : revisiones.getAllValues()) {
+            assertEquals(TipoRevision.SALIDA, r.getTipo());
+            assertEquals(EstadoRevision.PENDIENTE, r.getEstado());
+            assertEquals(ENTREGA_DESDE, r.getFechaProgramada());
+        }
+        verifyNoInteractions(trasladoRepositorio);
+    }
 
     @Test
     void programarRecoleccion_guardaElHorarioYCreaElTraslado() {
