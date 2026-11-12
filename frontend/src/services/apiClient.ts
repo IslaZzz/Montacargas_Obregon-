@@ -1,5 +1,4 @@
 
-// Función base para llamar a la API. <T> es el tipo de dato que se espera recibir.
 export async function getApi<T>(
   ruta: string,
   opciones: RequestInit = {},
@@ -63,4 +62,25 @@ export class ErrorApi extends Error {
     super(mensaje);
     this.errores = errores;
   }
+}
+// Actualiza un registro mediante PUT
+export async function putApi<T>(
+  ruta: string,
+  cuerpo: unknown,
+): Promise<T> {
+  const respuesta = await fetch(`/api${ruta}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(cuerpo),
+  });
+
+  if (!respuesta.ok) {
+    throw new Error(`Error ${respuesta.status}`);
+  }
+
+  if (respuesta.status === 204) {
+    return undefined as T;
+  }
+
+  return respuesta.json() as Promise<T>;
 }
