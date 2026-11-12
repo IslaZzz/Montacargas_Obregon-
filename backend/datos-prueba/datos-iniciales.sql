@@ -11,11 +11,21 @@
 
 USE montacargas_obregon;
 
--- Usuarios: gerencia y auxiliares. Sin contraseña hasta que exista el inicio de sesión (HU-28)
-INSERT IGNORE INTO usuarios (numero_empleado, nombres, apellido_paterno, apellido_materno, correo, tipo, activo) VALUES
-  ('GER-01', 'Patricia', 'Romero', 'Soto',    'patricia.romero@montacargasobregon.mx', 'GERENTE',  1),
-  ('AUX-01', 'Daniela',  'Félix',  'Moreno',  'daniela.felix@montacargasobregon.mx',   'AUXILIAR', 1),
-  ('AUX-02', 'Luis',     'Ochoa',  'Valdez',  'luis.ochoa@montacargasobregon.mx',      'AUXILIAR', 1);
+-- Usuarios: gerencia y auxiliares. Con su correo se inicia sesión (HU-28).
+-- Los tres tienen la misma contraseña de prueba; aquí solo va cifrada (BCrypt). La contraseña
+-- está en la hoja «Datos de prueba» de los casos de prueba; no se escribe en el repositorio.
+SET @contrasena_prueba = '$2a$10$nogcCvdq7InGRTX2APaXeOLEvkltXYK.4CpCCWnZeXhSTUgLSHGQu';
+
+INSERT IGNORE INTO usuarios (numero_empleado, nombres, apellido_paterno, apellido_materno, correo, contrasena, tipo, activo) VALUES
+  ('GER-01', 'Patricia', 'Romero', 'Soto',    'patricia.romero@montacargasobregon.mx', @contrasena_prueba, 'GERENTE',  1),
+  ('AUX-01', 'Daniela',  'Félix',  'Moreno',  'daniela.felix@montacargasobregon.mx',   @contrasena_prueba, 'AUXILIAR', 1),
+  ('AUX-02', 'Luis',     'Ochoa',  'Valdez',  'luis.ochoa@montacargasobregon.mx',      @contrasena_prueba, 'AUXILIAR', 1);
+
+-- Bases de antes de HU-28: el backend agrega la columna vacía; se les pone la contraseña de prueba
+UPDATE usuarios SET contrasena = @contrasena_prueba
+WHERE (contrasena IS NULL OR contrasena = '')
+  AND correo IN ('patricia.romero@montacargasobregon.mx', 'daniela.felix@montacargasobregon.mx',
+                 'luis.ochoa@montacargasobregon.mx');
 
 -- Categorías. «Maniobras» no tiene equipos: sirve para probar la búsqueda sin resultados (HU-09)
 INSERT IGNORE INTO categorias (nombre) VALUES
