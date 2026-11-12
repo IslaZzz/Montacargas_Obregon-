@@ -11,7 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * Descuento o precio especial de una cotización (HU-15). No tiene tabla propia: va en la de cotizaciones.
+ * Descuento o precio especial de una cotización (HU-15), con el motivo que se le da a gerencia.
+ * No tiene tabla propia: va en la de cotizaciones.
  * No cambia la tarifa del modelo ni el importe de cada equipo.
  */
 @Embeddable
@@ -27,8 +28,12 @@ public class Descuento {
     @Column(name = "descuento_valor", precision = 12, scale = 2)
     private BigDecimal valor;
 
-    public Descuento(TipoDescuento tipo, BigDecimal valor) {
+    @Column(name = "descuento_motivo", length = 200)
+    private String motivo;
+
+    public Descuento(TipoDescuento tipo, BigDecimal valor, String motivo) {
         this.tipo = tipo;
         this.valor = valor;
+        this.motivo = motivo;
     }
 }

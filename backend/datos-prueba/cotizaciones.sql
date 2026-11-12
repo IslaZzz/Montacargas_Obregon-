@@ -91,6 +91,12 @@ PREPARE paso FROM @sql;
 EXECUTE paso;
 DEALLOCATE PREPARE paso;
 
+-- Hibernate no cambia columnas que ya existen: el estado admite los valores nuevos del diagrama
+-- (En autorización, Rechazada y Vencida) y la fecha de envío guarda también la hora.
+ALTER TABLE cotizaciones
+  MODIFY estado ENUM('ACEPTADA', 'BORRADOR', 'EN_AUTORIZACION', 'ENVIADA', 'NO_ACEPTADA', 'RECHAZADA', 'VENCIDA') NOT NULL,
+  MODIFY fecha_envio DATETIME(6) NULL;
+
 -- Cotizaciones: se borran y se vuelven a crear, cada una con su dirección de obra.
 -- Las fechas son relativas a hoy. Importe = días (contando entrega y recolección) × tarifa; IVA 16%.
 -- Traslados en 0 y sin descuento: llegan con HU-14 y HU-15.
@@ -108,7 +114,8 @@ VALUES ('COT-0001', @juan, @rs_yaqui,
         TIMESTAMP(CURDATE() + INTERVAL 12 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 16 DAY, '18:00:00'),
         LAST_INSERT_ID(), 'Ing. Raúl Soto', '6442104455', 0.00, 0.00,
         6000.00, 960.00, 6960.00, 'NO_ACEPTADA',
-        TIMESTAMP(CURDATE() - INTERVAL 7 DAY, '10:15:00'), CURDATE() - INTERVAL 7 DAY, CURDATE() - INTERVAL 4 DAY);
+        TIMESTAMP(CURDATE() - INTERVAL 7 DAY, '10:15:00'), TIMESTAMP(CURDATE() - INTERVAL 7 DAY, '10:30:00'),
+        CURDATE() - INTERVAL 4 DAY);
 INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@gr02, 1200.00, 6000.00, LAST_INSERT_ID());
 
@@ -122,7 +129,8 @@ VALUES ('COT-0002', @carlos, @rs_carlos,
         TIMESTAMP(CURDATE() + INTERVAL 3 DAY, '07:30:00'), TIMESTAMP(CURDATE() + INTERVAL 3 DAY, '19:00:00'),
         LAST_INSERT_ID(), 'Carlos Ramírez', '6445551234', 0.00, 0.00,
         150.00, 24.00, 174.00, 'ACEPTADA',
-        TIMESTAMP(CURDATE() - INTERVAL 5 DAY, '12:00:00'), CURDATE() - INTERVAL 5 DAY, CURDATE() - INTERVAL 3 DAY);
+        TIMESTAMP(CURDATE() - INTERVAL 5 DAY, '12:00:00'), TIMESTAMP(CURDATE() - INTERVAL 5 DAY, '12:30:00'),
+        CURDATE() - INTERVAL 3 DAY);
 INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@pt03, 150.00, 150.00, LAST_INSERT_ID());
 
@@ -136,7 +144,7 @@ VALUES ('COT-0003', @carlos, @rs_carlos,
         TIMESTAMP(CURDATE() + INTERVAL 6 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 8 DAY, '18:00:00'),
         LAST_INSERT_ID(), 'Carlos Ramírez', '6445551234', 0.00, 0.00,
         1500.00, 240.00, 1740.00, 'ENVIADA',
-        TIMESTAMP(CURDATE() - INTERVAL 3 DAY, '09:40:00'), CURDATE() - INTERVAL 2 DAY, NULL);
+        TIMESTAMP(CURDATE() - INTERVAL 3 DAY, '09:40:00'), TIMESTAMP(CURDATE() - INTERVAL 2 DAY, '11:00:00'), NULL);
 INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@mc07, 500.00, 1500.00, LAST_INSERT_ID());
 
@@ -150,7 +158,7 @@ VALUES ('COT-0004', @juan, @rs_yaqui,
         TIMESTAMP(CURDATE() + INTERVAL 7 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 8 DAY, '18:00:00'),
         LAST_INSERT_ID(), 'Ing. Raúl Soto', '6442104455', 0.00, 0.00,
         2400.00, 384.00, 2784.00, 'ENVIADA',
-        TIMESTAMP(CURDATE() - INTERVAL 2 DAY, '16:40:00'), CURDATE() - INTERVAL 1 DAY, NULL);
+        TIMESTAMP(CURDATE() - INTERVAL 2 DAY, '16:40:00'), TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '09:15:00'), NULL);
 INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@gr02, 1200.00, 2400.00, LAST_INSERT_ID());
 

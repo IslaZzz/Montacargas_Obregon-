@@ -37,7 +37,7 @@ public record CotizacionResponse(
                 c.getFolio(),
                 c.getEstado().name(),
                 c.getFechaHoraCreacion(),
-                c.getFechaEnvio(),
+                c.getFechaHoraEnvio() == null ? null : c.getFechaHoraEnvio().toLocalDate(),
                 c.getFechaRespuesta(),
                 ClienteResponse.toClienteResponse(c.getCliente()),
                 RazonSocialResponse.toRazonSocialResponse(c.getRazonSocial()),

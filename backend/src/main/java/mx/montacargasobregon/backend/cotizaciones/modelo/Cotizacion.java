@@ -33,8 +33,8 @@ import mx.montacargasobregon.backend.comun.DatosDireccion;
 
 /**
  * Cotización de renta para un cliente, como en el diagrama de dominio.
- * Traslados (HU-14) y descuento (HU-15) ya tienen su lugar, pero en Delivery S1 no se capturan:
- * los traslados quedan en 0 y la cotización va sin descuento.
+ * Traslados (HU-14), descuento (HU-15) y la autorización de gerencia (HU-16) ya tienen su lugar,
+ * pero todavía no se capturan: los traslados quedan en 0 y la cotización va sin descuento.
  */
 @Entity
 @Table(name = "cotizaciones")
@@ -88,6 +88,10 @@ public class Cotizacion {
     @Embedded
     private Descuento descuento;
 
+    // Respuesta de gerencia al descuento (HU-16); vacía mientras no la haya
+    @Embedded
+    private AutorizacionDescuento autorizacion;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
@@ -114,7 +118,7 @@ public class Cotizacion {
 
     // Cuándo pasó a Enviada (HU-18)
     @Column(name = "fecha_envio")
-    private LocalDate fechaEnvio;
+    private LocalDateTime fechaHoraEnvio;
 
     // Cuándo se marcó como Aceptada o No aceptada (HU-20)
     @Column(name = "fecha_respuesta")
@@ -142,13 +146,13 @@ public class Cotizacion {
         equipos.add(equipo);
     }
 
-    /** Cambia el estado y guarda la fecha del cambio. Quien llama revisa antes que el cambio se permita. */
-    public void cambiarEstado(EstadoCotizacion nuevoEstado, LocalDate fecha) {
+    /** Cambia el estado y guarda cuándo. Quien llama revisa antes que el cambio se permita. */
+    public void cambiarEstado(EstadoCotizacion nuevoEstado, LocalDateTime cuando) {
         this.estado = nuevoEstado;
         if (nuevoEstado == EstadoCotizacion.ENVIADA) {
-            this.fechaEnvio = fecha;
+            this.fechaHoraEnvio = cuando;
         } else {
-            this.fechaRespuesta = fecha;
+            this.fechaRespuesta = cuando.toLocalDate();
         }
     }
 
