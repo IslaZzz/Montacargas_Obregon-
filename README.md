@@ -1,6 +1,15 @@
 # Montacargas_Obregon-
 Proyecto web para la empresa Sonorense Montacargas Obregon 
 
+## Configuración
+
+El backend toma la conexión a MySQL (y el correo de la carta responsiva) de `backend/.env`, que no se sube al repositorio.
+
+1. Copia `backend/.env.example` como `backend/.env` (cópialo, no lo renombres).
+2. Pon tu usuario y tu contraseña de MySQL en `DB_USER` y `DB_PASSWORD`.
+
+No cambies `application.properties` para poner tus datos.
+
 ## Datos iniciales
 
 Usuarios de Comercial, categorías, modelos con su tarifa por día y equipos de ejemplo (T-02).
