@@ -10,7 +10,7 @@ import { Button } from "../../components/buttons";
 import "../../styles/rentas/rentas.css";
 import "../../styles/global.css";
 
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 
 interface RentaVista extends Renta {
