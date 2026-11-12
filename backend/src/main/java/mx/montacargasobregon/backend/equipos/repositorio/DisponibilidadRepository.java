@@ -37,10 +37,10 @@ public interface DisponibilidadRepository extends JpaRepository<Equipo, Long> {
 
     // Equipos apartados: están en una cotización aceptada que se cruza con el rango
     @Query("""
-            SELECT DISTINCT p.equipo.id FROM Cotizacion c JOIN c.partidas p
+            SELECT DISTINCT e.equipo.id FROM Cotizacion c JOIN c.equipos e
             WHERE c.estado = :estado
-              AND c.fechaEntrega < :finExclusivo
-              AND c.fechaRecoleccion >= :inicio
+              AND c.fechaHoraEntrega < :finExclusivo
+              AND c.fechaHoraRecoleccion >= :inicio
             """)
     List<Long> idsApartadosPorCotizaciones(
             @Param("estado") EstadoCotizacion estado,
