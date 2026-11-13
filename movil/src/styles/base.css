@@ -1,0 +1,51 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--fondo);
+  color: var(--texto);
+  font: 400 16px/1.4 var(--fuente-texto);
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--menta);
+  outline-offset: 2px;
+}
+
+.icono {
+  font-size: 24px;
+  line-height: 1;
+  font-variation-settings: "FILL" 0, "wght" 500;
+  flex-shrink: 0;
+}
+.icono-relleno {
+  font-variation-settings: "FILL" 1, "wght" 500;
+}

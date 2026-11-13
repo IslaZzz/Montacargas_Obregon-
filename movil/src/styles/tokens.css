@@ -1,0 +1,31 @@
+/* Colores y medidas de la app. Son los mismos de la app de oficina más los del prototipo móvil. */
+:root {
+  --fuente-texto: "Inter", system-ui, sans-serif;
+  --fuente-titulo: "Manrope", "Inter", system-ui, sans-serif;
+
+  --fondo: #f5f6e8;
+  --fondo-tarjeta: #fffff8;
+  --teal: #0f3d4c;
+  --menta: #267c93;
+  --azul-mineral: #39677c;
+  --texto: #2e2d37;
+  --gris: #cdd2d1;
+  --gris-claro: #f0f1ea;
+
+  --verde: #b4ead5;
+  --verde-fuerte: #209568;
+  --amarillo: #fff1a3;
+  --amarillo-fuerte: #d58a11;
+  --naranja: #fcebd0;
+  --naranja-texto: #8a5a0b;
+  --rojo: #f4bcbc;
+  --rojo-fuerte: #ba3636;
+  --lila: #b9c0f0;
+  --azul: #c5d8f5;
+  --gris-chip: #dfece9;
+
+  --radio: 14px;
+  --radio-boton: 12px;
+  --borde: 2px solid var(--menta);
+  --ancho-app: 480px;
+}
