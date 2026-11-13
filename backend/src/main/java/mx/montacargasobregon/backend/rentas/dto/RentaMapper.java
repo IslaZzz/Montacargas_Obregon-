@@ -1,4 +1,4 @@
-package mx.montacargasobregon.backend.rentas.mapper;
+package mx.montacargasobregon.backend.rentas.dto;
 
 import java.util.List;
 import org.springframework.stereotype.Component;
