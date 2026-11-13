@@ -50,8 +50,17 @@ export interface Cotizacion {
   contactoObra: string;
   telefonoContacto: string;
   partidas: PartidaCotizacion[];
+  trasladoEntrega: number; // 0 si no hay traslado
+  trasladoRecoleccion: number; // 0 si no hay traslado
+  precioDefinido: boolean; // True cuando ya se capturó el precio (hoy, al guardar el traslado). Con él, la cotización ya puede generar su PDF
   subtotal: number;
   iva: number;
   total: number;
   renta: RentaDeCotizacion | null;
+}
+
+// Cuerpo de PATCH /cotizaciones/{id}/traslado
+export interface TrasladoRequest {
+  trasladoEntrega: number;
+  trasladoRecoleccion: number;
 }
