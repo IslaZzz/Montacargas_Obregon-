@@ -1,6 +1,7 @@
 package mx.montacargasobregon.backend.personal.repositorio;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,4 +26,7 @@ public interface PersonalRepository extends JpaRepository<Personal, Long> {
            or lower(p.codigo)          like lower(concat('%', :texto, '%'))
         """)
     List<Personal> buscar(@Param("texto") String texto);
+
+    // Para entrar en la app móvil con el código del personal
+    Optional<Personal> findByCodigoIgnoreCaseAndActivoTrue(String codigo);
 }
