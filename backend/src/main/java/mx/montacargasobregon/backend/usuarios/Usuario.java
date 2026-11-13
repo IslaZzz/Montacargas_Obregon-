@@ -20,19 +20,24 @@ public class Usuario extends Persona {
     @Column(name = "numero_empleado", nullable = false, unique = true, length = 20)
     private String numeroEmpleado;
 
-    // Será el identificador para entrar al sistema
+    // Con él se inicia sesión (HU-28)
     @Column(nullable = false, unique = true, length = 150)
     private String correo;
+
+    // Cifrada con BCrypt; nunca se guarda ni se envía tal cual
+    @Column(nullable = false, length = 100)
+    private String contrasena;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private TipoUsuario tipo;
 
     public Usuario(String numeroEmpleado, String nombres, String apellidoPaterno,
-                   String apellidoMaterno, String correo, TipoUsuario tipo) {
+                   String apellidoMaterno, String correo, String contrasena, TipoUsuario tipo) {
         super(nombres, apellidoPaterno, apellidoMaterno);
         this.numeroEmpleado = numeroEmpleado;
         this.correo = correo;
+        this.contrasena = contrasena;
         this.tipo = tipo;
     }
 

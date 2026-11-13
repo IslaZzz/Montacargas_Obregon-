@@ -58,7 +58,6 @@ export default function MenuLateral({
   onCerrarSesion,
 }: MenuLateralProps) {
   // Gerencia ve todas las opciones, auxiliar solo las generales
-  // Cambiar esto cuando se implemente la autenticación de usuarios
   const visibles = opciones.filter(
     (o) => !o.soloGerencia || rol === "gerencia",
   );

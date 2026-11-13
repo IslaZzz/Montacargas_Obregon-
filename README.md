@@ -31,6 +31,23 @@ Usuarios de Comercial, categorías, modelos con su tarifa por día y equipos de 
 
 Se puede correr varias veces: solo agrega lo que falte. Los demás scripts de `backend/datos-prueba` son datos de prueba de cada historia.
 
+## Inicio de sesión (HU-28)
+
+Todas las pantallas piden iniciar sesión. Los usuarios de prueba son los de `datos-iniciales.sql`:
+
+| Correo | Rol |
+|---|---|
+| patricia.romero@montacargasobregon.mx | Gerencia |
+| daniela.felix@montacargasobregon.mx | Auxiliar |
+| luis.ochoa@montacargasobregon.mx | Auxiliar |
+
+Los tres tienen la misma contraseña de prueba. Está en la hoja «Datos de prueba» de los casos de prueba; no se escribe en el repositorio.
+
+Si tu base ya tenía estos usuarios, haz esto una sola vez:
+
+1. Arranca el backend. Agrega la columna `contrasena` a `usuarios`.
+2. Vuelve a correr `backend/datos-prueba/datos-iniciales.sql`. Les pone la contraseña de prueba a los tres.
+
 ## Rentas que salen de la cotización (HU-37)
 
 Toda renta nace al aceptar una cotización. Si tu base ya tenía rentas, haz esto una sola vez:
