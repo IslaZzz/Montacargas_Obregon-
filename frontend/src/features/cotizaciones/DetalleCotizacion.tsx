@@ -14,10 +14,20 @@ import {
 import BotonVerPdf from "./BotonVerPdf";
 import { cambiarEstadoCotizacion, obtenerCotizacion } from "./cotizacionesApi";
 import type { Cotizacion } from "./cotizacionesTypes";
-import { chipDeEstado, ESTADOS_RENTA, nombreCompleto, textoDias } from "./cotizacionesUtils";
+import {
+  chipDeEstado,
+  ESTADOS_RENTA,
+  nombreCompleto,
+  textoDias,
+} from "./cotizacionesUtils";
 import "../../styles/cotizaciones/cotizaciones.css";
 
 type Respuesta = "ACEPTADA" | "NO_ACEPTADA";
+
+const ANTICIPO = 0.3;
+
+// Redondea a centavos para que las cuentas no arrastren decimales
+const redondear = (pesos: number) => Math.round(pesos * 100) / 100;
 
 // "Enviada el 08/10/2026", según el estado
 function textoFechaEstado(c: Cotizacion) {
@@ -38,8 +48,15 @@ function textoFechaEstado(c: Cotizacion) {
 
 export default function DetalleCotizacion() {
   const { id } = useParams();
-  // Folio de la cotización recién creada en "Nueva cotización" (HU-12), para mostrar el aviso
-  const folioCreado = (useLocation().state as { creada?: string } | null)?.creada;
+  // Lo que manda la pantalla de la que venimos:
+  // - creada: el folio de la cotización recién creada en "Nueva cotización" (HU-12)
+  // - precioGuardado: se acaba de guardar el precio en "Precio de la cotización" (HU-13 y HU-14)
+  const estadoNavegacion = useLocation().state as {
+    creada?: string;
+    precioGuardado?: boolean;
+  } | null;
+  const folioCreado = estadoNavegacion?.creada;
+  const precioGuardado = Boolean(estadoNavegacion?.precioGuardado);
 
   const [cotizacion, setCotizacion] = useState<Cotizacion | null>(null);
   const [error, setError] = useState("");
@@ -74,7 +91,9 @@ export default function DetalleCotizacion() {
       setCotizacion(await cambiarEstadoCotizacion(cotizacion.id, respuesta));
       setRecienMarcada(true);
     } catch {
-      setError("No se pudo guardar la respuesta del cliente. Intenta de nuevo.");
+      setError(
+        "No se pudo guardar la respuesta del cliente. Intenta de nuevo.",
+      );
     } finally {
       setGuardando(false);
       setConfirmando(null);
@@ -102,18 +121,101 @@ export default function DetalleCotizacion() {
   const c = cotizacion;
   const empresa = c.cliente.empresa;
   const respondida = c.estado === "ACEPTADA" || c.estado === "NO_ACEPTADA";
+  const esBorrador = c.estado === "BORRADOR";
+
+  // Borrador al que todavía le falta el precio: se sigue con "Continuar con el precio"
+  const faltaPrecio = esBorrador && !c.precioDefinido;
+  // Borrador con el precio ya guardado: se puede generar el PDF y enviarla
+  const precioListo = esBorrador && c.precioDefinido;
+
+  // Totales: los equipos y el traslado se muestran por separado cuando hay traslado
+  const subtotalEquipos = redondear(
+    c.partidas.reduce((suma, p) => suma + p.importe, 0),
+  );
+  const traslado = redondear(
+    (c.trasladoEntrega ?? 0) + (c.trasladoRecoleccion ?? 0),
+  );
+  const mostrarDesglose = precioListo || traslado > 0;
+  const anticipo = redondear(c.total * ANTICIPO);
+
+  const datosCliente = (
+    <>
+      <Dato etiqueta="Cliente">
+        {[nombreCompleto(c.cliente), empresa].filter(Boolean).join(" · ")}
+      </Dato>
+      <Dato etiqueta="Se factura a">
+        {c.razonSocial.nombre} (RFC: {c.razonSocial.rfc})
+      </Dato>
+    </>
+  );
+
+  const datosEntrega = (
+    <>
+      <Dato etiqueta="Entrega">{formatoFechaHora(c.fechaEntrega)}</Dato>
+      <Dato etiqueta="Recolección">{formatoFechaHora(c.fechaRecoleccion)}</Dato>
+      {faltaPrecio && <Dato etiqueta="Duración">{textoDias(c.dias)}</Dato>}
+      <Dato
+        etiqueta={faltaPrecio ? "Dirección de la obra" : "Lugar de entrega"}
+      >
+        {formatoDireccion(c.direccionObra)}
+      </Dato>
+      <Dato etiqueta="Contacto en la obra">
+        {c.contactoObra} · {formatoTelefono(c.telefonoContacto)}
+      </Dato>
+      {c.renta && (
+        <Dato etiqueta="Renta">
+          {c.renta.folio} · {ESTADOS_RENTA[c.renta.estado]}
+        </Dato>
+      )}
+    </>
+  );
+
+  const tarjetaEquipos = (
+    <section className="tarjeta detalle-equipos">
+      <h2>Equipos ({c.partidas.length})</h2>
+      {c.partidas.map((p) => (
+        <div key={p.id} className="equipo-cotizado">
+          <strong>
+            {p.unidad} · {p.modelo}
+          </strong>
+          {faltaPrecio ? (
+            <span>Tarifa vigente: {formatoMoneda(p.tarifaDia)} por día</span>
+          ) : (
+            <span>
+              {textoDias(c.dias)} × {formatoMoneda(p.tarifaDia)} ={" "}
+              {formatoMoneda(p.importe)}
+            </span>
+          )}
+        </div>
+      ))}
+    </section>
+  );
 
   return (
     <div className="pagina detalle-cotizacion">
-      <VolverACotizaciones />
+      {!(faltaPrecio && folioCreado) && <VolverACotizaciones />}
 
       {/* Aviso al llegar desde "Nueva cotización" (HU-12) */}
-      {folioCreado && c.estado === "BORRADOR" && (
+      {faltaPrecio && folioCreado && (
         <div className="aviso-exito" role="status">
           <span className="material-symbols-rounded">check_circle</span>
           <div>
             <strong>Cotización guardada con el folio {folioCreado}</strong>
-            <p>Quedó en Borrador. Revísala y envíala al cliente cuando esté lista.</p>
+            <p>
+              Quedó en Borrador. Puedes seguir con el precio ahora o después
+              desde Cotizaciones.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Aviso al llegar desde "Precio de la cotización" (HU-14) */}
+      {precioListo && precioGuardado && (
+        <div className="aviso-exito" role="status">
+          <span className="material-symbols-rounded">check_circle</span>
+          <div>
+            <strong>Se guardó el precio de la cotización</strong>
+            <p>Ya puedes generar el PDF y enviarla al cliente.</p>
           </div>
         </div>
       )}
@@ -168,12 +270,31 @@ export default function DetalleCotizacion() {
               Ir a cotizaciones
             </Link>
           )}
-          {/* En Enviada, en celular el botón va debajo de "¿Qué respondió el cliente?" */}
-          <BotonVerPdf
-            cotizacion={c}
-            primario={c.estado === "BORRADOR"}
-            className={c.estado === "ENVIADA" ? "solo-laptop" : ""}
-          />
+
+          {faltaPrecio ? (
+            <>
+              <Link to="/clientes" className="btn btn-tertiary btn-grande">
+                Ir a clientes
+              </Link>
+              {/* Abre "Precio de la cotización" (HU-13 y HU-14) */}
+              <Link
+                to={`/cotizaciones/${c.id}/precio`}
+                className="btn btn-primary btn-grande"
+              >
+                Continuar con el precio
+                <span className="material-symbols-rounded" aria-hidden="true">
+                  arrow_forward
+                </span>
+              </Link>
+            </>
+          ) : (
+            /* En Enviada, en celular el botón va debajo de "¿Qué respondió el cliente?" */
+            <BotonVerPdf
+              cotizacion={c}
+              primario={esBorrador}
+              className={c.estado === "ENVIADA" ? "solo-laptop" : ""}
+            />
+          )}
         </div>
       </div>
 
@@ -192,49 +313,35 @@ export default function DetalleCotizacion() {
       <div className="detalle-cuerpo">
         {/* Columna izquierda */}
         <div className="detalle-principal">
-          <section className="tarjeta detalle-datos">
-            <h2>Cliente y entrega</h2>
-            <dl className="datos">
-              <Dato etiqueta="Cliente">
-                {[nombreCompleto(c.cliente), empresa].filter(Boolean).join(" · ")}
-              </Dato>
-              <Dato etiqueta="Se factura a">
-                {c.razonSocial.nombre} (RFC: {c.razonSocial.rfc})
-              </Dato>
-              <Dato etiqueta="Entrega">{formatoFechaHora(c.fechaEntrega)}</Dato>
-              <Dato etiqueta="Recolección">
-                {formatoFechaHora(c.fechaRecoleccion)}
-              </Dato>
-              <Dato etiqueta="Lugar de entrega">{formatoDireccion(c.direccionObra)}</Dato>
-              <Dato etiqueta="Contacto en la obra">
-                {c.contactoObra} · {formatoTelefono(c.telefonoContacto)}
-              </Dato>
-              {c.renta && (
-                <Dato etiqueta="Renta">
-                  {c.renta.folio} · {ESTADOS_RENTA[c.renta.estado]}
-                </Dato>
-              )}
-            </dl>
-          </section>
-
-          <section className="tarjeta detalle-equipos">
-            <h2>Equipos ({c.partidas.length})</h2>
-            {c.partidas.map((p) => (
-              <div key={p.id} className="equipo-cotizado">
-                <strong>
-                  {p.unidad} · {p.modelo}
-                </strong>
-                <span>
-                  {textoDias(c.dias)} × {formatoMoneda(p.tarifaDia)} ={" "}
-                  {formatoMoneda(p.importe)}
-                </span>
-              </div>
-            ))}
-          </section>
+          {faltaPrecio ? (
+            <>
+              <section className="tarjeta detalle-datos">
+                <h2>Cliente y facturación</h2>
+                <dl className="datos">{datosCliente}</dl>
+              </section>
+              <section className="tarjeta detalle-datos">
+                <h2>Fechas y lugar</h2>
+                <dl className="datos">{datosEntrega}</dl>
+              </section>
+            </>
+          ) : (
+            <>
+              <section className="tarjeta detalle-datos">
+                <h2>Cliente y entrega</h2>
+                <dl className="datos">
+                  {datosCliente}
+                  {datosEntrega}
+                </dl>
+              </section>
+              {tarjetaEquipos}
+            </>
+          )}
         </div>
 
         {/* Columna derecha */}
         <div className="detalle-lateral">
+          {faltaPrecio && tarjetaEquipos}
+
           {c.estado === "ENVIADA" && (
             <section className="tarjeta detalle-respuesta">
               <h2>¿Qué respondió el cliente?</h2>
@@ -266,21 +373,42 @@ export default function DetalleCotizacion() {
             </div>
           )}
 
-          <section className="tarjeta detalle-totales">
-            <h2>Totales</h2>
-            <div className="totales-fila">
-              <span>Subtotal</span>
-              <strong>{formatoMoneda(c.subtotal)}</strong>
-            </div>
-            <div className="totales-fila">
-              <span>IVA (16%)</span>
-              <strong>{formatoMoneda(c.iva)}</strong>
-            </div>
-            <div className="totales-fila totales-total">
-              <span>Total</span>
-              <strong>{formatoMoneda(c.total)}</strong>
-            </div>
-          </section>
+          {/* Mientras falta el precio no se muestran totales: se ven en el paso siguiente */}
+          {!faltaPrecio && (
+            <section className="tarjeta detalle-totales">
+              <h2>Totales</h2>
+              {mostrarDesglose && (
+                <>
+                  <div className="totales-fila">
+                    <span>Equipos ({textoDias(c.dias)})</span>
+                    <strong>{formatoMoneda(subtotalEquipos)}</strong>
+                  </div>
+                  <div className="totales-fila">
+                    <span>Traslado (ida y regreso)</span>
+                    <strong>{formatoMoneda(traslado)}</strong>
+                  </div>
+                </>
+              )}
+              <div className="totales-fila">
+                <span>Subtotal</span>
+                <strong>{formatoMoneda(c.subtotal)}</strong>
+              </div>
+              <div className="totales-fila">
+                <span>IVA (16%)</span>
+                <strong>{formatoMoneda(c.iva)}</strong>
+              </div>
+              <div className="totales-fila totales-total">
+                <span>{precioListo ? "Total con IVA" : "Total"}</span>
+                <strong>{formatoMoneda(c.total)}</strong>
+              </div>
+              {precioListo && (
+                <div className="totales-fila">
+                  <span>Anticipo para confirmar (30%)</span>
+                  <strong>{formatoMoneda(anticipo)}</strong>
+                </div>
+              )}
+            </section>
+          )}
         </div>
       </div>
 
@@ -357,7 +485,13 @@ function VolverACotizaciones() {
   );
 }
 
-function Dato({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
+function Dato({
+  etiqueta,
+  children,
+}: {
+  etiqueta: string;
+  children: ReactNode;
+}) {
   return (
     <div className="dato">
       <dt>{etiqueta}</dt>
