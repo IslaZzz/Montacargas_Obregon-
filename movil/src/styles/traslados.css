@@ -1,0 +1,45 @@
+/* ===== Tarjeta de una tarea en "Mis tareas" ===== */
+.tarea {
+  color: inherit;
+  text-decoration: none;
+}
+.tarea:active {
+  background: var(--gris-claro);
+}
+.tarea-encabezado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tarea-hora {
+  margin-left: auto;
+  color: var(--teal);
+  font: 700 20px/1.2 var(--fuente-titulo);
+}
+.tarea-flecha {
+  color: var(--teal);
+  font-size: 28px;
+}
+.tarea-folios {
+  margin-top: -4px;
+  color: var(--azul-mineral);
+  font-size: 14px;
+}
+
+/* ===== Detalle: título de sección y equipos ===== */
+.seccion-titulo {
+  margin-top: 4px;
+  color: var(--teal);
+  font-size: 18px;
+  font-weight: 700;
+}
+.equipo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.equipo-unidad {
+  color: var(--teal);
+  font: 700 22px/1.2 var(--fuente-titulo);
+}
