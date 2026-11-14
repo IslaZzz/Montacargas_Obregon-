@@ -18,6 +18,7 @@ import jakarta.validation.Valid;
 import mx.montacargasobregon.backend.cotizaciones.dto.CambiarEstadoCotizacionRequest;
 import mx.montacargasobregon.backend.cotizaciones.dto.CotizacionResponse;
 import mx.montacargasobregon.backend.cotizaciones.dto.CotizacionResumenResponse;
+import mx.montacargasobregon.backend.cotizaciones.dto.TrasladoCotizacionRequest;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.cotizaciones.servicio.CotizacionPdfService;
 import mx.montacargasobregon.backend.cotizaciones.servicio.CotizacionPdfService.ArchivoPdf;
@@ -36,7 +37,9 @@ public class CotizacionController {
         this.pdfServicio = pdfServicio;
     }
 
-    /** GET /api/cotizaciones: lista todas las cotizaciones, la más nueva primero. */
+    /**
+     * GET /api/cotizaciones: lista todas las cotizaciones, la más nueva primero.
+     */
     @GetMapping
     public List<CotizacionResumenResponse> listar() {
         return servicio.listar().stream()
@@ -44,19 +47,24 @@ public class CotizacionController {
                 .toList();
     }
 
-    /** GET /api/cotizaciones/5: obtiene el detalle de la cotización con id 5; si no existe, responde 404. */
+    /**
+     * GET /api/cotizaciones/5: obtiene el detalle de la cotización con id 5; si no
+     * existe, responde 404.
+     */
     @GetMapping("/{id}")
     public CotizacionResponse obtener(@PathVariable Long id) {
         return respuesta(servicio.obtener(id));
     }
 
     /**
-     * GET /api/cotizaciones/5/pdf: el PDF de la cotización, para verlo en el navegador.
-     * Con ?descargar=true se descarga. No cambia el estado: eso lo hace el PATCH de abajo.
+     * GET /api/cotizaciones/5/pdf: el PDF de la cotización, para verlo en el
+     * navegador.
+     * Con ?descargar=true se descarga. No cambia el estado: eso lo hace el PATCH de
+     * abajo.
      */
     @GetMapping(value = "/{id}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> pdf(@PathVariable Long id,
-                                      @RequestParam(defaultValue = "false") boolean descargar) {
+            @RequestParam(defaultValue = "false") boolean descargar) {
         ArchivoPdf archivo = pdfServicio.generar(id);
         ContentDisposition disposicion = (descargar ? ContentDisposition.attachment() : ContentDisposition.inline())
                 .filename(archivo.nombre())
@@ -67,11 +75,24 @@ public class CotizacionController {
                 .body(archivo.contenido());
     }
 
-    /** PATCH /api/cotizaciones/5/estado: cambia solo el estado; si el cambio no se permite, responde 409. */
+    /**
+     * PATCH /api/cotizaciones/5/estado: cambia solo el estado; si el cambio no se
+     * permite, responde 409.
+     */
     @PatchMapping("/{id}/estado")
     public CotizacionResponse cambiarEstado(@PathVariable Long id,
-                                            @Valid @RequestBody CambiarEstadoCotizacionRequest datos) {
+            @Valid @RequestBody CambiarEstadoCotizacionRequest datos) {
         return respuesta(servicio.cambiarEstado(id, datos.estado()));
+    }
+
+    /**
+     * PATCH /api/cotizaciones/5/traslado: guarda el costo de traslado; si ya no es
+     * Borrador, responde 409.
+     */
+    @PatchMapping("/{id}/traslado")
+    public CotizacionResponse registrarTraslado(@PathVariable Long id,
+            @Valid @RequestBody TrasladoCotizacionRequest datos) {
+        return respuesta(servicio.registrarTraslado(id, datos.trasladoEntrega(), datos.trasladoRecoleccion()));
     }
 
     // El detalle lleva la renta que salió de la cotización, si ya tiene (HU-37)
