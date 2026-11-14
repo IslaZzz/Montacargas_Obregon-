@@ -25,6 +25,7 @@ import DashboardTraslados from "../features/traslados/DashboardTraslados";
 import ProgramarRecoleccion from "../features/rentas-captura/ProgramarRecoleccion";
 import IniciarSesion from "../features/sesion/IniciarSesion";
 import RutaProtegida from "../features/sesion/RutaProtegida";
+import RutaGerencia from "../features/sesion/RutaGerencia";
 
 
 export default function AppRoutes() {
@@ -83,6 +84,12 @@ export default function AppRoutes() {
 
         {/* Disponibilidad */}
         <Route path="/disponibilidad" element={<Disponibilidad />} />
+
+        {/* Solo gerencia (HU-29): el auxiliar ve «No tienes permiso». La pantalla de Autorizaciones llega con HU-16 */}
+        <Route element={<RutaGerencia />}>
+          <Route path="/autorizaciones" />
+          <Route path="/ingresos" />
+        </Route>
 
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />
