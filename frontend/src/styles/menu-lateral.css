@@ -67,6 +67,21 @@
   font-weight: 600;
 }
 
+/* Número junto a una opción, como las autorizaciones pendientes (HU-29) */
+.menu-contador {
+  min-width: 22px;
+  height: 22px;
+  box-sizing: border-box;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: var(--warning-red-outline);
+  color: var(--btn-text-color);
+  font:
+    700 12px/22px "Inter",
+    sans-serif;
+  text-align: center;
+}
+
 /* Usuario */
 .menu-usuario {
   display: flex;
@@ -105,8 +120,15 @@
     padding-inline: 0;
   }
   .menu-link {
+    position: relative;
     justify-content: center;
     padding-left: 0;
+  }
+  /* Sin texto, el número va sobre el ícono */
+  .menu-contador {
+    position: absolute;
+    top: 10px;
+    left: calc(50% + 6px);
   }
 }
 

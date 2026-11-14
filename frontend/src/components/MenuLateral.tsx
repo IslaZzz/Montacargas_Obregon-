@@ -16,6 +16,8 @@ interface MenuLateralProps {
   abierto?: boolean; // Solo se usa en celular
   onCerrar?: () => void; // Cierra el menú al elegir una opción
   onCerrarSesion?: () => void;
+  // Número junto a una opción, por su ruta; ej. { "/autorizaciones": 2 } cuando exista HU-16
+  contadores?: Record<string, number>;
 }
 
 // Opciones del menú en el orden del diseño
@@ -56,6 +58,7 @@ export default function MenuLateral({
   abierto,
   onCerrar,
   onCerrarSesion,
+  contadores = {},
 }: MenuLateralProps) {
   // Gerencia ve todas las opciones, auxiliar solo las generales
   const visibles = opciones.filter(
@@ -86,6 +89,9 @@ export default function MenuLateral({
           >
             <span className="material-symbols-rounded">{o.icono}</span>
             <span className="menu-texto">{o.texto}</span>
+            {(contadores[o.ruta] ?? 0) > 0 && (
+              <span className="menu-contador">{contadores[o.ruta]}</span>
+            )}
           </NavLink>
         ))}
       </nav>
