@@ -13,6 +13,11 @@ export function puesto(rol: RolUsuario): string {
   return rol === "GERENTE" ? "Gerencia" : "Auxiliar de oficina";
 }
 
+// Acceso por rol (HU-29): lo de gerencia, como «Autorizar» o «Ampliar apartado», solo se muestra si es true
+export function esGerencia(rol: RolUsuario): boolean {
+  return rol === "GERENTE";
+}
+
 // El rol como lo espera MenuLateral
 export function rolMenu(rol: RolUsuario): "gerencia" | "auxiliar" {
   return rol === "GERENTE" ? "gerencia" : "auxiliar";
@@ -38,6 +43,8 @@ const pantallas: Record<string, string> = {
   traslados: "Traslados",
   mantenimientos: "Mantenimientos",
   "apartados-proximos": "Apartados próximos",
+  autorizaciones: "Autorizaciones",
+  ingresos: "Ingresos",
 };
 
 // "/cotizaciones/12" -> "Cotizaciones". Null si no es una pantalla del menú
