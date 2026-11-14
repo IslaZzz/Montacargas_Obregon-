@@ -7,9 +7,6 @@ export interface Categoria {
 
 export const listarCategorias = () => getApi<Categoria[]>("/categorias");
 
-export const obtenerCategoria = (id: number) =>
-  getApi<Categoria>(`/categorias/${id}`);
-
 export const crearCategoria = (nombre: string) =>
   postApi<Categoria>("/categorias", { nombre });
 

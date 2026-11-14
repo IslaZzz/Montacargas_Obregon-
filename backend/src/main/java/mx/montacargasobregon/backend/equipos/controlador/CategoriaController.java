@@ -37,11 +37,6 @@ public class CategoriaController {
         return servicio.listar().stream().map(CategoriaController::aResponse).toList();
     }
 
-    @GetMapping("/{id}")
-    public CategoriaResponse obtener(@PathVariable Long id) {
-        return aResponse(servicio.obtener(id));
-    }
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CategoriaResponse crear(@Valid @RequestBody CategoriaRequest datos) {

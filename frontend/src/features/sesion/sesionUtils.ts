@@ -45,7 +45,6 @@ const pantallas: Record<string, string> = {
   "apartados-proximos": "Apartados próximos",
   autorizaciones: "Autorizaciones",
   ingresos: "Ingresos",
-  categorias: "Categorías",
 };
 
 // "/cotizaciones/12" -> "Cotizaciones". Null si no es una pantalla del menú
