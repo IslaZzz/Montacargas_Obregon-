@@ -79,11 +79,11 @@ export default function Categorias() {
         </Aviso>
       )}
 
-      <Link to="/modelos" className="categorias-volver">
+      <Link to="/equipos" className="categorias-volver">
         <span className="material-symbols-rounded" aria-hidden="true">
           arrow_back
         </span>
-        Volver a modelos
+        Volver a equipos
       </Link>
 
       <div className="titulo-acciones">
