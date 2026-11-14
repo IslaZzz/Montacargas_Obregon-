@@ -30,3 +30,18 @@ export function calcularPrecio(
   const anticipo = redondear(total * ANTICIPO);
   return { subtotal, iva, total, anticipo };
 }
+
+// Deja pasar solo dígitos y un punto: hasta 7 enteros y 2 decimales.
+// Se usa mientras se escribe, así que también limpia lo que se pegue.
+export function limpiarMonto(texto: string): string {
+  const soloValidos = texto.replace(/[^\d.]/g, "");
+  const [enteros, ...resto] = soloValidos.split(".");
+  const parteEntera = enteros.slice(0, 7);
+
+  // Sin punto, solo los enteros
+  if (resto.length === 0) return parteEntera;
+
+  // Con punto, se conserva el primero y se ignoran los demás
+  const decimales = resto.join("").slice(0, 2);
+  return `${parteEntera === "" ? "0" : parteEntera}.${decimales}`;
+}

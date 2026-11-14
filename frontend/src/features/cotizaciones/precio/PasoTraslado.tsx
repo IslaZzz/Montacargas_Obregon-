@@ -1,5 +1,7 @@
 import { formatoDireccion } from "../../../utils/formato";
 import type { Cotizacion } from "../cotizacionesTypes";
+import { limpiarMonto } from "./precioCalculo";
+
 
 export type CampoTraslado = "entrega" | "recoleccion";
 
@@ -76,7 +78,7 @@ function CampoMonto({ id, etiqueta, valor, error, alCambiar, alSalir }: CampoMon
           type="text"
           inputMode="decimal"
           value={valor}
-          onChange={(e) => alCambiar(e.target.value)}
+          onChange={(e) => alCambiar(limpiarMonto(e.target.value))}
           onBlur={alSalir}
           aria-invalid={error ? true : undefined}
         />
