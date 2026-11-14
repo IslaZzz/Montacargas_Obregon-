@@ -59,6 +59,17 @@ public interface TrasladoRepository extends JpaRepository<Traslado, Long> {
             @Param("cancelado") EstadoTraslado cancelado
     );
 
+    /** Traslados de un operador que no estén cancelados, para sus tareas en la app móvil. */
+    @Query("""
+        SELECT t FROM Traslado t
+        JOIN FETCH t.renta r
+        JOIN FETCH r.cliente c
+        WHERE t.responsable.id = :operadorId
+          AND t.estado != mx.montacargasobregon.backend.traslados.modelo.EstadoTraslado.CANCELADO
+        ORDER BY t.fechaHoraInicio ASC
+    """)
+    List<Traslado> buscarPorOperador(@Param("operadorId") Long operadorId);
+
     /** Si la renta ya tiene un traslado de ese tipo que no esté cancelado. */
     boolean existsByRentaAndTipoAndEstadoNot(Renta renta, TipoTraslado tipo, EstadoTraslado estado);
 
