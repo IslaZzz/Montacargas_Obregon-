@@ -27,4 +27,8 @@ public class Categoria {
     public Categoria(String nombre) {
         this.nombre = nombre;
     }
+
+    public void cambiarNombre(String nombre) {
+        this.nombre = nombre;
+    }
 }
