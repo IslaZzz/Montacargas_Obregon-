@@ -26,6 +26,8 @@ import ProgramarRecoleccion from "../features/rentas-captura/ProgramarRecoleccio
 import IniciarSesion from "../features/sesion/IniciarSesion";
 import RutaProtegida from "../features/sesion/RutaProtegida";
 import RutaGerencia from "../features/sesion/RutaGerencia";
+import Categorias from "../features/categorias/Categorias";
+import FormCategoria from "../features/categorias/FormCategoria";
 
 
 export default function AppRoutes() {
@@ -84,6 +86,10 @@ export default function AppRoutes() {
 
         {/* Disponibilidad */}
         <Route path="/disponibilidad" element={<Disponibilidad />} />
+
+        <Route path="/categorias" element={<Categorias />} />
+        <Route path="/categorias/nueva" element={<FormCategoria />} />
+        <Route path="/categorias/:id/editar" element={<FormCategoria />} />
 
         {/* Solo gerencia (HU-29): el auxiliar ve «No tienes permiso». La pantalla de Autorizaciones llega con HU-16 */}
         <Route element={<RutaGerencia />}>

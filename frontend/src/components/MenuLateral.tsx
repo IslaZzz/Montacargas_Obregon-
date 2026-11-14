@@ -48,6 +48,7 @@ const opciones: Opcion[] = [
     icono: "attach_money",
     soloGerencia: true,
   },
+  { texto: "Categorías", ruta: "/categorias", icono: "category" },
   { texto: "Modelos", ruta: "/modelos", icono: "sell" },
 ];
 

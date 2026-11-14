@@ -1,0 +1,63 @@
+.categorias-tabla .data-table th,
+.categorias-tabla .data-table td {
+  font-size: 16px;
+}
+.categorias-tabla .categorias-acciones {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+.categorias-editar {
+  font-weight: 600;
+  color: var(--primary-teal);
+  text-decoration: underline;
+}
+
+.categorias-tarjetas {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.categoria-tarjeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  background: var(--off-white-background);
+  border: 1.5px solid var(--secondary-mint);
+  border-radius: 10px;
+  font-size: 18px;
+  color: var(--primary-teal);
+}
+.categoria-tarjeta strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.categoria-tarjeta .btn {
+  flex-shrink: 0;
+  min-height: 48px;
+}
+
+.form-categoria .tarjeta {
+  max-width: 640px;
+}
+.form-categoria .barra-acciones {
+  justify-content: flex-end;
+}
+
+@media (max-width: 700px) {
+  .categorias .titulo-acciones-botones,
+  .categorias .titulo-acciones-botones .btn {
+    width: 100%;
+  }
+  .categorias-tabla {
+    display: none;
+  }
+  .categorias-tarjetas {
+    display: flex;
+  }
+}
