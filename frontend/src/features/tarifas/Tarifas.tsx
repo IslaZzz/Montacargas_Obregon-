@@ -97,7 +97,7 @@ export default function Tarifas() {
       header: 'Acciones',
       className: 'col-acciones',
       accessor: (t) => (
-        <Button type="button" variant="secondary" onClick={() => setEditando(t)}>
+        <Button type="button" variant="tertiary" onClick={() => setEditando(t)}>
           <span className="material-symbols-rounded">edit</span>
           Editar tarifa
         </Button>
@@ -154,6 +154,10 @@ export default function Tarifas() {
                 </option>
               ))}
             </select>
+            {/* Flecha propia; la del navegador se oculta en el CSS */}
+            <span className="material-symbols-rounded filtro-flecha" aria-hidden="true">
+              expand_more
+            </span>
           </label>
 
           <DataTable
