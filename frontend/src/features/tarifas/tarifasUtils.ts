@@ -5,38 +5,33 @@ const formatoPesos = new Intl.NumberFormat('es-MX', {
 })
 export const formatearPesos = (valor: number) => formatoPesos.format(valor)
 
-// 2500 pasa a 2,500.00, para mostrarla dentro del campo
-export const formatearParaCampo = (valor: number) =>
-  valor.toLocaleString('es-MX', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
+// 2500 pasa a 2500.00, para mostrarla dentro del campo (sin comas, porque el campo no las permite)
+export const formatearParaCampo = (valor: number) => valor.toFixed(2)
 
 export const MENSAJE_TARIFA = 'Captura una tarifa mayor a cero'
 
-// La columna tarifa_dia es DECIMAL(10,2): hasta 8 enteros
-const TARIFA_MAXIMA = 99_999_999.99
+// Hasta 8 enteros, un punto y hasta 2 decimales. También acepta valores a medias
+// mientras se escribe, como "" o "25." o "2500.5"
+const FORMATO_EN_CAPTURA = /^\d{0,8}(\.\d{0,2})?$/
 
-// Revisa lo que se escribió en el campo.
-// Devuelve la tarifa como número o el mensaje de error.
+/**
+ * Limpia lo que se escribió en el campo.
+ * Quita todo lo que no sea número o punto (también las comas si se pega "2,500.00").
+ * Si el resultado no cumple el formato, devuelve null y el campo se queda como estaba.
+ */
+export function limpiarTarifa(valor: string): string | null {
+  const limpio = valor.replace(/[^\d.]/g, '')
+  return FORMATO_EN_CAPTURA.test(limpio) ? limpio : null
+}
+
+// Revisa la tarifa al guardar. El formato ya lo cuida limpiarTarifa;
+// aquí solo falta revisar que no esté vacía ni sea cero.
 export function leerTarifa(
   texto: string,
 ): { tarifa: number } | { error: string } {
-  // Se aceptan las comas de miles: "2,500.00" se lee como 2500.00
-  const limpio = texto.replace(/,/g, '').trim()
-
-  // Vacío, negativo o con letras
-  if (!/^(\d+(\.\d*)?|\.\d+)$/.test(limpio)) return { error: MENSAJE_TARIFA }
-
-  const tarifa = Number(limpio)
-  if (tarifa <= 0) return { error: MENSAJE_TARIFA }
-
-  const decimales = limpio.split('.')[1] ?? ''
-  if (decimales.length > 2)
-    return { error: 'La tarifa admite máximo 2 decimales' }
-
-  if (tarifa > TARIFA_MAXIMA)
-    return { error: 'La tarifa no puede pasar de $99,999,999.99' }
-
+  const tarifa = Number(texto)
+  if (texto === '' || texto === '.' || !(tarifa > 0)) {
+    return { error: MENSAJE_TARIFA }
+  }
   return { tarifa }
 }

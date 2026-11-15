@@ -6,7 +6,7 @@ import { Button } from '../../components/buttons'
 import { ErrorApi } from '../../services/apiClient'
 import { actualizarTarifa } from './tarifasApi'
 import type { Tarifa } from './tarifasTypes'
-import { formatearParaCampo, leerTarifa } from './tarifasUtils'
+import { formatearParaCampo, leerTarifa, limpiarTarifa } from './tarifasUtils'
 
 interface EditarTarifaModalProps {
   // Modelo cuya tarifa se edita
@@ -89,7 +89,10 @@ export default function EditarTarifaModal({
           value={texto}
           error={error}
           onChange={(v) => {
-            setTexto(v)
+            // Si lo escrito no cumple el formato, no se cambia el campo
+            const limpio = limpiarTarifa(v)
+            if (limpio === null) return
+            setTexto(limpio)
             setError('')
           }}
         />
