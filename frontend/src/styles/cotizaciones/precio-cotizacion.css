@@ -1,0 +1,197 @@
+/* Pantalla "Precio de la cotización" (HU-13), paso 1: Precio de equipos.
+   Reutiliza las clases de cotizaciones.css y nueva-cotizacion.css; aquí solo va lo que es nuevo. */
+
+/* Aviso azul de la duración de la renta (variante de .aviso-info) */
+.aviso-info.precio-aviso {
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  background: rgba(38, 124, 147, 0.1);
+  border: 2px solid var(--secondary-mint);
+}
+.precio-aviso > .material-symbols-rounded {
+  font-size: 28px;
+  color: var(--secondary-mint);
+}
+.precio-aviso strong {
+  display: block;
+  font:
+    600 20px/1.35 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.precio-aviso p {
+  margin: 2px 0 0;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+/* Tarjeta de equipos */
+.precio-equipos .nc-tarjeta-encabezado {
+  align-items: center;
+}
+.precio-equipos .nc-tarjeta-encabezado h2 {
+  margin: 0;
+}
+.precio-equipos .nc-tarjeta-encabezado .material-symbols-rounded {
+  font-size: 22px;
+}
+
+/* Celular: tarjetas en lugar de tabla (la tabla ya se oculta con .cotizaciones-tabla) */
+.precio-tarjetas {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Resumen del precio */
+.precio-resumen .totales-fila {
+  border-bottom: 1px solid rgba(15, 61, 76, 0.15);
+}
+.precio-resumen .totales-fila small {
+  display: block;
+  font-size: 16px;
+  color: var(--text-foreground);
+}
+.precio-secundario {
+  flex: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-foreground);
+  text-align: right;
+}
+
+.precio-total {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  background: var(--primary-teal);
+  color: var(--selection-gray);
+}
+.precio-total span {
+  font-size: 18px;
+  font-weight: 600;
+}
+.precio-total strong {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.precio-resumen .precio-anticipo {
+  border-bottom: 0;
+}
+
+@media (max-width: 700px) {
+  .precio-tarjetas {
+    display: flex;
+  }
+  .precio-total strong {
+    font-size: 32px;
+  }
+}
+
+/* ===== Paso 2: Traslado ===== */
+
+/* Pasos ya terminados: en verde, con palomita blanca */
+.precio-cotizacion .nc-pasos li.hecho {
+  border-color: var(--ok-green-outline);
+  color: var(--text-foreground);
+}
+.precio-cotizacion .nc-pasos li.hecho .nc-pasos-numero {
+  background: var(--ok-green-outline);
+  border-color: var(--ok-green-outline);
+  color: #fff;
+}
+
+.traslado-encabezado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--primary-teal);
+}
+.traslado-encabezado h2 {
+  margin: 0;
+}
+.traslado-encabezado .material-symbols-rounded {
+  font-size: 28px;
+  font-variation-settings: "FILL" 1;
+}
+
+/* Lugar de entrega (solo se muestra) */
+.traslado-lugar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--off-white-background);
+  border: 1px solid rgba(15, 61, 76, 0.2);
+  border-radius: 8px;
+  color: var(--primary-teal);
+}
+.traslado-lugar-etiqueta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: var(--text-foreground);
+}
+.traslado-lugar-etiqueta .material-symbols-rounded {
+  font-size: 22px;
+  font-variation-settings: "FILL" 1;
+}
+.traslado-lugar p {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* Los dos campos de dinero */
+.traslado-campos {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px;
+  background: var(--off-white-background);
+  border: 1.5px solid rgba(15, 61, 76, 0.35);
+  border-radius: 10px;
+}
+.traslado-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.traslado-campo label {
+  font-weight: 500;
+  color: var(--primary-teal);
+}
+.traslado-caja {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 16px;
+  background: var(--off-white-background);
+  border: 1.5px solid var(--primary-teal);
+  border-radius: 8px;
+  font-size: 18px;
+  color: var(--primary-teal);
+}
+.traslado-caja:focus-within {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+}
+.traslado-caja input {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+}
+.traslado-caja-error {
+  border-color: var(--warning-red-outline);
+}

@@ -3,6 +3,7 @@ import type {
   Cotizacion,
   CotizacionResumen,
   EstadoCotizacion,
+  TrasladoRequest,
 } from "./cotizacionesTypes";
 
 // GET /api/cotizaciones, devuelve todas, la más nueva primero
@@ -27,3 +28,10 @@ export async function obtenerPdf(id: number, nombre: string): Promise<File> {
 // PATCH /api/cotizaciones/5/estado, responde 409 si el cambio no se permite
 export const cambiarEstadoCotizacion = (id: number, estado: EstadoCotizacion) =>
   patchApi<Cotizacion>(`/cotizaciones/${id}/estado`, { estado });
+
+// PATCH /api/cotizaciones/5/traslado: guarda el costo de traslado de una cotización en Borrador.
+// Responde 409 si la cotización ya no es Borrador y 400 si algún monto es negativo
+export const guardarTraslado = (
+  id: number,
+  traslado: TrasladoRequest,
+) => patchApi<Cotizacion>(`/cotizaciones/${id}/traslado`, traslado);

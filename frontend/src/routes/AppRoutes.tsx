@@ -6,6 +6,7 @@ import RegistrarCliente from "../features/clientes/RegistrarCliente";
 import VerCotizaciones from "../features/cotizaciones/VerCotizaciones";
 import DetalleCotizacion from "../features/cotizaciones/DetalleCotizacion";
 import NuevaCotizacion from "../features/cotizaciones/nueva/NuevaCotizacion";
+import PrecioCotizacion from "../features/cotizaciones/precio/PrecioCotizacion";
 import PdfCotizacion from "../features/cotizaciones/PdfCotizacion";
 import FilterTest from "../features/testComponentes/FilterTest";
 import StyleTest from "../features/testComponentes/StyleTest";
@@ -27,6 +28,8 @@ import IniciarSesion from "../features/sesion/IniciarSesion";
 import RutaProtegida from "../features/sesion/RutaProtegida";
 import RutaGerencia from "../features/sesion/RutaGerencia";
 import Categorias from "../features/categorias/Categorias";
+
+
 
 
 export default function AppRoutes() {
@@ -57,6 +60,7 @@ export default function AppRoutes() {
         <Route path="/cotizaciones/nueva" element={<NuevaCotizacion />} />
         <Route path="/cotizaciones/:id" element={<DetalleCotizacion />} />
         <Route path="/cotizaciones/:id/pdf" element={<PdfCotizacion />} />
+        <Route path="/cotizaciones/:id/precio" element={<PrecioCotizacion />} />
 
         {/* Captura manual temporal: sin opción en el menú lateral*/}
 

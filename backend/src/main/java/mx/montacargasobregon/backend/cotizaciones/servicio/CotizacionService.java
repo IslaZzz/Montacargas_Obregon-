@@ -1,5 +1,6 @@
 package mx.montacargasobregon.backend.cotizaciones.servicio;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +43,8 @@ public class CotizacionService {
 
     /**
      * Cambia el estado: Borrador → Enviada → Aceptada o No aceptada.
-     * Repetir el estado actual no cambia nada (por ejemplo, volver a descargar el PDF de una enviada).
+     * Repetir el estado actual no cambia nada (por ejemplo, volver a descargar el
+     * PDF de una enviada).
      */
     @Transactional
     public Cotizacion cambiarEstado(Long id, EstadoCotizacion nuevoEstado) {
@@ -60,10 +62,29 @@ public class CotizacionService {
         }
 
         cotizacion.cambiarEstado(nuevoEstado, LocalDateTime.now(Cotizacion.ZONA_HORARIA));
-        // Al aceptarla nace su renta, en la misma transacción: si falla, tampoco queda aceptada (HU-37)
+        // Al aceptarla nace su renta, en la misma transacción: si falla, tampoco queda
+        // aceptada (HU-37)
         if (nuevoEstado == EstadoCotizacion.ACEPTADA) {
             rentas.crear(cotizacion);
         }
+        return cotizacion; // Dentro de la transacción, JPA guarda el cambio solo
+    }
+
+    /**
+     * Guarda el costo de traslado de una cotización en Borrador y recalcula su
+     * precio.
+     * Si ya no es Borrador, responde 409.
+     */
+    @Transactional
+    public Cotizacion registrarTraslado(Long id, BigDecimal entrega, BigDecimal recoleccion) {
+        Cotizacion cotizacion = obtener(id);
+
+        if (cotizacion.getEstado() != EstadoCotizacion.BORRADOR) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "El traslado solo se puede capturar en una cotización en Borrador");
+        }
+
+        cotizacion.registrarTraslado(entrega, recoleccion);
         return cotizacion; // Dentro de la transacción, JPA guarda el cambio solo
     }
 
