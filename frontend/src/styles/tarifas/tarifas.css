@@ -1,0 +1,140 @@
+/* Pantalla «Tarifas» (HU-04). */
+
+.tarifas .enlace-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #12404f;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.tarifas .enlace-volver .material-symbols-rounded {
+  font-size: 1rem;
+}
+
+.tarifas .enlace-volver:hover {
+  text-decoration: underline;
+}
+
+/* Filtro «Categoría: Todas» */
+.filtro-categoria {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  min-width: 10.5rem;
+  padding: 0.625rem 1rem;
+  border: 1.5px solid #12404f;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #12404f;
+  background: #fffff8;
+  cursor: pointer;
+}
+
+/* Marca el filtro cuando se navega con el teclado */
+.filtro-categoria:focus-within {
+  outline: 2px solid #2f7a8a;
+  outline-offset: 2px;
+}
+
+.filtro-categoria .material-symbols-rounded {
+  font-size: 1.125rem;
+}
+
+/* Sin el recuadro ni la flecha del navegador */
+.filtro-categoria select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  padding: 0 1.75rem 0 0;
+  cursor: pointer;
+}
+
+/* Flecha propia, a la derecha */
+.filtro-categoria .filtro-flecha {
+  position: absolute;
+  right: 0.75rem;
+  pointer-events: none;
+}
+
+/* Tabla */
+.tabla-tarifas .data-table th {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  background: #efefe9;
+  padding: 0.75rem 1rem;
+}
+
+.tabla-tarifas .data-table td {
+  font-size: 1rem;
+  padding: 0.875rem 1rem;
+  vertical-align: middle;
+}
+
+/* Columna «Modelo» */
+.tarifa-modelo {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #12404f;
+}
+
+.tarifa-detalle {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Columna «Tarifa por día» */
+.tarifa-precio {
+  display: block;
+  font-size: 1rem;
+  color: #1f2937;
+}
+
+.tarifa-actualizada {
+  display: block;
+  font-size: 0.75rem;
+  color: #2e8b57;
+}
+
+/* Columna «Acciones», alineada a la derecha */
+.tarifas .col-acciones {
+  text-align: right;
+}
+
+/* Botón «Editar tarifa» */
+.tabla-tarifas .btn {
+  min-height: 48px;
+  padding: 0 20px;
+  border-width: 2px;
+  border-radius: 8px;
+}
+
+.tabla-tarifas .btn.btn-secondary .material-symbols-rounded {
+  font-size: 1rem;
+  color: inherit;
+}
+
+/* Fila de la última tarifa guardada */
+.tarifas .fila-actualizada td {
+  background: #eef4ef;
+}
+
+/* Nota debajo de la tabla */
+.nota-tarifas {
+  font-size: 0.75rem;
+  color: #6b7280;
+}

@@ -18,6 +18,7 @@ import VistaPreviaCarta from "../features/cartas/VistaPreviaCarta";
 import Rentas from "../features/rentas/rentas";
 import DetalleCliente from "../features/clientes/DetalleCliente";
 import Disponibilidad from '../features/equipos/disponibilidad/ConsultarDisponibilidad'
+import Tarifas from '../features/tarifas/Tarifas'
 
 import ConsultarEquipos from "../features/equipos/estados/ConsultarEquipos";
 import DetalleRenta from "../features/rentas/detalle/DetalleRenta";
@@ -101,6 +102,9 @@ export default function AppRoutes() {
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />
         <Route path="/componentes/filtros" element={<FilterTest />} />
+
+        {/* Tarifas */}
+        <Route path="/tarifas" element={<Tarifas />} />
 
         {/* Aquí se agregarán las demás pantallas */}
       </Route>
