@@ -1,0 +1,103 @@
+/* Pantalla «Tarifas» (HU-04). */
+
+.tarifas .enlace-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #12404f;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.tarifas .enlace-volver .material-symbols-rounded {
+  font-size: 1rem;
+}
+
+.tarifas .enlace-volver:hover {
+  text-decoration: underline;
+}
+
+/* Filtro «Categoría: Todas» */
+.filtro-categoria {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #12404f;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #12404f;
+  background: #fffff8;
+}
+
+.filtro-categoria .material-symbols-rounded {
+  font-size: 1.125rem;
+}
+
+.filtro-categoria select {
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Texto de la tabla */
+.tabla-tarifas .data-table td {
+  font-size: 1rem;
+}
+
+/* Columna «Modelo» */
+.tarifa-modelo {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #12404f;
+}
+
+.tarifa-detalle {
+  display: block;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+/* Columna «Tarifa por día» */
+.tarifa-precio {
+  display: block;
+  font-size: 1rem;
+}
+
+.tarifa-actualizada {
+  display: block;
+  font-size: 0.875rem;
+  color: #2e8b57;
+}
+
+/* Columna «Acciones», alineada a la derecha */
+.tarifas .col-acciones {
+  text-align: right;
+}
+
+/* Botón «Editar tarifa» */
+.tabla-tarifas .btn {
+  font-size: 0.875rem;
+}
+
+.tabla-tarifas .btn .material-symbols-rounded {
+  font-size: 1.125rem;
+}
+
+/* Fila de la última tarifa guardada */
+.tarifas .fila-actualizada td {
+  background: #eef4ef;
+}
+
+/* Nota debajo de la tabla */
+.nota-tarifas {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
