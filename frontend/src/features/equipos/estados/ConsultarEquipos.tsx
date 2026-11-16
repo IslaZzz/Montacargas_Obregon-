@@ -140,12 +140,17 @@ export default function ConsultarEquipos() {
             <h1>Equipos</h1>
             <p>Consulta y filtra los equipos registrados.</p>
           </div>
-          <span title={PROXIMAMENTE}>
-            <Button type="button" variant="primary" disabled>
-              <span className="material-symbols-rounded" aria-hidden="true">add</span>
-              Registrar equipo
+          <div className="titulo-acciones-botones">
+            <Button type="button" variant="secondary" onClick={() => navigate("/categorias")}>
+              Categorías
             </Button>
-          </span>
+            <span title={PROXIMAMENTE}>
+              <Button type="button" variant="primary" disabled>
+                <span className="material-symbols-rounded" aria-hidden="true">add</span>
+                Registrar equipo
+              </Button>
+            </span>
+          </div>
         </div>
 
         {error && <Aviso tipo="error" titulo={error} />}

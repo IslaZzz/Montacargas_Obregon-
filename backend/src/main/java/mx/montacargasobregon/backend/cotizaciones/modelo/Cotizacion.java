@@ -7,6 +7,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.RoundingMode;
 
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.CascadeType;
@@ -33,8 +34,10 @@ import mx.montacargasobregon.backend.comun.DatosDireccion;
 
 /**
  * Cotización de renta para un cliente, como en el diagrama de dominio.
- * Traslados (HU-14), descuento (HU-15) y la autorización de gerencia (HU-16) ya tienen su lugar,
- * pero todavía no se capturan: los traslados quedan en 0 y la cotización va sin descuento.
+ * Traslados (HU-14), descuento (HU-15) y la autorización de gerencia (HU-16) ya
+ * tienen su lugar,
+ * pero todavía no se capturan: los traslados quedan en 0 y la cotización va sin
+ * descuento.
  */
 @Entity
 @Table(name = "cotizaciones")
@@ -42,8 +45,12 @@ import mx.montacargasobregon.backend.comun.DatosDireccion;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Cotizacion {
 
-    // Las fechas se toman con la hora de Sonora, aunque el servidor esté en otra zona
+    // Las fechas se toman con la hora de Sonora, aunque el servidor esté en otra
+    // zona
     public static final ZoneId ZONA_HORARIA = ZoneId.of("America/Hermosillo");
+
+    // IVA que se suma al subtotal (16 %)
+    private static final BigDecimal TASA_IVA = new BigDecimal("0.16");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,7 +60,8 @@ public class Cotizacion {
     @Column(nullable = false, unique = true, length = 20)
     private String folio;
 
-    // STRING guarda el nombre del valor; con ORDINAL, reordenar el enum corrompe los datos
+    // STRING guarda el nombre del valor; con ORDINAL, reordenar el enum corrompe
+    // los datos
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EstadoCotizacion estado;
@@ -106,7 +114,8 @@ public class Cotizacion {
     @JoinColumn(name = "cotizacion_id", nullable = false)
     private List<EquipoCotizacion> equipos = new ArrayList<>();
 
-    // Se guardan al crearla para que la lista, el detalle y el PDF muestren siempre el mismo precio
+    // Se guardan al crearla para que la lista, el detalle y el PDF muestren siempre
+    // el mismo precio
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal subtotal;
 
@@ -124,10 +133,14 @@ public class Cotizacion {
     @Column(name = "fecha_respuesta")
     private LocalDate fechaRespuesta;
 
+    // True cuando ya se capturó el precio (hoy, al guardar el traslado, HU-14). Con él, la cotización ya puede generar su PDF
+    @Column(name = "precio_definido", nullable = false)
+    private boolean precioDefinido = false;
+
     public Cotizacion(String folio, Cliente cliente, RazonSocial razonSocial,
-                      LocalDateTime fechaHoraEntrega, LocalDateTime fechaHoraRecoleccion,
-                      DatosDireccion direccionObra, DatosContactoSitio contactoObra,
-                      BigDecimal subtotal, BigDecimal iva, BigDecimal total) {
+            LocalDateTime fechaHoraEntrega, LocalDateTime fechaHoraRecoleccion,
+            DatosDireccion direccionObra, DatosContactoSitio contactoObra,
+            BigDecimal subtotal, BigDecimal iva, BigDecimal total) {
         this.folio = folio;
         this.cliente = cliente;
         this.razonSocial = razonSocial;
@@ -146,7 +159,30 @@ public class Cotizacion {
         equipos.add(equipo);
     }
 
-    /** Cambia el estado y guarda cuándo. Quien llama revisa antes que el cambio se permita. */
+        /**
+     * Guarda el costo de traslado y recalcula subtotal, IVA y total.
+     * Quien llama revisa antes que la cotización siga en Borrador.
+     * El descuento todavía no se captura, así que no se resta.
+     * Con esto el precio queda definido la cotización ya puede generar su PDF.
+     */
+    public void registrarTraslado(BigDecimal entrega, BigDecimal recoleccion) {
+        this.trasladoEntrega = entrega;
+        this.trasladoRecoleccion = recoleccion;
+
+        BigDecimal equiposSuma = equipos.stream()
+                .map(EquipoCotizacion::getImporte)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        this.subtotal = equiposSuma.add(entrega).add(recoleccion);
+        this.iva = subtotal.multiply(TASA_IVA).setScale(2, RoundingMode.HALF_UP);
+        this.total = subtotal.add(iva);
+        this.precioDefinido = true;
+    }
+    
+    /**
+     * Cambia el estado y guarda cuándo. Quien llama revisa antes que el cambio se
+     * permita.
+     */
     public void cambiarEstado(EstadoCotizacion nuevoEstado, LocalDateTime cuando) {
         this.estado = nuevoEstado;
         if (nuevoEstado == EstadoCotizacion.ENVIADA) {
@@ -156,7 +192,10 @@ public class Cotizacion {
         }
     }
 
-    /** Días de renta, contando el de entrega y el de recolección: del 1 al 5 son 5 días (HU-13). */
+    /**
+     * Días de renta, contando el de entrega y el de recolección: del 1 al 5 son 5
+     * días (HU-13).
+     */
     public long getDias() {
         return ChronoUnit.DAYS.between(fechaHoraEntrega.toLocalDate(), fechaHoraRecoleccion.toLocalDate()) + 1;
     }

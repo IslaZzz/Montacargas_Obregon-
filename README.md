@@ -48,6 +48,15 @@ Si tu base ya tenía estos usuarios, haz esto una sola vez:
 1. Arranca el backend. Agrega la columna `contrasena` a `usuarios`.
 2. Vuelve a correr `backend/datos-prueba/datos-iniciales.sql`. Les pone la contraseña de prueba a los tres.
 
+## Acceso por rol (HU-29)
+
+Hay dos roles: Gerencia (`GERENTE`) y Auxiliar (`AUXILIAR`). Gerencia ve todo lo del auxiliar y además lo suyo.
+
+- **API:** las rutas de `SOLO_GERENCIA` en `SeguridadConfig` (`/api/autorizaciones/**`, `/api/ingresos/**`) responden 403 a un auxiliar. Si agregas otra ruta de gerencia, ponla ahí.
+- **Pantallas:** las rutas dentro de `<RutaGerencia />` en `AppRoutes.tsx` le muestran al auxiliar «No tienes permiso para ver esta pantalla».
+- **Botones:** lo que solo hace gerencia, como «Autorizar» o «Ampliar apartado», se muestra con `esGerencia(sesion.rol)` de `sesionUtils.ts`.
+- **Menú:** las opciones con `soloGerencia` no se le muestran al auxiliar, y `contadores` pone un número junto a una opción.
+
 ## Rentas que salen de la cotización (HU-37)
 
 Toda renta nace al aceptar una cotización. Si tu base ya tenía rentas, haz esto una sola vez:

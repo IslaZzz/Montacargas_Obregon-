@@ -6,6 +6,7 @@ import RegistrarCliente from "../features/clientes/RegistrarCliente";
 import VerCotizaciones from "../features/cotizaciones/VerCotizaciones";
 import DetalleCotizacion from "../features/cotizaciones/DetalleCotizacion";
 import NuevaCotizacion from "../features/cotizaciones/nueva/NuevaCotizacion";
+import PrecioCotizacion from "../features/cotizaciones/precio/PrecioCotizacion";
 import PdfCotizacion from "../features/cotizaciones/PdfCotizacion";
 import FilterTest from "../features/testComponentes/FilterTest";
 import StyleTest from "../features/testComponentes/StyleTest";
@@ -17,6 +18,7 @@ import VistaPreviaCarta from "../features/cartas/VistaPreviaCarta";
 import Rentas from "../features/rentas/rentas";
 import DetalleCliente from "../features/clientes/DetalleCliente";
 import Disponibilidad from '../features/equipos/disponibilidad/ConsultarDisponibilidad'
+import Tarifas from '../features/tarifas/Tarifas'
 
 import ConsultarEquipos from "../features/equipos/estados/ConsultarEquipos";
 import DetalleRenta from "../features/rentas/detalle/DetalleRenta";
@@ -25,6 +27,10 @@ import DashboardTraslados from "../features/traslados/DashboardTraslados";
 import ProgramarRecoleccion from "../features/rentas-captura/ProgramarRecoleccion";
 import IniciarSesion from "../features/sesion/IniciarSesion";
 import RutaProtegida from "../features/sesion/RutaProtegida";
+import RutaGerencia from "../features/sesion/RutaGerencia";
+import Categorias from "../features/categorias/Categorias";
+
+
 
 
 export default function AppRoutes() {
@@ -55,6 +61,7 @@ export default function AppRoutes() {
         <Route path="/cotizaciones/nueva" element={<NuevaCotizacion />} />
         <Route path="/cotizaciones/:id" element={<DetalleCotizacion />} />
         <Route path="/cotizaciones/:id/pdf" element={<PdfCotizacion />} />
+        <Route path="/cotizaciones/:id/precio" element={<PrecioCotizacion />} />
 
         {/* Captura manual temporal: sin opción en el menú lateral*/}
 
@@ -84,9 +91,20 @@ export default function AppRoutes() {
         {/* Disponibilidad */}
         <Route path="/disponibilidad" element={<Disponibilidad />} />
 
+        <Route path="/categorias" element={<Categorias />} />
+
+        {/* Solo gerencia (HU-29): el auxiliar ve «No tienes permiso». La pantalla de Autorizaciones llega con HU-16 */}
+        <Route element={<RutaGerencia />}>
+          <Route path="/autorizaciones" />
+          <Route path="/ingresos" />
+        </Route>
+
         {/* para probar los elementos reutilizables*/}
         <Route path="/componentes" element={<StyleTest />} />
         <Route path="/componentes/filtros" element={<FilterTest />} />
+
+        {/* Tarifas */}
+        <Route path="/tarifas" element={<Tarifas />} />
 
         {/* Aquí se agregarán las demás pantallas */}
       </Route>
