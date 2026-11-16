@@ -53,6 +53,12 @@ export default function Tarifas() {
       ? tarifas
       : tarifas.filter((t) => String(t.categoriaId) === categoriaId)
 
+  // Mensaje cuando no hay nada que mostrar, igual en la tabla y en las tarjetas
+  const mensajeVacio =
+    tarifas.length === 0
+      ? 'Aún no hay modelos registrados'
+      : 'No hay modelos en esta categoría'
+
   // useCallback: el modal usa esta función en su useEffect
   const cerrarModal = useCallback(() => setEditando(null), [])
 
@@ -160,19 +166,59 @@ export default function Tarifas() {
             </span>
           </label>
 
-          <DataTable
-            columns={columnas}
+          {/* Tabla: laptop y tableta. En celular se oculta */}
+          <div className="tabla-tarifas">
+            <DataTable
+              columns={columnas}
               data={visibles}
               getRowKey={(t) => t.modeloId}
               getRowClassName={(t) =>
                 t.modeloId === idActualizado ? 'fila-actualizada' : undefined
               }
-              emptyMessage={
-                tarifas.length === 0
-                  ? 'Aún no hay modelos registrados'
-                  : 'No hay modelos en esta categoría'
-              }
-          />
+              emptyMessage={mensajeVacio}
+            />
+          </div>
+
+          {/* Tarjetas: solo en celular */}
+          <ul className="tarifas-tarjetas">
+            {visibles.length === 0 ? (
+              <li className="tarifas-vacio">{mensajeVacio}</li>
+            ) : (
+              visibles.map((t) => (
+                <li
+                  key={t.modeloId}
+                  className={
+                    'tarifa-tarjeta' +
+                    (t.modeloId === idActualizado ? ' fila-actualizada' : '')
+                  }
+                >
+                  <div>
+                    <span className="tarifa-modelo">{t.nombre}</span>
+                    <span className="tarifa-detalle">
+                      {t.categoria} · {t.marca} {t.codigo}
+                    </span>
+                  </div>
+
+                  <div className="tarifa-tarjeta-precio">
+                    <span>Tarifa por día</span>
+                    <strong>{formatearPesos(t.tarifaDia)}</strong>
+                  </div>
+                  {t.modeloId === idActualizado && (
+                    <span className="tarifa-actualizada">Actualizada hoy</span>
+                  )}
+
+                  <Button
+                    type="button"
+                    variant="tertiary"
+                    onClick={() => setEditando(t)}
+                  >
+                    <span className="material-symbols-rounded">edit</span>
+                    Editar tarifa
+                  </Button>
+                </li>
+              ))
+            )}
+          </ul>
 
           <p className="nota-tarifas">
             Las tarifas aplican a cotizaciones nuevas. Las cotizaciones ya
