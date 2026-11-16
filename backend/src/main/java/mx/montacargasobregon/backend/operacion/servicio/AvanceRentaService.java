@@ -2,6 +2,7 @@ package mx.montacargasobregon.backend.operacion.servicio;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
@@ -72,22 +73,34 @@ public class AvanceRentaService {
     }
 
     /**
+     * El operador salió con los equipos desde la app móvil: van en traslado hasta que confirme que llegó.
+     */
+    public void trasladoIniciado(Traslado traslado) {
+        FaseEquipoRenta desde = traslado.getTipo() == TipoTraslado.ENTREGA
+                ? FaseEquipoRenta.LISTO_ENTREGA
+                : FaseEquipoRenta.EN_OPERACION;
+        enFases(traslado.getRenta(), desde).forEach(er -> er.cambiarFase(FaseEquipoRenta.EN_TRASLADO));
+    }
+
+    /**
      * El operador confirmó que hizo el traslado.
      * Entrega: los equipos quedan con el cliente y la renta pasa a EN_CURSO.
      * Recolección: los equipos regresan y nace una revisión de entrada pendiente por cada uno.
+     * Los equipos pueden venir EN_TRASLADO (se inició desde la app) o en su fase anterior
+     * (se marcó directo desde la oficina).
      */
     public void trasladoRealizado(Traslado traslado) {
         Renta renta = traslado.getRenta();
 
         if (traslado.getTipo() == TipoTraslado.ENTREGA) {
-            enFase(renta, FaseEquipoRenta.LISTO_ENTREGA)
+            enFases(renta, FaseEquipoRenta.EN_TRASLADO, FaseEquipoRenta.LISTO_ENTREGA)
                     .forEach(er -> er.cambiarFase(FaseEquipoRenta.EN_OPERACION));
             renta.cambiarEstado(EstadoRenta.EN_CURSO);
             return;
         }
 
         LocalDateTime ahora = LocalDateTime.now();
-        for (EquipoRenta equipoRenta : enFase(renta, FaseEquipoRenta.EN_OPERACION)) {
+        for (EquipoRenta equipoRenta : enFases(renta, FaseEquipoRenta.EN_TRASLADO, FaseEquipoRenta.EN_OPERACION)) {
             equipoRenta.cambiarFase(FaseEquipoRenta.EN_REVISION_ENTRADA);
             revisionRepositorio.save(new Revision(equipoRenta, TipoRevision.ENTRADA, ahora));
         }
@@ -113,9 +126,10 @@ public class AvanceRentaService {
                 .allMatch(er -> er.getFase() == fase);
     }
 
-    private static List<EquipoRenta> enFase(Renta renta, FaseEquipoRenta fase) {
+    private static List<EquipoRenta> enFases(Renta renta, FaseEquipoRenta... fases) {
+        Set<FaseEquipoRenta> buscadas = Set.of(fases);
         return renta.getEquipos().stream()
-                .filter(er -> er.getFase() == fase)
+                .filter(er -> buscadas.contains(er.getFase()))
                 .toList();
     }
 
