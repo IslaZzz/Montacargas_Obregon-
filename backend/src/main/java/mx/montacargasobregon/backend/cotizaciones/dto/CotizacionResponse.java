@@ -9,6 +9,8 @@ import mx.montacargasobregon.backend.clientes.dto.ClienteResponse;
 import mx.montacargasobregon.backend.clientes.dto.RazonSocialResponse;
 import mx.montacargasobregon.backend.comun.dto.DatosDireccionResponse;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
+import mx.montacargasobregon.backend.cotizaciones.modelo.Descuento;
+import mx.montacargasobregon.backend.cotizaciones.modelo.TipoDescuento;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 
 /** Detalle completo de una cotización. */
@@ -31,7 +33,12 @@ public record CotizacionResponse(
         BigDecimal trasladoEntrega,
         BigDecimal trasladoRecoleccion,
         Boolean precioDefinido,
-        BigDecimal subtotal,
+        BigDecimal subtotal, // Equipos + traslados, antes del descuento
+        // Descuento (HU-15): tipo es NINGUNO si no hay; valor y motivo vienen en null en ese caso
+        String descuentoTipo,
+        BigDecimal descuentoValor,
+        String descuentoMotivo,
+        BigDecimal descuentoMonto, // Pesos que se descuentan; 0 si no hay
         BigDecimal iva,
         BigDecimal total,
         RentaDeCotizacionResponse renta) {
@@ -43,6 +50,7 @@ public record CotizacionResponse(
 
     /** Con la renta que salió de la cotización al aceptarla (HU-37), o null si no tiene. */
     public static CotizacionResponse toCotizacionResponse(Cotizacion c, Renta renta) {
+        Descuento d = c.getDescuento();
         return new CotizacionResponse(
                 c.getId(),
                 c.getFolio(),
@@ -63,6 +71,10 @@ public record CotizacionResponse(
                 c.getTrasladoRecoleccion(),
                 c.isPrecioDefinido(),
                 c.getSubtotal(),
+                d == null ? TipoDescuento.NINGUNO.name() : d.getTipo().name(),
+                d == null ? null : d.getValor(),
+                d == null ? null : d.getMotivo(),
+                c.getMontoDescuento(),
                 c.getIva(),
                 c.getTotal(),
                 renta == null ? null : RentaDeCotizacionResponse.toRentaDeCotizacionResponse(renta));
