@@ -1,4 +1,4 @@
-/* Pantalla «Tarifas» (HU-04). */
+/* Pantalla «Tarifas» */
 
 .tarifas .enlace-volver {
   display: inline-flex;
@@ -123,9 +123,8 @@
   border-radius: 8px;
 }
 
-.tabla-tarifas .btn.btn-secondary .material-symbols-rounded {
-  font-size: 1rem;
-  color: inherit;
+.tarifas .btn .material-symbols-rounded {
+  font-size: 1.125rem;
 }
 
 /* Fila de la última tarifa guardada */
@@ -137,4 +136,84 @@
 .nota-tarifas {
   font-size: 0.75rem;
   color: #6b7280;
+}
+
+/* ===== Tarjetas: solo en celular ===== */
+.tarifas-tarjetas {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tarifa-tarjeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--off-white-background);
+  border: 1.5px solid var(--secondary-mint);
+  border-radius: 10px;
+  color: var(--primary-teal);
+}
+
+/* Resalta la tarjeta de la última tarifa guardada */
+.tarifa-tarjeta.fila-actualizada {
+  background: #eef4ef;
+}
+
+/* «Tarifa por día» a la izquierda y el precio a la derecha */
+.tarifa-tarjeta-precio {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  width: 100%;
+  font-size: 16px;
+  color: var(--text-foreground);
+}
+
+.tarifa-tarjeta-precio strong {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-teal);
+}
+
+/* Botón a todo lo ancho, como en las tarjetas de cotizaciones */
+.tarifa-tarjeta .btn {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  border-width: 2px;
+  border-radius: 8px;
+}
+
+.tarifas-vacio {
+  padding: 24px;
+  text-align: center;
+}
+
+/* ===== Celular ===== */
+@media (max-width: 700px) {
+  /* Se oculta la tabla y se muestran las tarjetas */
+  .tabla-tarifas {
+    display: none;
+  }
+
+  .tarifas-tarjetas {
+    display: flex;
+  }
+
+  /* El filtro ocupa todo el ancho */
+  .filtro-categoria {
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .filtro-categoria select {
+    flex: 1;
+  }
 }
