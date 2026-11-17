@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import mx.montacargasobregon.backend.equipos.modelo.Etiqueta;
 import mx.montacargasobregon.backend.equipos.dto.DisponibilidadResponse;
 import mx.montacargasobregon.backend.equipos.servicio.DisponibilidadService;
 
@@ -24,9 +23,9 @@ public class DisponibilidadController {
     @GetMapping("/disponibilidad")
     public DisponibilidadResponse consultar(
             @RequestParam Long categoriaId,
-            @RequestParam(required = false) Etiqueta etiqueta,
+            @RequestParam(required = false) Long etiquetaId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
-        return servicio.consultar(categoriaId, etiqueta, desde, hasta);
+        return servicio.consultar(categoriaId, etiquetaId, desde, hasta);
     }
 }

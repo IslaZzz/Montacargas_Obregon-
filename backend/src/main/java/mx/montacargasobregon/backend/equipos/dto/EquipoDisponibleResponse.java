@@ -1,10 +1,8 @@
 package mx.montacargasobregon.backend.equipos.dto;
 
 import java.math.BigDecimal;
-import java.util.Set;
-
-import mx.montacargasobregon.backend.equipos.modelo.Etiqueta;
+import java.util.List;
 
 public record EquipoDisponibleResponse(
-        Long id, String numeroUnidad, String modelo, Set<Etiqueta> etiquetas, BigDecimal tarifaDia) {
+        Long id, String numeroUnidad, String modelo, List<EtiquetaResponse> etiquetas, BigDecimal tarifaDia) {
 }

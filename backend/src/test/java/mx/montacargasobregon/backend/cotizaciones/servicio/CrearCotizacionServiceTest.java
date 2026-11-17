@@ -166,6 +166,7 @@ class CrearCotizacionServiceTest {
         Modelo modelo = new Modelo("Modelo " + numeroUnidad, "Toyota", "COD-" + id, null,
                 new BigDecimal(tarifaDia), new Categoria("Montacargas"));
         Equipo equipo = new Equipo(numeroUnidad, "SERIE-" + id, 2022, modelo);
+        equipo.cambiarEstado(EstadoEquipo.OPERATIVO); // Ya pasó su revisión de entrada
         ReflectionTestUtils.setField(equipo, "id", id);
         return equipo;
     }

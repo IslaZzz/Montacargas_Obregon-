@@ -70,6 +70,29 @@ class AccesoPorRolTest {
     }
 
     @Test
+    void auxiliarNoPuedeRegistrarEquiposNiEtiquetasPeroSiConsultarlos() throws Exception {
+        MockHttpSession sesion = entrar(AUXILIAR);
+
+        for (String ruta : new String[] {"/api/equipos", "/api/etiquetas"}) {
+            mvc.perform(post(ruta).session(sesion).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.mensaje").value("No tienes permiso para hacer esto"));
+            // Consultar pasa la seguridad; 404 porque en esta prueba no están esos controladores
+            mvc.perform(get(ruta).session(sesion)).andExpect(status().isNotFound());
+        }
+    }
+
+    @Test
+    void gerenciaSiPuedeRegistrarEquiposYEtiquetas() throws Exception {
+        MockHttpSession sesion = entrar(GERENTE);
+
+        for (String ruta : new String[] {"/api/equipos", "/api/etiquetas"}) {
+            mvc.perform(post(ruta).session(sesion).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
+    @Test
     void gerenciaSiPasaLaRevisionDeRol() throws Exception {
         MockHttpSession sesion = entrar(GERENTE);
 

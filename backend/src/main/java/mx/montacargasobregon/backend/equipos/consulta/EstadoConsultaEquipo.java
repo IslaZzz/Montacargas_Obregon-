@@ -5,6 +5,7 @@ public enum EstadoConsultaEquipo {
     DISPONIBLE,        // Operativo y sin renta
     EN_PREPARACION,    // En una renta, pero todavía no llega al cliente o ya regresó y falta revisarlo
     EN_RENTA,          // Con el cliente
+    EN_REVISION_ENTRADA, // Recién registrado; Operativo todavía no lo pone disponible
     EN_MANTENIMIENTO,
     FUERA_SERVICIO
 }

@@ -13,9 +13,9 @@ import org.springframework.web.server.ResponseStatusException;
 import mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion;
 import mx.montacargasobregon.backend.equipos.dto.DisponibilidadResponse;
 import mx.montacargasobregon.backend.equipos.dto.EquipoDisponibleResponse;
+import mx.montacargasobregon.backend.equipos.dto.EtiquetaResponse;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 import mx.montacargasobregon.backend.equipos.modelo.EstadoEquipo;
-import mx.montacargasobregon.backend.equipos.modelo.Etiqueta;
 import mx.montacargasobregon.backend.equipos.repositorio.DisponibilidadRepository;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.FaseEquipoRenta;
@@ -30,7 +30,7 @@ public class DisponibilidadService {
     }
 
     @Transactional(readOnly = true)
-    public DisponibilidadResponse consultar(Long categoriaId, Etiqueta etiqueta, LocalDate desde, LocalDate hasta) {
+    public DisponibilidadResponse consultar(Long categoriaId, Long etiquetaId, LocalDate desde, LocalDate hasta) {
         if (hasta.isBefore(desde)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "La fecha final no puede ser anterior a la inicial.");
@@ -44,7 +44,8 @@ public class DisponibilidadService {
         List<Equipo> candidatos = repositorio
                 .findByModeloCategoriaIdAndEstadoOrderByNumeroUnidad(categoriaId, EstadoEquipo.OPERATIVO)
                 .stream()
-                .filter(e -> etiqueta == null || e.getEtiquetas().contains(etiqueta))
+                .filter(e -> etiquetaId == null
+                        || e.getEtiquetas().stream().anyMatch(t -> t.getId().equals(etiquetaId)))
                 .toList();
 
         // Equipos ocupados por rentas y apartados por cotizaciones aceptadas
@@ -64,7 +65,7 @@ public class DisponibilidadService {
                         e.getId(),
                         e.getNumeroUnidad(),
                         e.getModelo().getNombre(),
-                        e.getEtiquetas(),
+                        EtiquetaResponse.deTodas(e.getEtiquetas()),
                         e.getModelo().getTarifaDia()))
                 .toList();
 
