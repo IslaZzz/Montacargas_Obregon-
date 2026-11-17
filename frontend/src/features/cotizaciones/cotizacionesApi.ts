@@ -2,6 +2,7 @@ import { getApi, patchApi } from "../../services/apiClient";
 import type {
   Cotizacion,
   CotizacionResumen,
+  DescuentoRequest,
   EstadoCotizacion,
   TrasladoRequest,
 } from "./cotizacionesTypes";
@@ -35,3 +36,8 @@ export const guardarTraslado = (
   id: number,
   traslado: TrasladoRequest,
 ) => patchApi<Cotizacion>(`/cotizaciones/${id}/traslado`, traslado);
+
+// PATCH /api/cotizaciones/5/descuento: aplica o quita el descuento (HU-15).
+// Con descuento la cotización pasa a En autorización. Responde 400 si no es válido y 409 si ya no es Borrador
+export const guardarDescuento = (id: number, descuento: DescuentoRequest) =>
+  patchApi<Cotizacion>(`/cotizaciones/${id}/descuento`, descuento);

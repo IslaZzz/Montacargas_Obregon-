@@ -217,3 +217,10 @@
 .chip-cotizacion-no-aceptada::before {
     background-color: var(--warning-red-outline);
 }
+
+/* En autorización (HU-15 y HU-16): ámbar, espera la respuesta de gerencia */
+.chip-cotizacion-en-autorizacion {
+  background-color: rgba(214, 140, 0, 0.15);
+  border-color: #b87800;
+  color: #7a5000;
+}

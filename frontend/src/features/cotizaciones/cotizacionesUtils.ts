@@ -10,6 +10,7 @@ export const ESTADOS: {
   chip: ChipStatus;
 }[] = [
   { valor: "BORRADOR", etiqueta: "Borrador", chip: "borrador" },
+  { valor: "EN_AUTORIZACION", etiqueta: "En autorización", chip: "en-autorizacion" },
   { valor: "ENVIADA", etiqueta: "Enviada", chip: "enviada" },
   { valor: "ACEPTADA", etiqueta: "Aceptada", chip: "aceptada" },
   { valor: "NO_ACEPTADA", etiqueta: "No aceptada", chip: "no-aceptada" },

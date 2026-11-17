@@ -2,8 +2,16 @@ import type { DatosDireccion } from "../../types/comun";
 import type { Cliente, RazonSocial } from "../clientes/clientesTypes";
 import type { EstadoRenta } from "../rentas/detalle/detalleTypes";
 
-// Los estados de EstadoCotizacion que se usan en Delivery S1 (En autorización, Rechazada y Vencida llegan con HU-16, HU-32 y HU-17)
-export type EstadoCotizacion = "BORRADOR" | "ENVIADA" | "ACEPTADA" | "NO_ACEPTADA";
+// Estados que ya se usan. En autorización llega con HU-15; Rechazada y Vencida con HU-16, HU-32 y HU-17
+export type EstadoCotizacion =
+  | "BORRADOR"
+  | "ENVIADA"
+  | "ACEPTADA"
+  | "NO_ACEPTADA"
+  | "EN_AUTORIZACION";
+
+// Equivale a TipoDescuento del backend
+export type TipoDescuento = "NINGUNO" | "PORCENTAJE" | "MONTO";
 
 // Equivale a CotizacionResumenResponse (una fila de la lista)
 export interface CotizacionResumen {
@@ -53,7 +61,11 @@ export interface Cotizacion {
   trasladoEntrega: number; // 0 si no hay traslado
   trasladoRecoleccion: number; // 0 si no hay traslado
   precioDefinido: boolean; // True cuando ya se capturó el precio (hoy, al guardar el traslado). Con él, la cotización ya puede generar su PDF
-  subtotal: number;
+  subtotal: number; // Equipos + traslados, antes del descuento
+  descuentoTipo: TipoDescuento; // NINGUNO si no hay descuento
+  descuentoValor: number | null; // Porcentaje o pesos, según el tipo; null con NINGUNO
+  descuentoMotivo: string | null; // null con NINGUNO
+  descuentoMonto: number; // Pesos que se descuentan; 0 si no hay
   iva: number;
   total: number;
   renta: RentaDeCotizacion | null;
@@ -63,4 +75,11 @@ export interface Cotizacion {
 export interface TrasladoRequest {
   trasladoEntrega: number;
   trasladoRecoleccion: number;
+}
+
+// Cuerpo de PATCH /cotizaciones/{id}/descuento. Con NINGUNO, valor y motivo van en null
+export interface DescuentoRequest {
+  tipo: TipoDescuento;
+  valor: number | null;
+  motivo: string | null;
 }
