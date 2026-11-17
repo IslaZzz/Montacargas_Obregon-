@@ -83,6 +83,11 @@
 }
 .filtros-disponibilidad .filter-chip {
   font-size: 14px;
+  /* Una etiqueta larga se parte en renglones en lugar de salirse de la tarjeta */
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
 }
 .filtros-disponibilidad .date-range-container {
   flex-wrap: wrap;
@@ -143,6 +148,7 @@
   color: var(--primary-teal);
   background: rgba(38, 124, 147, 0.12);
   border-radius: 6px;
+  overflow-wrap: anywhere;
 }
 .etiqueta-chip .material-symbols-rounded {
   font-size: 16px;

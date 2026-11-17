@@ -5,9 +5,9 @@ export interface EquipoCatalogo {
   id: number;
   numeroUnidad: string;
   numeroSerie: string;
-  anioCompra: number;
+  anioCompra: number | null;
   estado: string;
-  etiquetas: string[];
+  etiquetas: { id: number; nombre: string }[];
   modelo: {
     id: number;
     nombre: string;

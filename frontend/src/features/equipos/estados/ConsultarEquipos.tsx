@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Aviso from "../../../components/Aviso";
 import { Button } from "../../../components/buttons";
 import DateRangePicker from "../../../components/filters/dateRangePicker";
@@ -11,6 +11,8 @@ import type { TableColumn } from "../../../components/table";
 import { useTitulo } from "../../../hooks/useTitulo";
 import { ErrorApi } from "../../../services/apiClient";
 import { formatoDiaCorto } from "../../../utils/fechas";
+import { esGerencia } from "../../sesion/sesionUtils";
+import { useSesion } from "../../sesion/useSesion";
 import { listarCategorias } from "../disponibilidad/disponibilidadApi";
 import type { Categoria } from "../disponibilidad/disponibilidadApi";
 import { consultarEquiposPorEstado } from "./estadosApi";
@@ -37,6 +39,18 @@ function BotonProximamente({ icono, texto }: { icono: string; texto: string }) {
 export default function ConsultarEquipos() {
   useTitulo("Equipos");
   const navigate = useNavigate();
+  const location = useLocation();
+  const { sesion } = useSesion();
+
+  // «Registrar equipo» regresa aquí con el aviso (HU-02)
+  const [registrado, setRegistrado] = useState(
+    (location.state as { aviso?: string } | null)?.aviso === "registrado",
+  );
+
+  // Quita el aviso del historial para que no vuelva a salir al recargar
+  useEffect(() => {
+    if (location.state) navigate(location.pathname, { replace: true, state: null });
+  }, [location, navigate]);
 
   const [equipos, setEquipos] = useState<EquipoEstado[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -46,6 +60,7 @@ export default function ConsultarEquipos() {
   const [fechas, setFechas] = useState<DateRangeValue>({ from: "", to: "" });
   const [categoria, setCategoria] = useState("all");
   const [estado, setEstado] = useState("all");
+  const [texto, setTexto] = useState("");
 
   // Solo se consulta sin fechas o con las dos
   const conPeriodo = fechas.from !== "" && fechas.to !== "";
@@ -80,7 +95,13 @@ export default function ConsultarEquipos() {
   }, [fechas.from, fechas.to, conPeriodo, periodoIncompleto]);
 
   // La categoría acota todo; el estado solo la tabla, para que los conteos sigan completos
-  const deLaCategoria = categoria === "all" ? equipos : equipos.filter((e) => e.categoria === categoria);
+  // El buscador encuentra por número de unidad o por marca y modelo
+  const buscado = texto.trim().toLowerCase();
+  const encontrados = buscado
+    ? equipos.filter((e) => `${e.numeroUnidad} ${e.equipo}`.toLowerCase().includes(buscado))
+    : equipos;
+  const deLaCategoria =
+    categoria === "all" ? encontrados : encontrados.filter((e) => e.categoria === categoria);
   const visibles = estado === "all" ? deLaCategoria : deLaCategoria.filter((e) => e.estado === estado);
   const contar = (valor: EstadoConsultaEquipo) => deLaCategoria.filter((e) => e.estado === valor).length;
 
@@ -144,19 +165,36 @@ export default function ConsultarEquipos() {
             <Button type="button" variant="secondary" onClick={() => navigate("/categorias")}>
               Categorías
             </Button>
-            <span title={PROXIMAMENTE}>
-              <Button type="button" variant="primary" disabled>
+            {/* Registrar un equipo es de gerencia (HU-02) */}
+            {sesion && esGerencia(sesion.rol) && (
+              <Button type="button" variant="primary" onClick={() => navigate("/equipos/registrar")}>
                 <span className="material-symbols-rounded" aria-hidden="true">add</span>
                 Registrar equipo
               </Button>
-            </span>
+            )}
           </div>
         </div>
 
+        {registrado && (
+          <Aviso tipo="exito" titulo="Equipo registrado" onCerrar={() => setRegistrado(false)}>
+            Quedó «En revisión de entrada». Operativo lo revisa y lo pone disponible.
+          </Aviso>
+        )}
+
         {error && <Aviso tipo="error" titulo={error} />}
 
-        {/* Fechas y categoría */}
+        {/* Buscador, fechas y categoría */}
         <div className="operacion-filtros-izquierda">
+          <label className="operacion-filtro">
+            <span className="operacion-filtro-etiqueta">Buscar:</span>
+            <input
+              type="search"
+              className="campo-input equipos-buscador"
+              placeholder="Unidad, marca o modelo"
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+            />
+          </label>
           <div className="operacion-filtro">
             <span className="operacion-filtro-etiqueta">Fecha:</span>
             <DateRangePicker

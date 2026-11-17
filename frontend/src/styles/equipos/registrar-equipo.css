@@ -1,0 +1,113 @@
+/* Registrar equipo (HU-02). Las tarjetas y los campos vienen de registrar-cliente.css */
+
+/* Datos del modelo elegido, solo lectura */
+.equipo-modelo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 16px;
+  background: var(--selection-gray);
+  border-radius: 10px;
+}
+.equipo-modelo div {
+  min-width: 0;
+}
+.equipo-modelo .equipo-modelo-ancho {
+  grid-column: 1 / -1;
+}
+.equipo-modelo dt {
+  font-size: 14px;
+  color: var(--text-body);
+}
+.equipo-modelo dd {
+  margin: 4px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary-teal);
+  overflow-wrap: anywhere;
+}
+
+/* Etiquetas */
+.equipo-form .filters-row {
+  flex-wrap: wrap;
+}
+/* Una etiqueta larga se parte en renglones en lugar de salirse de la tarjeta */
+.equipo-form .filter-chip {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+/* Con el cursor encima no debe verse igual que una elegida */
+.equipo-form .filter-chip:not(.active):hover {
+  background-color: var(--selection-gray);
+  color: var(--primary-teal);
+}
+.equipo-nueva-etiqueta {
+  border-style: dashed;
+}
+.equipo-etiqueta-nueva {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+}
+.equipo-etiqueta-nueva .campo {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.equipo-etiqueta-botones {
+  display: flex;
+  gap: 12px;
+}
+
+/* Sin modelos */
+.equipo-sin-modelos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 300px;
+  padding: 24px;
+  text-align: center;
+  background: var(--off-white-background);
+  border: 2px solid var(--secondary-mint);
+  border-radius: 10px;
+}
+.equipo-sin-modelos .material-symbols-rounded {
+  font-size: 48px;
+  color: var(--secondary-mint);
+}
+.equipo-sin-modelos strong {
+  font:
+    800 28px "Manrope",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.equipo-sin-modelos p {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-foreground);
+}
+.equipo-sin-modelos .btn {
+  text-decoration: none;
+}
+
+/* En celular todo se apila en una columna */
+@media (max-width: 700px) {
+  .equipo-modelo {
+    grid-template-columns: 1fr;
+  }
+  .equipo-etiqueta-nueva {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .equipo-etiqueta-botones .btn {
+    flex: 1 1 0;
+  }
+  .equipo-sin-modelos strong {
+    font-size: 22px;
+  }
+}
