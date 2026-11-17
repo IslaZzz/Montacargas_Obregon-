@@ -65,3 +65,16 @@ Toda renta nace al aceptar una cotización. Si tu base ya tenía rentas, haz est
 2. Corre `backend/datos-prueba/quitar-rentas-sin-cotizacion.sql`. Borra las rentas sin cotización y lo que cuelga de ellas.
 3. Vuelve a correr los scripts que crean rentas: `revisiones.sql`, `traslados.sql`, `apartados-proximos.sql` y `rentas.sql`. Cada renta de prueba trae su cotización aceptada (COT-R2061 es la de R-2061).
 4. Reinicia el backend.
+
+## Modelos de equipo (HU-36)
+
+Cada categoría puede pedir campos de especificación (`DefinicionCampo`) y cada modelo guarda su valor (`ValorEspecificacion`). Por ahora solo Montacargas los pide: capacidad de carga, altura del mástil y tipo de energía. Se cargan con `datos-iniciales.sql`.
+
+Un modelo nuevo se registra sin tarifa; se le pone en «Tarifas» (HU-04). Mientras no tenga tarifa no se puede cotizar.
+
+Si tu base ya existía, haz esto una sola vez:
+
+1. Arranca el backend. Crea las tablas de los campos y de los valores.
+2. Vuelve a correr `backend/datos-prueba/datos-iniciales.sql`. Deja la tarifa como opcional y agrega los campos de Montacargas.
+
+- **API:** `GET/POST /api/modelos`, `GET/PUT /api/modelos/{id}` (cada modelo trae sus `especificaciones`) y `GET /api/categorias/{id}/campos`.

@@ -102,6 +102,11 @@ public class CrearCotizacionService {
 
     private static EquipoCotizacion equipoCotizado(Equipo equipo, int dias) {
         BigDecimal tarifa = equipo.getModelo().getTarifaDia();
+        // Un modelo nuevo no tiene tarifa hasta que se captura en «Tarifas» (HU-36)
+        if (tarifa == null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "El modelo de " + equipo.getNumeroUnidad() + " aún no tiene tarifa; captúrala en «Tarifas»");
+        }
         return new EquipoCotizacion(equipo, tarifa, CalculoPrecio.calcularImporte(dias, tarifa));
     }
 

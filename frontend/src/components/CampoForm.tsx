@@ -6,6 +6,7 @@ interface CampoProps extends Omit<
 > {
   etiqueta: string;
   obligatorio?: boolean;
+  opcional?: boolean;
   error?: string;
   onChange: (valor: string) => void;
 }
@@ -13,6 +14,7 @@ interface CampoProps extends Omit<
 export default function Campo({
   etiqueta,
   obligatorio,
+  opcional,
   error,
   onChange,
   ...resto
@@ -21,6 +23,7 @@ export default function Campo({
     <label className="campo">
       <span className="campo-etiqueta">
         {etiqueta} {obligatorio && <small>(obligatorio)</small>}
+        {opcional && <small>(opcional)</small>}
       </span>
       <input
         className={"campo-input" + (error ? " con-error" : "")}

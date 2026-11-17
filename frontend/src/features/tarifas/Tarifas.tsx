@@ -6,7 +6,7 @@ import Aviso from '../../components/Aviso'
 import { useTitulo } from '../../hooks/useTitulo'
 import { listarTarifas } from './tarifasApi'
 import type { Tarifa } from './tarifasTypes'
-import { formatearPesos } from './tarifasUtils'
+import { formatearTarifa } from './tarifasUtils'
 import EditarTarifaModal from './EditarTarifaModal'
 import "../../styles/tarifas/tarifas.css";
 
@@ -92,7 +92,7 @@ export default function Tarifas() {
       header: 'Tarifa por día',
       accessor: (t) => (
         <>
-          <span className="tarifa-precio">{formatearPesos(t.tarifaDia)}</span>
+          <span className="tarifa-precio">{formatearTarifa(t.tarifaDia)}</span>
           {t.modeloId === idActualizado && (
             <span className="tarifa-actualizada">Actualizada hoy</span>
           )}
@@ -201,7 +201,7 @@ export default function Tarifas() {
 
                   <div className="tarifa-tarjeta-precio">
                     <span>Tarifa por día</span>
-                    <strong>{formatearPesos(t.tarifaDia)}</strong>
+                    <strong>{formatearTarifa(t.tarifaDia)}</strong>
                   </div>
                   {t.modeloId === idActualizado && (
                     <span className="tarifa-actualizada">Actualizada hoy</span>

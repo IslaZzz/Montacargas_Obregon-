@@ -29,6 +29,8 @@ import IniciarSesion from "../features/sesion/IniciarSesion";
 import RutaProtegida from "../features/sesion/RutaProtegida";
 import RutaGerencia from "../features/sesion/RutaGerencia";
 import Categorias from "../features/categorias/Categorias";
+import Modelos from "../features/modelos/Modelos";
+import FormularioModelo from "../features/modelos/FormularioModelo";
 
 
 
@@ -92,6 +94,11 @@ export default function AppRoutes() {
         <Route path="/disponibilidad" element={<Disponibilidad />} />
 
         <Route path="/categorias" element={<Categorias />} />
+
+        {/* Modelos (HU-36) */}
+        <Route path="/modelos" element={<Modelos />} />
+        <Route path="/modelos/nuevo" element={<FormularioModelo />} />
+        <Route path="/modelos/:id/editar" element={<FormularioModelo />} />
 
         {/* Solo gerencia (HU-29): el auxiliar ve «No tienes permiso». La pantalla de Autorizaciones llega con HU-16 */}
         <Route element={<RutaGerencia />}>

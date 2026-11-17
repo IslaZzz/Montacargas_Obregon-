@@ -5,8 +5,13 @@ const formatoPesos = new Intl.NumberFormat('es-MX', {
 })
 export const formatearPesos = (valor: number) => formatoPesos.format(valor)
 
+// Un modelo recién registrado (HU-36) aún no tiene tarifa
+export const formatearTarifa = (valor: number | null) =>
+  valor === null ? 'Sin tarifa' : formatearPesos(valor)
+
 // 2500 pasa a 2500.00, para mostrarla dentro del campo (sin comas, porque el campo no las permite)
-export const formatearParaCampo = (valor: number) => valor.toFixed(2)
+export const formatearParaCampo = (valor: number | null) =>
+  valor === null ? '' : valor.toFixed(2)
 
 export const MENSAJE_TARIFA = 'Captura una tarifa mayor a cero'
 
