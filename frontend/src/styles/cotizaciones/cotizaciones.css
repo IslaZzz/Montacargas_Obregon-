@@ -363,6 +363,12 @@
   font-size: 22px;
   color: var(--ok-green-outline);
 }
+.confirmacion-advertencia {
+  font-weight: 600;
+}
+.confirmacion-advertencia .material-symbols-rounded {
+  color: var(--warning-red-outline);
+}
 
 .confirmacion-botones {
   display: flex;
