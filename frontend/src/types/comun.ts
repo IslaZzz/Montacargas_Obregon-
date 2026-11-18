@@ -34,3 +34,10 @@ export interface DatosDireccionRequest {
   estado: string
   codigoPostal: string
 }
+
+export interface CodigoPostal {
+  codigoPostal: string
+  colonias: string[]
+  ciudad: string
+  estado: string
+}
