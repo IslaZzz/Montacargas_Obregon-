@@ -7,6 +7,14 @@ interface Regla {
   incumple: (b: BorradorCotizacion) => boolean;
 }
 
+// Hoy, con la fecha de la computadora, en el formato YYYY-MM-DD que usa el campo de fecha
+export function hoyIso(): string {
+  const ahora = new Date();
+  const mes = String(ahora.getMonth() + 1).padStart(2, "0");
+  const dia = String(ahora.getDate()).padStart(2, "0");
+  return `${ahora.getFullYear()}-${mes}-${dia}`;
+}
+
 const obligatorio = (campo: CampoTexto, mensaje: string): Regla => ({
   campo,
   mensaje,
@@ -19,10 +27,19 @@ const conFormato = (campo: CampoTexto, patron: RegExp, mensaje: string): Regla =
   incumple: (b) => !patron.test(b[campo]),
 });
 
-const recoleccionAntesDeEntrega = (b: BorradorCotizacion): boolean =>
+// Ni la entrega ni la recolección pueden ser en un día que ya pasó
+const noAntesDeHoy = (campo: "fechaEntrega" | "fechaRecoleccion", mensaje: string): Regla => ({
+  campo,
+  mensaje,
+  incumple: (b) => b[campo] !== "" && b[campo] < hoyIso(),
+});
+
+const recoleccionNoEsDespuesDeEntrega = (b: BorradorCotizacion): boolean =>
   b.fechaEntrega !== "" &&
+  b.horaEntrega !== "" &&
   b.fechaRecoleccion !== "" &&
-  fechaHoraIso(b.fechaRecoleccion, b.horaRecoleccion) < fechaHoraIso(b.fechaEntrega, b.horaEntrega);
+  b.horaRecoleccion !== "" &&
+  fechaHoraIso(b.fechaRecoleccion, b.horaRecoleccion) <= fechaHoraIso(b.fechaEntrega, b.horaEntrega);
 
 const REGLAS_POR_PASO: Regla[][] = [
   [
@@ -35,13 +52,15 @@ const REGLAS_POR_PASO: Regla[][] = [
   ],
   [
     obligatorio("fechaEntrega", "Elige la fecha de entrega"),
+    noAntesDeHoy("fechaEntrega", "La fecha de entrega no puede ser anterior a hoy"),
     obligatorio("horaEntrega", "Elige la hora de entrega"),
     obligatorio("fechaRecoleccion", "Elige la fecha de recolección"),
+    noAntesDeHoy("fechaRecoleccion", "La fecha de recolección no puede ser anterior a hoy"),
     obligatorio("horaRecoleccion", "Elige la hora de recolección"),
     {
       campo: "fechaRecoleccion",
-      mensaje: "La recolección no puede ser antes de la entrega",
-      incumple: recoleccionAntesDeEntrega,
+      mensaje: "La recolección debe ser después de la entrega",
+      incumple: recoleccionNoEsDespuesDeEntrega,
     },
     obligatorio("calleObra", "Escribe la calle"),
     obligatorio("numeroObra", "Escribe el número"),

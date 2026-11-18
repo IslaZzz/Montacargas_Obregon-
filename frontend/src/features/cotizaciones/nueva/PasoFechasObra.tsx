@@ -3,6 +3,7 @@ import { formatoFechaHora } from "../../../utils/formato";
 import { textoDias } from "../cotizacionesUtils";
 import type { BorradorCotizacion, CampoTexto, Errores } from "./nuevaCotizacionTypes";
 import { calcularDias, fechaHoraIso } from "./calculo";
+import { hoyIso } from "./validacion";
 
 interface Props {
   borrador: BorradorCotizacion;
@@ -40,6 +41,7 @@ const CAMPOS_CONTACTO: CampoConfig[] = [
 
 export default function PasoFechasObra({ borrador, cambiar, errores }: Props) {
   const dias = calcularDias(borrador.fechaEntrega, borrador.fechaRecoleccion);
+  const hoy = hoyIso();
 
   const campoTexto = ({ campo, etiqueta, maxLength, obligatorio, soloDigitos }: CampoConfig) => (
     <Campo key={campo} etiqueta={etiqueta} obligatorio={obligatorio} value={borrador[campo]} maxLength={maxLength}
@@ -54,8 +56,9 @@ export default function PasoFechasObra({ borrador, cambiar, errores }: Props) {
           <section key={titulo} className="tarjeta">
             <h2>{titulo}</h2>
             <div className="direccion">
+              {/* Ninguna fecha puede ser anterior a hoy; la recolección tampoco anterior a la entrega */}
               <Campo etiqueta="Fecha" obligatorio type="date" value={borrador[fecha]} error={errores[fecha]}
-                min={fecha === "fechaRecoleccion" ? borrador.fechaEntrega || undefined : undefined}
+                min={fecha === "fechaRecoleccion" && borrador.fechaEntrega > hoy ? borrador.fechaEntrega : hoy}
                 onChange={(valor) => cambiar({ [fecha]: valor })} />
               <Campo etiqueta="Hora" obligatorio type="time" value={borrador[hora]} error={errores[hora]}
                 onChange={(valor) => cambiar({ [hora]: valor })} />
