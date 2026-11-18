@@ -29,6 +29,8 @@ import IniciarSesion from "../features/sesion/IniciarSesion";
 import RutaProtegida from "../features/sesion/RutaProtegida";
 import RutaGerencia from "../features/sesion/RutaGerencia";
 import Categorias from "../features/categorias/Categorias";
+import Modelos from "../features/modelos/Modelos";
+import FormularioModelo from "../features/modelos/FormularioModelo";
 import ConsultarPersonal from "../features/personal/ConsultarPersonal";
 import RegistrarPersonal from "../features/personal/RegistrarPersonal";
 import EditarPersonal from "../features/personal/EditarPersonal";
@@ -95,6 +97,11 @@ export default function AppRoutes() {
         <Route path="/disponibilidad" element={<Disponibilidad />} />
 
         <Route path="/categorias" element={<Categorias />} />
+
+        {/* Modelos (HU-36) */}
+        <Route path="/modelos" element={<Modelos />} />
+        <Route path="/modelos/nuevo" element={<FormularioModelo />} />
+        <Route path="/modelos/:id/editar" element={<FormularioModelo />} />
 
         {/* Personal: operadores de traslado y mecánicos (OHU-26, 27 y 28) */}
         <Route path="/personal" element={<ConsultarPersonal />} />

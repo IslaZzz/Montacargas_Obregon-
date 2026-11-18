@@ -18,6 +18,7 @@ import jakarta.validation.Valid;
 import mx.montacargasobregon.backend.cotizaciones.dto.CambiarEstadoCotizacionRequest;
 import mx.montacargasobregon.backend.cotizaciones.dto.CotizacionResponse;
 import mx.montacargasobregon.backend.cotizaciones.dto.CotizacionResumenResponse;
+import mx.montacargasobregon.backend.cotizaciones.dto.DescuentoCotizacionRequest;
 import mx.montacargasobregon.backend.cotizaciones.dto.TrasladoCotizacionRequest;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.cotizaciones.servicio.CotizacionPdfService;
@@ -93,6 +94,17 @@ public class CotizacionController {
     public CotizacionResponse registrarTraslado(@PathVariable Long id,
             @Valid @RequestBody TrasladoCotizacionRequest datos) {
         return respuesta(servicio.registrarTraslado(id, datos.trasladoEntrega(), datos.trasladoRecoleccion()));
+    }
+
+    /**
+     * PATCH /api/cotizaciones/5/descuento: aplica o quita el descuento (HU-15).
+     * Con descuento la cotización pasa a En autorización. Responde 400 si el descuento
+     * no es válido y 409 si la cotización ya no es Borrador.
+     */
+    @PatchMapping("/{id}/descuento")
+    public CotizacionResponse aplicarDescuento(@PathVariable Long id,
+            @Valid @RequestBody DescuentoCotizacionRequest datos) {
+        return respuesta(servicio.aplicarDescuento(id, datos.tipo(), datos.valor(), datos.motivo()));
     }
 
     // El detalle lleva la renta que salió de la cotización, si ya tiene (HU-37)

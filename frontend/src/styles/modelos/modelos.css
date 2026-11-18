@@ -1,0 +1,162 @@
+/* Modelos (HU-36). Las tarjetas y los campos del formulario vienen de registrar-cliente.css */
+
+/* Tabla */
+.modelos .titulo-acciones-texto p {
+  font-size: 18px;
+  color: var(--text-foreground);
+}
+
+.modelos-tabla .table-container {
+  border-width: 2px;
+  border-radius: 10px;
+}
+.modelos-tabla .data-table thead {
+  background-color: var(--selection-gray);
+}
+.modelos-tabla .data-table th {
+  height: 56px;
+  padding: 0 24px;
+  font-size: 16px;
+}
+.modelos-tabla .data-table td {
+  height: 72px;
+  padding: 0 24px;
+  border-bottom-color: rgba(15, 61, 76, 0.12);
+}
+.modelos-tabla .data-table tbody tr:nth-child(even) {
+  background-color: transparent;
+}
+.modelos-tabla .modelos-dato {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary-teal);
+}
+.modelos-tabla .modelos-acciones {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.modelos-editar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 24px;
+  border-width: 2px;
+  border-radius: 8px;
+  font-size: 18px;
+}
+.modelos-editar .material-symbols-rounded {
+  font-size: 20px;
+  font-variation-settings: "FILL" 1;
+}
+
+/* Sin modelos */
+.modelos-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 300px;
+  padding: 24px;
+  text-align: center;
+  background: var(--off-white-background);
+  border: 2px solid var(--secondary-mint);
+  border-radius: 10px;
+}
+.modelos-vacio .material-symbols-rounded {
+  font-size: 48px;
+  color: var(--secondary-mint);
+}
+.modelos-vacio strong {
+  font:
+    800 28px "Manrope",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.modelos-vacio p {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-foreground);
+}
+
+/* En celular la tabla se ve como tarjetas */
+.modelos-tarjetas {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.modelo-tarjeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  background: var(--off-white-background);
+  border: 2px solid var(--secondary-mint);
+  border-radius: 10px;
+  color: var(--primary-teal);
+}
+.modelo-tarjeta div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.modelo-tarjeta strong {
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+.modelo-tarjeta span {
+  font-size: 16px;
+  color: var(--text-body);
+  overflow-wrap: anywhere;
+}
+.modelo-tarjeta .btn {
+  flex-shrink: 0;
+}
+
+/* Formulario: Categoría y Datos a la izquierda, Especificaciones a la derecha */
+.modelo-columna {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.modelo-columna .tarjeta {
+  flex: none;
+}
+.modelo-ayuda {
+  font-size: 16px;
+  color: var(--text-body);
+}
+
+@media (max-width: 1100px) {
+  .modelo-columna {
+    width: 100%;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 700px) {
+  .modelos .titulo-acciones-botones,
+  .modelos .titulo-acciones-botones .btn {
+    width: 100%;
+  }
+  .modelos-tabla {
+    display: none;
+  }
+  .modelos-tarjetas {
+    display: flex;
+  }
+  .modelos-vacio strong {
+    font-size: 22px;
+  }
+}

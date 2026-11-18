@@ -36,7 +36,8 @@ export type ChipStatus =
   | 'con-observaciones'
   | 'requiere-mantenimiento'
   | 'entrega'
-  | 'recoleccion';
+  | 'recoleccion'
+  | 'en-autorizacion';
 
 interface ChipProps {
   category: ChipCategory;
@@ -84,6 +85,7 @@ const chipClasses: Record<ChipCategory, Partial<Record<ChipStatus, string>>> = {
 
   cotizacion: {
     borrador: 'chip-cotizacion chip-cotizacion-borrador',
+    'en-autorizacion': 'chip-cotizacion chip-cotizacion-en-autorizacion',
     enviada: 'chip-cotizacion chip-cotizacion-enviada',
     aceptada: 'chip-cotizacion chip-cotizacion-aceptada',
     'no-aceptada': 'chip-cotizacion chip-cotizacion-no-aceptada',
@@ -131,6 +133,7 @@ const defaultLabels: Record<ChipStatus, string> = {
   'requiere-mantenimiento': 'Requiere mantenimiento',
   entrega: 'Entrega',
   recoleccion: 'Recolección',
+  'en-autorizacion': 'En autorización',
 };
 
 // La clase de colores de un chip, para reutilizarla fuera de él (por ejemplo, el punto de un filtro)

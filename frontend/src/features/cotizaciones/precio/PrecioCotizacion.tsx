@@ -3,25 +3,39 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { Button } from "../../../components/buttons";
 import Chip from "../../../components/chips";
 import { useTitulo } from "../../../hooks/useTitulo";
-import { guardarTraslado, obtenerCotizacion } from "../cotizacionesApi";
-import type { Cotizacion } from "../cotizacionesTypes";
+import { ErrorApi } from "../../../services/apiClient";
+import { guardarDescuento, guardarTraslado, obtenerCotizacion } from "../cotizacionesApi";
+import type { Cotizacion, TipoDescuento } from "../cotizacionesTypes";
 import { chipDeEstado, nombreCompleto, textoDias } from "../cotizacionesUtils";
 import PasoPrecioEquipos from "./PasoPrecioEquipo";
 import PasoTraslado from "./PasoTraslado";
 import type { CampoTraslado } from "./PasoTraslado";
+import PasoDescuento from "./PasoDescuento";
+import type { CampoDescuento } from "./PasoDescuento";
 import PasosPrecio, { PASOS_PRECIO } from "./PasosPrecio";
-import { leerMonto, MENSAJE_MONTO, redondear } from "./precioCalculo";
+import {
+  calcularDescuento,
+  calcularPrecio,
+  leerMonto,
+  MENSAJE_DESCUENTO,
+  MENSAJE_MONTO,
+  MENSAJE_MOTIVO,
+  redondear,
+} from "./precioCalculo";
 import ResumenPrecio from "./ResumenPrecio";
+import type { DescuentoResumen } from "./ResumenPrecio";
 import "../../../styles/cotizaciones/cotizaciones.css";
 import "../../../styles/cotizaciones/nueva-cotizacion.css";
 import "../../../styles/cotizaciones/precio-cotizacion.css";
 
 const PASO_EQUIPOS = 0;
 const PASO_TRASLADO = 1;
-// Último paso que ya está construido; el Descuento (HU-15) y la Vigencia llegan después
-const ULTIMO_PASO_LISTO = PASO_TRASLADO;
+const PASO_DESCUENTO = 2;
+// Último paso que ya está construido; la Vigencia (HU-17) llega después
+const ULTIMO_PASO_LISTO = PASO_DESCUENTO;
 
 type Errores = Partial<Record<CampoTraslado, string>>;
+type ErroresDescuento = Partial<Record<CampoDescuento, string>>;
 
 // "lunes 12 de octubre"
 const diaLargo = (iso: string) =>
@@ -56,6 +70,15 @@ export default function PrecioCotizacion() {
     recoleccion: "0.00",
   });
   const [errores, setErrores] = useState<Errores>({});
+
+  // Descuento (HU-15): la opción elegida y lo escrito en sus campos
+  const [tipoDescuento, setTipoDescuento] = useState<TipoDescuento>("NINGUNO");
+  const [descuento, setDescuento] = useState<Record<CampoDescuento, string>>({
+    valor: "",
+    motivo: "",
+  });
+  const [erroresDescuento, setErroresDescuento] = useState<ErroresDescuento>({});
+
   const [errorGuardar, setErrorGuardar] = useState("");
   const [guardando, setGuardando] = useState(false);
 
@@ -72,6 +95,12 @@ export default function PrecioCotizacion() {
         setTraslado({
           entrega: redondear(c.trasladoEntrega ?? 0).toFixed(2),
           recoleccion: redondear(c.trasladoRecoleccion ?? 0).toFixed(2),
+        });
+        // Si ya tenía descuento, también
+        setTipoDescuento(c.descuentoTipo);
+        setDescuento({
+          valor: c.descuentoValor === null ? "" : String(c.descuentoValor),
+          motivo: c.descuentoMotivo ?? "",
         });
       })
       .catch(() => setErrorCarga("No fue posible cargar la cotización."));
@@ -113,6 +142,36 @@ export default function PrecioCotizacion() {
   const trasladoCapturado =
     paso >= PASO_TRASLADO || montoEntrega > 0 || montoRecoleccion > 0;
 
+  // Subtotal antes del descuento (equipos + traslados) y cuánto se descuenta
+  const { subtotal } = calcularPrecio(subtotalEquipos, montoEntrega, montoRecoleccion);
+  const montoDescuento = calcularDescuento(tipoDescuento, descuento.valor, subtotal);
+
+  const resumenDescuento: DescuentoResumen =
+    paso < PASO_DESCUENTO && tipoDescuento === "NINGUNO"
+      ? { tipo: "pendiente" }
+      : tipoDescuento === "NINGUNO"
+        ? { tipo: "sin" }
+        : montoDescuento === null
+          ? { tipo: "invalido" }
+          : {
+              tipo: "aplicado",
+              monto: montoDescuento,
+              etiqueta:
+                tipoDescuento === "PORCENTAJE"
+                  ? `Descuento (${Number(descuento.valor)}%)`
+                  : "Descuento",
+            };
+
+  // «Descuento inválido» sale mientras se escribe, como en el prototipo; el motivo, al guardar
+  const erroresDescuentoVisibles: ErroresDescuento = {
+    valor:
+      erroresDescuento.valor ??
+      (tipoDescuento !== "NINGUNO" && descuento.valor !== "" && montoDescuento === null
+        ? MENSAJE_DESCUENTO
+        : undefined),
+    motivo: erroresDescuento.motivo,
+  };
+
   const irAPaso = (destino: number) => {
     setPaso(destino);
     setErrorGuardar("");
@@ -128,6 +187,18 @@ export default function PrecioCotizacion() {
   const formatearTraslado = (campo: CampoTraslado) => {
     const monto = leerMonto(traslado[campo]);
     if (monto !== null) cambiarTraslado(campo, monto.toFixed(2));
+  };
+
+  // Al cambiar de opción se borra el valor: 10 no significa lo mismo en % que en pesos
+  const elegirTipoDescuento = (tipo: TipoDescuento) => {
+    setTipoDescuento(tipo);
+    setDescuento((actual) => ({ ...actual, valor: "" }));
+    setErroresDescuento({});
+  };
+
+  const cambiarDescuento = (campo: CampoDescuento, valor: string) => {
+    setDescuento((actual) => ({ ...actual, [campo]: valor }));
+    setErroresDescuento((actuales) => ({ ...actuales, [campo]: undefined }));
   };
 
   // Valida y guarda el traslado; devuelve true si quedó guardado
@@ -154,13 +225,59 @@ export default function PrecioCotizacion() {
     }
   }
 
+  // Valida y guarda el descuento; devuelve true si quedó guardado (HU-15)
+  async function guardarDescuentoCapturado() {
+    const encontrados: ErroresDescuento = {};
+    if (tipoDescuento !== "NINGUNO") {
+      if (montoDescuento === null) encontrados.valor = MENSAJE_DESCUENTO;
+      if (!descuento.motivo.trim()) encontrados.motivo = MENSAJE_MOTIVO;
+    }
+    setErroresDescuento(encontrados);
+    if (Object.keys(encontrados).length > 0) return false;
+
+    setGuardando(true);
+    setErrorGuardar("");
+    try {
+      await guardarDescuento(
+        c.id,
+        tipoDescuento === "NINGUNO"
+          ? { tipo: "NINGUNO", valor: null, motivo: null }
+          : {
+              tipo: tipoDescuento,
+              valor: Number(descuento.valor),
+              motivo: descuento.motivo.trim(),
+            },
+      );
+      return true;
+    } catch (err) {
+      setErrorGuardar(
+        err instanceof ErrorApi
+          ? err.message
+          : "No se pudo guardar el descuento. Intenta de nuevo.",
+      );
+      return false;
+    } finally {
+      setGuardando(false);
+    }
+  }
+
   const siguiente = async () => {
     if (paso === PASO_TRASLADO && !(await guardarTrasladoCapturado())) return;
+    if (paso === PASO_DESCUENTO && !(await guardarDescuentoCapturado())) return;
 
     if (paso < ULTIMO_PASO_LISTO) irAPaso(paso + 1);
-    // Mientras no existan los pasos 3 y 4, al terminar el traslado se envía a cotización guardada
+    // Mientras no exista el paso 4, al terminar el descuento se envía al detalle
     else navigate(`/cotizaciones/${c.id}`, { state: { precioGuardado: true } });
   };
+
+  // Con descuento, el botón final avisa que va a gerencia (criterio 5)
+  const textoSiguiente = guardando
+    ? "Guardando…"
+    : paso === PASO_DESCUENTO
+      ? tipoDescuento === "NINGUNO"
+        ? "Guardar cotización"
+        : "Guardar y enviar a autorización"
+      : "Siguiente →";
 
   const aviso =
     paso === PASO_EQUIPOS
@@ -168,11 +285,17 @@ export default function PrecioCotizacion() {
           titulo: `La renta dura ${textoDias(c.dias)}`,
           texto: `${textoPeriodo(c.fechaEntrega, c.fechaRecoleccion)}. Se toma la tarifa vigente. El sistema hace las cuentas de cada equipo.`,
         }
-      : {
-          titulo: "Los traslados son opcionales",
-          texto:
-            "Si no hay traslado, déjalos en 0.00. Se suman como conceptos separados del importe de cada equipo.",
-        };
+      : paso === PASO_TRASLADO
+        ? {
+            titulo: "Los traslados son opcionales",
+            texto:
+              "Si no hay traslado, déjalos en 0.00. Se suman como conceptos separados del importe de cada equipo.",
+          }
+        : {
+            titulo: "El descuento solo cambia esta cotización",
+            texto:
+              "No cambia las tarifas del catálogo ni el precio de cada equipo. Si agregas un descuento, gerencia lo tiene que autorizar antes de mandarlo al cliente.",
+          };
 
   return (
     <div className="pagina-form">
@@ -229,6 +352,18 @@ export default function PrecioCotizacion() {
                 formatear={formatearTraslado}
               />
             )}
+            {paso === PASO_DESCUENTO && (
+              <PasoDescuento
+                cotizacion={c}
+                tipo={tipoDescuento}
+                valores={descuento}
+                errores={erroresDescuentoVisibles}
+                subtotal={subtotal}
+                montoDescuento={montoDescuento}
+                elegirTipo={elegirTipoDescuento}
+                cambiar={cambiarDescuento}
+              />
+            )}
           </div>
 
           {/* Columna derecha: resumen del precio, se actualiza con lo que se captura */}
@@ -239,6 +374,7 @@ export default function PrecioCotizacion() {
               trasladoEntrega={montoEntrega}
               trasladoRecoleccion={montoRecoleccion}
               trasladoCapturado={trasladoCapturado}
+              descuento={resumenDescuento}
             />
           </div>
         </div>
@@ -276,7 +412,7 @@ export default function PrecioCotizacion() {
           disabled={guardando}
           onClick={siguiente}
         >
-          {guardando ? "Guardando…" : "Siguiente →"}
+          {textoSiguiente}
         </Button>
       </div>
     </div>

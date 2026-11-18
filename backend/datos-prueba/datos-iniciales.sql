@@ -52,6 +52,44 @@ FROM (
          JOIN categorias c ON c.nombre = d.categoria
 ON DUPLICATE KEY UPDATE descripcion = COALESCE(modelos.descripcion, d.descripcion);
 
+-- HU-36: un modelo nuevo se registra sin tarifa (se captura en «Tarifas»).
+-- El backend no quita el NOT NULL de las bases que ya existían; esto lo quita.
+ALTER TABLE modelos MODIFY tarifa_dia DECIMAL(10,2) NULL;
+
+-- Campos de especificación de cada categoría (HU-36). Por ahora solo Montacargas los pide.
+INSERT IGNORE INTO definiciones_campo (categoria_id, nombre, tipo, unidad, requerido, orden)
+SELECT c.id, d.nombre, d.tipo, d.unidad, 0, d.orden
+FROM (
+         SELECT 'Capacidad de carga' AS nombre, 'ENTERO' AS tipo, 'kg' AS unidad, 1 AS orden
+         UNION ALL SELECT 'Altura del mástil', 'DECIMAL', 'm', 2
+         UNION ALL SELECT 'Tipo de energía', 'LISTA', NULL, 3
+     ) d
+         JOIN categorias c ON c.nombre = 'Montacargas';
+
+INSERT IGNORE INTO definicion_campo_opciones (campo_id, posicion, opcion)
+SELECT f.id, o.posicion, o.opcion
+FROM (
+         SELECT 0 AS posicion, 'Eléctrico' AS opcion
+         UNION ALL SELECT 1, 'Diésel'
+         UNION ALL SELECT 2, 'Gas LP'
+     ) o
+         JOIN definiciones_campo f ON f.nombre = 'Tipo de energía'
+         JOIN categorias c ON c.id = f.categoria_id AND c.nombre = 'Montacargas';
+
+-- Especificaciones de los montacargas de ejemplo
+INSERT IGNORE INTO valores_especificacion (modelo_id, campo_id, valor)
+SELECT m.id, f.id, d.valor
+FROM (
+         SELECT '8FBE30' AS modelo, 'Capacidad de carga' AS campo, '3000' AS valor
+         UNION ALL SELECT '8FBE30', 'Altura del mástil', '4.7'
+         UNION ALL SELECT '8FBE30', 'Tipo de energía', 'Eléctrico'
+         UNION ALL SELECT 'H110FT', 'Capacidad de carga', '5000'
+         UNION ALL SELECT 'H110FT', 'Altura del mástil', '3.6'
+         UNION ALL SELECT 'H110FT', 'Tipo de energía', 'Diésel'
+     ) d
+         JOIN modelos m ON m.codigo = d.modelo
+         JOIN definiciones_campo f ON f.nombre = d.campo AND f.categoria_id = m.categoria_id;
+
 -- Equipos: 5 disponibles y MC-15 en mantenimiento, que no debe aparecer en la disponibilidad (TC-09-05)
 INSERT IGNORE INTO equipos (numero_unidad, numero_serie, anio_compra, estado, modelo_id)
 SELECT d.unidad, d.serie, d.anio, d.estado, m.id

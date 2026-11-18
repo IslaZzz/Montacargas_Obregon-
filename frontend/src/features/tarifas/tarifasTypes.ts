@@ -6,7 +6,7 @@ export interface Tarifa {
   codigo: string // Ej. "8FBE30"
   categoriaId: number
   categoria: string // Ej. "Montacargas"
-  tarifaDia: number // Pesos por día
+  tarifaDia: number | null // Pesos por día; null si el modelo aún no tiene tarifa (HU-36)
 }
 
 // Equivale a TarifaRequest

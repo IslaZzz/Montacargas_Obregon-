@@ -11,7 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
+import mx.montacargasobregon.backend.cotizaciones.modelo.Descuento;
 import mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion;
+import mx.montacargasobregon.backend.cotizaciones.modelo.TipoDescuento;
 import mx.montacargasobregon.backend.cotizaciones.repositorio.CotizacionRepository;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.rentas.servicio.RentaDeCotizacionService;
@@ -92,5 +94,45 @@ public class CotizacionService {
     @Transactional(readOnly = true)
     public Optional<Renta> renta(Long cotizacionId) {
         return rentas.buscar(cotizacionId);
+    }
+
+    /**
+     * Aplica o quita el descuento de una cotización en Borrador (HU-15).
+     * Con descuento, la cotización pasa a En autorización para que gerencia lo revise (HU-16).
+     */
+    @Transactional
+    public Cotizacion aplicarDescuento(Long id, TipoDescuento tipo, BigDecimal valor, String motivo) {
+        Cotizacion c = obtener(id);
+
+        if (c.getEstado() != EstadoCotizacion.BORRADOR) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Solo se puede cambiar el descuento de una cotización en Borrador");
+        }
+
+        // Sin descuento: la cotización se queda sin Descuento (0..1) y sigue en Borrador
+        if (tipo == TipoDescuento.NINGUNO) {
+            c.aplicarDescuento(null);
+            return c;
+        }
+
+        if (!descuentoValido(tipo, valor, c.getSubtotal())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Descuento inválido");
+        }
+        if (motivo == null || motivo.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Escribe el motivo del descuento");
+        }
+
+        c.aplicarDescuento(new Descuento(tipo, valor, motivo.trim()));
+        c.enviarAAutorizacion();
+        return c;
+    }
+
+    /** Porcentaje: mayor a 0 y menor a 100. Monto: mayor a 0 y menor al subtotal. */
+    private boolean descuentoValido(TipoDescuento tipo, BigDecimal valor, BigDecimal subtotal) {
+        if (valor == null || valor.signum() <= 0) {
+            return false;
+        }
+        BigDecimal limite = tipo == TipoDescuento.PORCENTAJE ? new BigDecimal("100") : subtotal;
+        return valor.compareTo(limite) < 0;
     }
 }

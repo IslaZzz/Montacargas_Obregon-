@@ -1,13 +1,13 @@
 package mx.montacargasobregon.backend.cotizaciones.modelo;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.math.RoundingMode;
 
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.CascadeType;
@@ -34,10 +34,8 @@ import mx.montacargasobregon.backend.comun.DatosDireccion;
 
 /**
  * Cotización de renta para un cliente, como en el diagrama de dominio.
- * Traslados (HU-14), descuento (HU-15) y la autorización de gerencia (HU-16) ya
- * tienen su lugar,
- * pero todavía no se capturan: los traslados quedan en 0 y la cotización va sin
- * descuento.
+ * Traslados (HU-14) y descuento (HU-15) se capturan en la pantalla del precio.
+ * La autorización de gerencia (HU-16) ya tiene su lugar, pero todavía no se captura.
  */
 @Entity
 @Table(name = "cotizaciones")
@@ -92,8 +90,11 @@ public class Cotizacion {
     @Column(name = "traslado_recoleccion", nullable = false, precision = 12, scale = 2)
     private BigDecimal trasladoRecoleccion = BigDecimal.ZERO;
 
-    // Opcional (HU-15): sin descuento queda vacío
-    @Embedded
+    // Opcional (HU-15), en su propia tabla: null si no hay descuento (0..1).
+    // Se guarda y se borra junto con la cotización. orphanRemoval borra el descuento
+    // anterior cuando se cambia o se quita, para que no queden registros sueltos
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "descuento_id")
     private Descuento descuento;
 
     // Respuesta de gerencia al descuento (HU-16); vacía mientras no la haya
@@ -114,8 +115,8 @@ public class Cotizacion {
     @JoinColumn(name = "cotizacion_id", nullable = false)
     private List<EquipoCotizacion> equipos = new ArrayList<>();
 
-    // Se guardan al crearla para que la lista, el detalle y el PDF muestren siempre
-    // el mismo precio
+    // Se guardan para que la lista, el detalle y el PDF muestren siempre el mismo precio.
+    // subtotal = equipos + traslados, antes del descuento. El IVA se calcula sobre el subtotal con descuento
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal subtotal;
 
@@ -159,26 +160,49 @@ public class Cotizacion {
         equipos.add(equipo);
     }
 
-        /**
-     * Guarda el costo de traslado y recalcula subtotal, IVA y total.
+    /**
+     * Guarda el costo de traslado y recalcula subtotal, IVA y total (HU-14).
      * Quien llama revisa antes que la cotización siga en Borrador.
-     * El descuento todavía no se captura, así que no se resta.
-     * Con esto el precio queda definido la cotización ya puede generar su PDF.
+     * Con esto el precio queda definido y la cotización ya puede generar su PDF.
      */
     public void registrarTraslado(BigDecimal entrega, BigDecimal recoleccion) {
         this.trasladoEntrega = entrega;
         this.trasladoRecoleccion = recoleccion;
-
-        BigDecimal equiposSuma = equipos.stream()
-                .map(EquipoCotizacion::getImporte)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        this.subtotal = equiposSuma.add(entrega).add(recoleccion);
-        this.iva = subtotal.multiply(TASA_IVA).setScale(2, RoundingMode.HALF_UP);
-        this.total = subtotal.add(iva);
+        recalcularPrecio();
         this.precioDefinido = true;
     }
-    
+
+    /**
+     * Aplica el descuento, o lo quita si llega null, y recalcula el precio (HU-15).
+     * Quien llama revisa antes que la cotización siga en Borrador y que el descuento sea válido.
+     * No cambia la tarifa ni el importe de cada equipo.
+     */
+    public void aplicarDescuento(Descuento nuevoDescuento) {
+        this.descuento = nuevoDescuento;
+        recalcularPrecio();
+    }
+
+    /** Con descuento, la cotización espera la respuesta de gerencia (HU-15 criterio 5 y HU-16). */
+    public void enviarAAutorizacion() {
+        this.estado = EstadoCotizacion.EN_AUTORIZACION;
+    }
+
+    /**
+     * Pesos que se descuentan sobre el subtotal (equipos + traslados); 0 si no hay descuento.
+     * Porcentaje: subtotal × valor / 100, redondeado a centavos. Monto: el valor tal cual.
+     */
+    public BigDecimal getMontoDescuento() {
+        if (descuento == null) {
+            return BigDecimal.ZERO;
+        }
+        return switch (descuento.getTipo()) {
+            case PORCENTAJE -> subtotal.multiply(descuento.getValor())
+                    .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+            case MONTO -> descuento.getValor();
+            case NINGUNO -> BigDecimal.ZERO;
+        };
+    }
+
     /**
      * Cambia el estado y guarda cuándo. Quien llama revisa antes que el cambio se
      * permita.
@@ -198,5 +222,20 @@ public class Cotizacion {
      */
     public long getDias() {
         return ChronoUnit.DAYS.between(fechaHoraEntrega.toLocalDate(), fechaHoraRecoleccion.toLocalDate()) + 1;
+    }
+
+    /**
+     * subtotal = equipos + traslados (antes del descuento).
+     * IVA = (subtotal − descuento) × 16 %; total = subtotal − descuento + IVA.
+     */
+    private void recalcularPrecio() {
+        BigDecimal equiposSuma = equipos.stream()
+                .map(EquipoCotizacion::getImporte)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        this.subtotal = equiposSuma.add(trasladoEntrega).add(trasladoRecoleccion);
+        BigDecimal conDescuento = subtotal.subtract(getMontoDescuento());
+        this.iva = conDescuento.multiply(TASA_IVA).setScale(2, RoundingMode.HALF_UP);
+        this.total = conDescuento.add(iva);
     }
 }
