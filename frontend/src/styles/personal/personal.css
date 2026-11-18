@@ -1,0 +1,165 @@
+/* Personal (OHU-26, 27 y 28): lista, registrar y editar.
+   Sigue el estilo de Clientes: reutiliza .titulo-acciones, .tarjeta, .campo, .aviso-error y .barra-acciones */
+
+/* ===== Lista ===== */
+.lista-personal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.lista-personal .filters-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* El buscador grande, como en Clientes */
+.lista-personal .filter-input {
+  flex: 1;
+  min-height: 56px;
+  padding: 12px 16px;
+  font-size: 18px;
+  font-weight: 400;
+  background: var(--off-white-background);
+  border: 2px solid var(--secondary-mint);
+  border-radius: 10px;
+}
+.lista-personal .filter-input:focus {
+  border-color: var(--primary-teal);
+}
+.lista-personal .filter-results-info {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 4px 0 8px;
+}
+
+.tabla-personal .data-table th {
+  font-size: 14px;
+}
+.tabla-personal .data-table td {
+  font-size: 16px;
+  vertical-align: middle;
+}
+.personal-nombre {
+  font-weight: 600;
+  color: var(--primary-teal);
+}
+.personal-codigo {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+.personal-puesto {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.personal-puesto .material-symbols-rounded {
+  font-size: 20px;
+  color: var(--secondary-mint);
+}
+.personal-acciones {
+  text-align: right;
+}
+.personal-acciones .btn {
+  gap: 8px;
+}
+/* De baja: se ve más apagado */
+.personal-de-baja .personal-nombre,
+.personal-de-baja .personal-puesto {
+  color: var(--tertiary-mineral-blue);
+}
+
+/* ===== Registrar y editar ===== */
+.personal-volver {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--secondary-mint);
+  font:
+    600 16px "Inter",
+    sans-serif;
+  cursor: pointer;
+}
+.personal-volver:hover {
+  text-decoration: underline;
+}
+.personal-tarjeta {
+  max-width: 820px;
+}
+.personal-campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+}
+
+/* Puesto: dos opciones grandes */
+.personal-tipos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.personal-tipos legend {
+  margin-bottom: 10px;
+  padding: 0;
+}
+.personal-tipos-opciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.personal-tipo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--primary-teal);
+  border-radius: 8px;
+  background: var(--off-white-background);
+  color: var(--primary-teal);
+  font:
+    600 18px "Inter",
+    sans-serif;
+  cursor: pointer;
+}
+.personal-tipo input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--primary-teal);
+}
+.personal-tipo .material-symbols-rounded {
+  font-size: 24px;
+  color: var(--secondary-mint);
+}
+.personal-tipo-elegido {
+  border-width: 2.5px;
+  padding: 11px 15px; /* compensa el borde más grueso */
+  background: var(--selection-gray);
+}
+.personal-tipo:has(input:focus-visible) {
+  outline: 2px solid var(--secondary-mint);
+  outline-offset: 2px;
+}
+.personal-tipos[aria-invalid="true"] .personal-tipo {
+  border-color: var(--warning-red-outline);
+}
+
+/* Celular */
+@media (max-width: 700px) {
+  .personal-campos,
+  .personal-tipos-opciones {
+    grid-template-columns: 1fr;
+  }
+  .personal-tipo {
+    min-height: 52px;
+    font-size: 16px;
+  }
+}

@@ -29,6 +29,9 @@ import IniciarSesion from "../features/sesion/IniciarSesion";
 import RutaProtegida from "../features/sesion/RutaProtegida";
 import RutaGerencia from "../features/sesion/RutaGerencia";
 import Categorias from "../features/categorias/Categorias";
+import ConsultarPersonal from "../features/personal/ConsultarPersonal";
+import RegistrarPersonal from "../features/personal/RegistrarPersonal";
+import EditarPersonal from "../features/personal/EditarPersonal";
 
 
 
@@ -92,6 +95,11 @@ export default function AppRoutes() {
         <Route path="/disponibilidad" element={<Disponibilidad />} />
 
         <Route path="/categorias" element={<Categorias />} />
+
+        {/* Personal: operadores de traslado y mecánicos (OHU-26, 27 y 28) */}
+        <Route path="/personal" element={<ConsultarPersonal />} />
+        <Route path="/personal/registrar" element={<RegistrarPersonal />} />
+        <Route path="/personal/:id" element={<EditarPersonal />} />
 
         {/* Solo gerencia (HU-29): el auxiliar ve «No tienes permiso». La pantalla de Autorizaciones llega con HU-16 */}
         <Route element={<RutaGerencia />}>

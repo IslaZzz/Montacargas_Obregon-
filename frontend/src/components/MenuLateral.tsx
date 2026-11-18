@@ -35,6 +35,8 @@ const opciones: Opcion[] = [
   { texto: "Revisiones", ruta: "/revisiones", icono: "fact_check" },
   { texto: "Traslados", ruta: "/traslados", icono: "swap_horiz" },
   { texto: "Mantenimientos", ruta: "/mantenimientos", icono: "build" },
+  // Operadores de traslado y mecánicos (OHU-26, 27 y 28)
+  { texto: "Personal", ruta: "/personal", icono: "badge" },
   { texto: "Historial de rentas", ruta: "/historial-rentas", icono: "history" },
   {
     texto: "Autorizaciones",
