@@ -34,9 +34,8 @@ import FormularioModelo from "../features/modelos/FormularioModelo";
 import ConsultarPersonal from "../features/personal/ConsultarPersonal";
 import RegistrarPersonal from "../features/personal/RegistrarPersonal";
 import EditarPersonal from "../features/personal/EditarPersonal";
-
-
-
+import AutorizacionesLista from "../features/cotizaciones/autorizaciones/VerAutorizaciones";
+import DetalleAutorizacion from "../features/cotizaciones/autorizaciones/DetalleAutorizacion";
 
 export default function AppRoutes() {
   return (
@@ -108,9 +107,10 @@ export default function AppRoutes() {
         <Route path="/personal/registrar" element={<RegistrarPersonal />} />
         <Route path="/personal/:id" element={<EditarPersonal />} />
 
-        {/* Solo gerencia (HU-29): el auxiliar ve «No tienes permiso». La pantalla de Autorizaciones llega con HU-16 */}
+        {/* Solo gerencia: el auxiliar ve «No tienes permiso» */}
         <Route element={<RutaGerencia />}>
-          <Route path="/autorizaciones" />
+          <Route path="/autorizaciones" element={<AutorizacionesLista />} />
+          <Route path="/autorizaciones/:id" element={<DetalleAutorizacion />} />
           <Route path="/ingresos" />
         </Route>
 
