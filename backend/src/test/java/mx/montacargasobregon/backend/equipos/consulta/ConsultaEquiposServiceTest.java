@@ -61,10 +61,27 @@ class ConsultaEquiposServiceTest {
                 new Categoria("Montacargas"));
     }
 
+    // Ya revisado por Operativo: un equipo recién registrado nace «En revisión de entrada»
     private Equipo equipo(Long id, String numeroUnidad) {
+        Equipo e = recienRegistrado(id, numeroUnidad);
+        e.cambiarEstado(EstadoEquipo.OPERATIVO);
+        return e;
+    }
+
+    private Equipo recienRegistrado(Long id, String numeroUnidad) {
         Equipo e = new Equipo(numeroUnidad, "SN-" + numeroUnidad, 2021, modelo);
         ReflectionTestUtils.setField(e, "id", id);
         return e;
+    }
+
+    @Test
+    void consultar_elEquipoRecienRegistradoSaleEnRevisionDeEntrada() {
+        when(repositorio.enRentasVigentes(any(), any())).thenReturn(List.of());
+        when(equipoRepositorio.findAll()).thenReturn(List.of(recienRegistrado(40L, "MC-040")));
+
+        List<EquipoEstadoResponse> equipos = servicio.consultar(null, null);
+
+        assertEquals(EstadoConsultaEquipo.EN_REVISION_ENTRADA, equipos.get(0).estado());
     }
 
     private Renta renta(Long id, String folio, LocalDate inicio) {

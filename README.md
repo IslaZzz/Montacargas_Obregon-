@@ -78,3 +78,18 @@ Si tu base ya existía, haz esto una sola vez:
 2. Vuelve a correr `backend/datos-prueba/datos-iniciales.sql`. Deja la tarifa como opcional y agrega los campos de Montacargas.
 
 - **API:** `GET/POST /api/modelos`, `GET/PUT /api/modelos/{id}` (cada modelo trae sus `especificaciones`) y `GET /api/categorias/{id}/campos`.
+
+## Registrar equipo (HU-02)
+
+Un equipo nuevo queda «En revisión de entrada» (`EN_REVISION_ENTRADA`) y no se puede cotizar ni aparece en la disponibilidad hasta que Operativo lo pone disponible (`OPERATIVO`). Su año de compra o fabricación es opcional.
+
+Las etiquetas ya no son una lista fija: son la tabla `etiquetas` y se ligan al equipo en `equipos_etiquetas`. Gerencia agrega más con «+ Nueva etiqueta». La tabla anterior, `equipo_etiquetas`, ya no se usa.
+
+Si tu base ya existía, haz esto una sola vez:
+
+1. Arranca el backend. Crea las tablas de etiquetas y agrega el estado nuevo.
+2. Vuelve a correr `backend/datos-prueba/datos-iniciales.sql`. Deja el año como opcional, carga las tres etiquetas de siempre y le pone «Uso en interiores» a MC-11.
+
+Registrar un equipo y agregar una etiqueta son de gerencia: el auxiliar no ve el botón, la pantalla le dice «No tienes permiso» y la API le responde 403 (`ALTAS_DE_GERENCIA` en `SeguridadConfig`).
+
+- **API:** `POST /api/equipos` recibe `etiquetaIds` y responde 409 con el error en `numeroUnidad` o `numeroSerie` si se repiten; `GET/POST /api/etiquetas`; `GET /api/disponibilidad` filtra con `etiquetaId`. Los equipos traen sus etiquetas como `{ id, nombre }`.

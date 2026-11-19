@@ -5,6 +5,7 @@ export type EstadoConsultaEquipo =
   | "DISPONIBLE"
   | "EN_PREPARACION"
   | "EN_RENTA"
+  | "EN_REVISION_ENTRADA"
   | "EN_MANTENIMIENTO"
   | "FUERA_SERVICIO";
 

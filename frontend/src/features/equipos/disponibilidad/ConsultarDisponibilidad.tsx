@@ -6,16 +6,8 @@ import DateRangePicker from '../../../components/filters/dateRangePicker'
 import FilterDropdown from '../../../components/filters/filterDropdown'
 import type { DateRangeValue } from '../../../components/filters/filterTypes'
 import { useTitulo } from '../../../hooks/useTitulo'
-import { consultarDisponibilidad, listarCategorias } from './disponibilidadApi'
+import { consultarDisponibilidad, listarCategorias, listarEtiquetas } from './disponibilidadApi'
 import type { Categoria, Disponibilidad as Datos, EquipoDisponible, Etiqueta } from './disponibilidadApi'
-
-const ETIQUETAS: { valor: Etiqueta; texto: string }[] = [
-  { valor: 'APTO_URGENCIAS', texto: 'Apto para urgencias' },
-  { valor: 'REQUIERE_OPERADOR', texto: 'Requiere operador' },
-  { valor: 'USO_INTERIORES', texto: 'Uso en interiores' },
-]
-
-const textoEtiqueta = (e: Etiqueta) => ETIQUETAS.find((x) => x.valor === e)?.texto ?? e
 
 const pesos = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
 
@@ -51,7 +43,7 @@ const rangoCorto = (desde: string, hasta: string) => {
 // Lo que se consultó, para mostrarlo en el resumen
 interface Resultado extends Datos {
   categoria: string
-  etiqueta: Etiqueta | ''
+  etiqueta: Etiqueta | null
   desde: string
   hasta: string
 }
@@ -62,7 +54,8 @@ export default function Disponibilidad() {
 
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [categoriaId, setCategoriaId] = useState('')
-  const [etiqueta, setEtiqueta] = useState<Etiqueta | ''>('')
+  const [etiquetas, setEtiquetas] = useState<Etiqueta[]>([])
+  const [etiqueta, setEtiqueta] = useState<Etiqueta | null>(null)
   const [fechas, setFechas] = useState<DateRangeValue>({ from: '', to: '' })
 
   const [aviso, setAviso] = useState('')
@@ -74,11 +67,15 @@ export default function Disponibilidad() {
     listarCategorias()
       .then(setCategorias)
       .catch(() => setAviso('No se pudieron cargar las categorías. Revisa que el servidor esté encendido.'))
+    // Sin etiquetas la búsqueda sigue funcionando: son opcionales
+    listarEtiquetas()
+      .then(setEtiquetas)
+      .catch(() => setEtiquetas([]))
   }, [])
 
   const nombreCategoria = categorias.find((c) => String(c.id) === categoriaId)?.nombre ?? ''
 
-  const buscar = async (etiquetaUsada: Etiqueta | '' = etiqueta) => {
+  const buscar = async (etiquetaUsada: Etiqueta | null = etiqueta) => {
     if (!categoriaId) {
       setAviso('Elige categoría para buscar')
       return
@@ -92,7 +89,12 @@ export default function Disponibilidad() {
     setAviso('')
     setCargando(true)
     try {
-      const datos = await consultarDisponibilidad(Number(categoriaId), etiquetaUsada, fechas.from, fechas.to)
+      const datos = await consultarDisponibilidad(
+        Number(categoriaId),
+        etiquetaUsada?.id ?? null,
+        fechas.from,
+        fechas.to
+      )
       setEtiqueta(etiquetaUsada)
       setResultado({
         ...datos,
@@ -125,9 +127,9 @@ export default function Disponibilidad() {
         e.etiquetas.length === 0
           ? '—'
           : e.etiquetas.map((t) => (
-              <span className="etiqueta-chip" key={t}>
+              <span className="etiqueta-chip" key={t.id}>
                 <span className="material-symbols-rounded">sell</span>
-                {textoEtiqueta(t)}
+                {t.nombre}
               </span>
             )),
     },
@@ -181,14 +183,14 @@ export default function Disponibilidad() {
               <div className="campo-bloque">
                 <span className="campo-etiqueta">Etiqueta (opcional)</span>
                 <div className="filters-row">
-                  {ETIQUETAS.map((t) => (
+                  {etiquetas.map((t) => (
                     <button
                       type="button"
-                      key={t.valor}
-                      className={etiqueta === t.valor ? 'filter-chip active' : 'filter-chip'}
-                      onClick={() => setEtiqueta(etiqueta === t.valor ? '' : t.valor)}
+                      key={t.id}
+                      className={etiqueta?.id === t.id ? 'filter-chip active' : 'filter-chip'}
+                      onClick={() => setEtiqueta(etiqueta?.id === t.id ? null : t)}
                     >
-                      {t.texto}
+                      {t.nombre}
                     </button>
                   ))}
                 </div>
@@ -224,7 +226,7 @@ export default function Disponibilidad() {
             </div>
             <div>
               <span>Etiqueta</span>
-              <strong>{resultado.etiqueta ? textoEtiqueta(resultado.etiqueta) : 'Ninguna'}</strong>
+              <strong>{resultado.etiqueta ? resultado.etiqueta.nombre : 'Ninguna'}</strong>
             </div>
             <div>
               <span>Fechas</span>
@@ -292,8 +294,8 @@ export default function Disponibilidad() {
 
                 {resultado.etiqueta && (
                   <div className="opcion-disponibilidad">
-                    <p>Quitar la etiqueta “{textoEtiqueta(resultado.etiqueta)}”</p>
-                    <Button type="button" variant="primary" disabled={cargando} onClick={() => buscar('')}>
+                    <p>Quitar la etiqueta “{resultado.etiqueta.nombre}”</p>
+                    <Button type="button" variant="primary" disabled={cargando} onClick={() => buscar(null)}>
                       Quitar etiqueta
                     </Button>
                   </div>
