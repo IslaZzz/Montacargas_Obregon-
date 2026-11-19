@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
+import mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion;
 
 public interface CotizacionRepository extends JpaRepository<Cotizacion, Long> {
 
@@ -15,4 +16,9 @@ public interface CotizacionRepository extends JpaRepository<Cotizacion, Long> {
     /** El id más alto guardado, o 0 si aún no hay cotizaciones. Sirve para armar el siguiente folio (HU-12). */
     @Query("select coalesce(max(c.id), 0) from Cotizacion c")
     long ultimoId();
+
+    // Las cotizaciones que tienen una solicitud de autorización (pendiente o respondida)
+    List<Cotizacion> findByAutorizacionIsNotNull();
+
+    long countByEstado(EstadoCotizacion estado);
 }
