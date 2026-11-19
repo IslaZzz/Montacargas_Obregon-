@@ -26,6 +26,7 @@ import mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion;
 import mx.montacargasobregon.backend.cotizaciones.repositorio.CotizacionRepository;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 import mx.montacargasobregon.backend.rentas.servicio.RentaDeCotizacionService;
+import mx.montacargasobregon.backend.usuarios.repositorio.UsuarioRepository;
 
 /** Cambios de estado de la cotización y la renta que nace al aceptarla (HU-20 y HU-37). */
 @ExtendWith(MockitoExtension.class)
@@ -37,12 +38,15 @@ class CotizacionServiceTest {
     @Mock
     private RentaDeCotizacionService rentas;
 
+    @Mock
+    private UsuarioRepository usuarios;
+
     private CotizacionService servicio;
     private Cotizacion cotizacion;
 
     @BeforeEach
     void setUp() {
-        servicio = new CotizacionService(repositorio, rentas);
+        servicio = new CotizacionService(repositorio, rentas, usuarios);
 
         Cliente cliente = new Cliente("Carlos", "Ramírez", "Soto", "Persona física", "6445551234",
                 "carlos.ramirez@correo.com", LocalDate.of(2026, 11, 1));
