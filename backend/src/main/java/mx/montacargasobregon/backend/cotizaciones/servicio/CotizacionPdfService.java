@@ -3,6 +3,7 @@ package mx.montacargasobregon.backend.cotizaciones.servicio;
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,11 +31,12 @@ import mx.montacargasobregon.backend.comun.DatosContactoSitio;
 import mx.montacargasobregon.backend.comun.DatosDireccion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.EquipoCotizacion;
+import mx.montacargasobregon.backend.cotizaciones.modelo.TipoDescuento;
 
 /**
- * Genera el PDF de una cotización (HU-18): encabezado con folio y fecha, cliente y razón social,
- * entrega y recolección, tabla de equipos y Subtotal, IVA (16%) y Total.
- * Traslado, descuento, vigencia y condiciones se agregan con HU-35.
+ * Genera el PDF de una cotización (HU-18 y HU-35): encabezado con folio y fecha, cliente y razón social,
+ * entrega y recolección, tabla de equipos, bloque de precios (traslados y descuento solo si aplican)
+ * y bloque de condiciones.
  */
 @Service
 public class CotizacionPdfService {
@@ -46,6 +48,7 @@ public class CotizacionPdfService {
     private static final Locale ES_MX = Locale.forLanguageTag("es-MX");
     private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter FECHA_LARGA = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM 'de' yyyy", ES_MX);
+    private static final int VIGENCIA_DIAS = 7;
 
     // Colores del prototipo
     private static final Color AZUL = new Color(0x0F3D4C);
@@ -90,6 +93,7 @@ public class CotizacionPdfService {
         documento.add(entregaYRecoleccion(c));
         documento.add(equipos(c));
         documento.add(totales(c));
+        documento.add(condiciones(c));
 
         documento.close();
         return salida.toByteArray();
@@ -181,21 +185,75 @@ public class CotizacionPdfService {
         return tabla;
     }
 
-    // Subtotal, IVA y Total alineados a la derecha
+    // Bloque «Precios»: primero los traslados que aplican, luego el subtotal (equipos + traslados)
     private PdfPTable totales(Cotizacion c) {
         PdfPTable tabla = tabla(2, 45);
         tabla.setHorizontalAlignment(Element.ALIGN_RIGHT);
         tabla.setSpacingBefore(10);
 
+        if (c.getTrasladoEntrega().signum() > 0) {
+            filaTotal(tabla, "Traslado de entrega", moneda(c.getTrasladoEntrega()), NORMAL, NEGRITA);
+        }
+        if (c.getTrasladoRecoleccion().signum() > 0) {
+            filaTotal(tabla, "Traslado de recolección", moneda(c.getTrasladoRecoleccion()), NORMAL, NEGRITA);
+        }
+
         filaTotal(tabla, "Subtotal", moneda(c.getSubtotal()), NORMAL, NEGRITA);
+
+        if (c.getMontoDescuento().signum() > 0) {
+            filaTotal(tabla, etiquetaDescuento(c), "-" + moneda(c.getMontoDescuento()), NORMAL, NEGRITA);
+        }
+
         filaTotal(tabla, "IVA (16%)", moneda(c.getIva()), NORMAL, NEGRITA);
         filaTotal(tabla, "Total", moneda(c.getTotal()), TOTAL, TOTAL);
         return tabla;
     }
 
+    // "Descuento (10%)" si es porcentaje; "Descuento" si es un monto en pesos
+    private static String etiquetaDescuento(Cotizacion c) {
+        if (c.getDescuento().getTipo() == TipoDescuento.PORCENTAJE) {
+            return "Descuento (" + c.getDescuento().getValor().stripTrailingZeros().toPlainString() + "%)";
+        }
+        return "Descuento";
+    }
+
     private void filaTotal(PdfPTable tabla, String concepto, String monto, Font fuenteConcepto, Font fuenteMonto) {
         tabla.addCell(alineado(celda(new Phrase(concepto, fuenteConcepto)), Element.ALIGN_RIGHT));
         tabla.addCell(alineado(celda(new Phrase(monto, fuenteMonto)), Element.ALIGN_RIGHT));
+    }
+
+    // Bloque «Condiciones»: vigencia, anticipo, cancelación, entrega y carta responsiva
+    private PdfPTable condiciones(Cotizacion c) {
+        PdfPTable tabla = tabla(1, 100);
+        tabla.setSpacingBefore(22);
+        tabla.setKeepTogether(true);
+
+        BigDecimal anticipo = c.getTotal().multiply(new BigDecimal("0.30")).setScale(2, RoundingMode.HALF_UP);
+        String vence = c.getFechaHoraCreacion().plusDays(VIGENCIA_DIAS).format(FECHA_LARGA);
+
+        PdfPCell celda = celda();
+        celda.addElement(new Paragraph("CONDICIONES", ETIQUETA));
+        celda.addElement(condicion("Vigencia", "Esta cotización es válida por " + VIGENCIA_DIAS
+                + " días y vence el " + vence + "."));
+        celda.addElement(condicion("Anticipo", "Para confirmar la renta se requiere un anticipo del 30%: "
+                + moneda(anticipo) + "."));
+        celda.addElement(condicion("Cancelación", "Si la renta se cancela con menos de 24 horas de anticipación, "
+                + "no se reembolsa el anticipo."));
+        celda.addElement(condicion("Entrega", "El equipo se entrega y se recoge en el lugar, fecha y hora "
+                + "indicados. El cliente debe garantizar el acceso y un espacio seguro para la maniobra."));
+        celda.addElement(condicion("Carta responsiva", "Antes de la entrega, el cliente o su representante "
+                + "debe firmar la carta responsiva del equipo."));
+        tabla.addCell(celda);
+        return tabla;
+    }
+
+    // "Vigencia: texto", con el título en negrita
+    private static Paragraph condicion(String titulo, String texto) {
+        Paragraph parrafo = new Paragraph();
+        parrafo.setSpacingBefore(3);
+        parrafo.add(new Phrase(titulo + ": ", NEGRITA));
+        parrafo.add(new Phrase(texto, PEQUENA));
+        return parrafo;
     }
 
     // ===== Piezas =====
