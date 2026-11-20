@@ -1,7 +1,10 @@
 package mx.montacargasobregon.backend.mantenimientos.modelo;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,18 +14,23 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 import mx.montacargasobregon.backend.personal.modelo.Personal;
+import mx.montacargasobregon.backend.revisiones.modelo.EstadoInspeccion;
 import mx.montacargasobregon.backend.revisiones.modelo.Revision;
+import mx.montacargasobregon.backend.revisiones.modelo.ValorRevision;
 
 /**
  * Reparación o servicio sobre un equipo.
- * La falla, quién la reportó y cuándo viven aquí porque un preventivo no viene
- * de ninguna revisión. Cuando exista Revision, solo se agrega la relación opcional.
+ * La falla, quién la reportó y cuándo viven aquí porque un preventivo no viene de ninguna revisión.
+ * El trabajo se divide en tareas: las fallas y puntos en atención de la revisión, o la falla reportada,
+ * más lo que agregue el mecánico.
  */
 @Entity
 @Table(name = "mantenimientos")
@@ -80,6 +88,10 @@ public class Mantenimiento {
     @JoinColumn(name = "revision_id")
     private Revision revision;
 
+    @OneToMany(mappedBy = "mantenimiento", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id")
+    private List<TareaMantenimiento> tareas = new ArrayList<>();
+
     public Mantenimiento(Equipo equipo, TipoMantenimiento tipo, String descripcionFalla,
                          Personal reportadoPor, LocalDateTime fechaLimite) {
         this.equipo = equipo;
@@ -118,6 +130,13 @@ public class Mantenimiento {
         Mantenimiento m = new Mantenimiento(revision.getEquipoRenta().getEquipo(), TipoMantenimiento.CORRECTIVO,
                 descripcionFalla, revision.getMecanico(), fechaLimite);
         m.revision = revision;
+        // Cada inspección en falla o en atención de la revisión se vuelve una tarea
+        for (EstadoInspeccion estado : List.of(EstadoInspeccion.FALLA, EstadoInspeccion.ATENCION)) {
+            for (ValorRevision inspeccion : revision.inspeccionesEn(estado)) {
+                m.tareas.add(new TareaMantenimiento(m, inspeccion.getNombre(), inspeccion.getDetalle(),
+                        OrigenTarea.ASIGNADA, null, null));
+            }
+        }
         return m;
     }
 
@@ -134,5 +153,33 @@ public class Mantenimiento {
         }
         this.fechaFin = ahora;
         this.estado = EstadoMantenimiento.COMPLETADO;
+    }
+
+    /**
+     * El mecánico abrió el mantenimiento en la app: queda en proceso.
+     * Si no traía tareas (se reportó desde la oficina), la falla reportada se vuelve su tarea.
+     */
+    public void iniciar() {
+        if (tareas.isEmpty()) {
+            tareas.add(new TareaMantenimiento(this, "Falla reportada", descripcionFalla,
+                    OrigenTarea.ASIGNADA, null, null));
+        }
+        if (estado == EstadoMantenimiento.ASIGNADO) {
+            estado = EstadoMantenimiento.EN_PROCESO;
+            fechaInicio = LocalDateTime.now();
+        }
+    }
+
+    /** Algo que el mecánico encontró y no estaba contemplado. */
+    public TareaMantenimiento agregarTarea(String titulo, String componente, String accionSugerida) {
+        TareaMantenimiento tarea = new TareaMantenimiento(this, titulo, null, OrigenTarea.AGREGADA,
+                componente, accionSugerida);
+        tareas.add(tarea);
+        return tarea;
+    }
+
+    /** Se puede finalizar desde la app cuando todas sus tareas están atendidas. */
+    public boolean tareasCompletas() {
+        return !tareas.isEmpty() && tareas.stream().allMatch(TareaMantenimiento::atendida);
     }
 }
