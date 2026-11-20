@@ -1,7 +1,10 @@
 package mx.montacargasobregon.backend.movil.sesion;
 
+import java.time.Clock;
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -19,5 +22,15 @@ public class SesionMovilConfig implements WebMvcConfigurer {
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(resolver);
+    }
+
+    /**
+     * El reloj del servidor, en UTC. Las sesiones móviles lo usan para saber la hora; en pruebas
+     * se reemplaza por un Clock fijo. Solo se crea si nadie más definió uno.
+     */
+    @Bean
+    @ConditionalOnMissingBean(Clock.class)
+    public static Clock reloj() {
+        return Clock.systemUTC();
     }
 }

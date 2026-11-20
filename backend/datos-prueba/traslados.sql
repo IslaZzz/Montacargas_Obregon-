@@ -1,6 +1,7 @@
--- Datos de prueba para la sección de Traslados (HU: Asignar traslados y responsables).
--- Ejecutar después de arrancar el backend al menos una vez (crea la tabla traslados).
--- Se puede correr varias veces, no duplica clientes ni personal y reinicia los traslados.
+-- Datos de prueba para la sección de Traslados (HU: Asignar traslados y responsables y app móvil).
+-- Requiere: arrancar el backend al menos una vez (crea las tablas) y correr antes
+-- datos-iniciales.sql y mantenimientos.sql (crean los equipos usados por las rentas).
+-- Se puede correr varias veces: no duplica clientes ni personal y reinicia los traslados.
 
 USE montacargas_obregon;
 
@@ -73,83 +74,83 @@ SELECT 'Calle Guerrero', '402 Ote.', 'Centro', 'Cd. Obregón', '85000' FROM DUAL
 INSERT INTO razones_sociales (nombre, rfc, direccion_fiscal_id, cliente_id)
 SELECT 'Hotel Valle Grande S.A. de C.V.', 'HVG200606KL6', LAST_INSERT_ID(), @cliente FROM DUAL WHERE @falta;
 
--- Toda renta sale de una cotización aceptada (HU-37): COT-R2061 es la de R-2061.
--- Se crean solo si no existen. Sus equipos y totales se llenan después, con los de la renta.
+-- Toda renta sale de una cotización aceptada (HU-37). Sus equipos y totales se llenan después, con los de la renta.
+-- Fechas relativas a CURDATE() para que la demo y los traslados en campo estén siempre vigentes.
 SET @falta = NOT EXISTS (SELECT 1 FROM cotizaciones WHERE folio = 'COT-R2046'),
-    @entrega = '2026-10-07 08:00:00', @recoleccion = '2026-10-25 18:00:00';
+    @entrega = TIMESTAMP(CURDATE(), '08:00:00'), @recoleccion = TIMESTAMP(CURDATE() + INTERVAL 18 DAY, '18:00:00');
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 SELECT 'Blvd. Rodolfo Elías Calles', '1520', 'Centro', 'Cd. Obregón', 'Sonora', '85000' FROM DUAL WHERE @falta;
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
                           contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
-                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+                          subtotal, iva, total, precio_definido, estado, fecha_creacion, fecha_envio, fecha_respuesta)
 SELECT 'COT-R2046', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
        @entrega, @recoleccion, LAST_INSERT_ID(), 'Ramón Gutiérrez', '6441000001', 0.00, 0.00,
-       0.00, 0.00, 0.00, 'ACEPTADA',
+       0.00, 0.00, 0.00, 1, 'ACEPTADA',
        @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
 FROM clientes c WHERE c.correo = 'compras@industriascajeme.mx' AND @falta;
 
 SET @falta = NOT EXISTS (SELECT 1 FROM cotizaciones WHERE folio = 'COT-R2048'),
-    @entrega = '2026-10-07 10:00:00', @recoleccion = '2026-10-19 16:00:00';
+    @entrega = TIMESTAMP(CURDATE(), '10:00:00'), @recoleccion = TIMESTAMP(CURDATE() + INTERVAL 12 DAY, '16:00:00');
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 SELECT 'Calle 200', 's/n', 'Valle del Yaqui', 'Cajeme', 'Sonora', '85203' FROM DUAL WHERE @falta;
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
                           contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
-                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+                          subtotal, iva, total, precio_definido, estado, fecha_creacion, fecha_envio, fecha_respuesta)
 SELECT 'COT-R2048', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
        @entrega, @recoleccion, LAST_INSERT_ID(), 'Laura Méndez', '6441000002', 0.00, 0.00,
-       0.00, 0.00, 0.00, 'ACEPTADA',
+       0.00, 0.00, 0.00, 1, 'ACEPTADA',
        @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
 FROM clientes c WHERE c.correo = 'obra@constructorayaqui.mx' AND @falta;
 
 SET @falta = NOT EXISTS (SELECT 1 FROM cotizaciones WHERE folio = 'COT-R2050'),
-    @entrega = '2026-10-07 13:00:00', @recoleccion = '2026-10-28 18:00:00';
+    @entrega = TIMESTAMP(CURDATE(), '13:00:00'), @recoleccion = TIMESTAMP(CURDATE() + INTERVAL 21 DAY, '18:00:00');
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 SELECT 'Av. Náinari', '845', 'Centro', 'Cd. Obregón', 'Sonora', '85000' FROM DUAL WHERE @falta;
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
                           contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
-                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+                          subtotal, iva, total, precio_definido, estado, fecha_creacion, fecha_envio, fecha_respuesta)
 SELECT 'COT-R2050', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
        @entrega, @recoleccion, LAST_INSERT_ID(), 'Jesús Rivera', '6441000003', 0.00, 0.00,
-       0.00, 0.00, 0.00, 'ACEPTADA',
+       0.00, 0.00, 0.00, 1, 'ACEPTADA',
        @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
 FROM clientes c WHERE c.correo = 'almacen@bodegasnainari.mx' AND @falta;
 
 SET @falta = NOT EXISTS (SELECT 1 FROM cotizaciones WHERE folio = 'COT-R2051'),
-    @entrega = '2026-10-07 15:00:00', @recoleccion = '2026-10-22 18:00:00';
+    @entrega = TIMESTAMP(CURDATE(), '15:00:00'), @recoleccion = TIMESTAMP(CURDATE() + INTERVAL 15 DAY, '18:00:00');
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 SELECT 'Calle Norte', '300', 'Parque Industrial', 'Cd. Obregón', 'Sonora', '85065' FROM DUAL WHERE @falta;
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
                           contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
-                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+                          subtotal, iva, total, precio_definido, estado, fecha_creacion, fecha_envio, fecha_respuesta)
 SELECT 'COT-R2051', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
        @entrega, @recoleccion, LAST_INSERT_ID(), 'Carlos Vega', '6441000005', 0.00, 0.00,
-       0.00, 0.00, 0.00, 'ACEPTADA',
+       0.00, 0.00, 0.00, 1, 'ACEPTADA',
        @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
 FROM clientes c WHERE c.correo = 'contacto@empacadoranoroeste.mx' AND @falta;
 
 SET @falta = NOT EXISTS (SELECT 1 FROM cotizaciones WHERE folio = 'COT-R2039'),
-    @entrega = '2026-09-20 09:00:00', @recoleccion = '2026-10-07 16:00:00';
+    @entrega = TIMESTAMP(CURDATE() - INTERVAL 17 DAY, '09:00:00'), @recoleccion = TIMESTAMP(CURDATE(), '16:00:00');
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 SELECT 'Carretera a Esperanza', 'km 6', 'Campo agrícola', 'Cajeme', 'Sonora', '85210' FROM DUAL WHERE @falta;
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
                           contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
-                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+                          subtotal, iva, total, precio_definido, estado, fecha_creacion, fecha_envio, fecha_respuesta)
 SELECT 'COT-R2039', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
        @entrega, @recoleccion, LAST_INSERT_ID(), 'Ana Castro', '6441000004', 0.00, 0.00,
-       0.00, 0.00, 0.00, 'ACEPTADA',
+       0.00, 0.00, 0.00, 1, 'ACEPTADA',
        @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
 FROM clientes c WHERE c.correo = 'ana@agricolavalle.mx' AND @falta;
 
 SET @falta = NOT EXISTS (SELECT 1 FROM cotizaciones WHERE folio = 'COT-R2044'),
-    @entrega = '2026-09-25 10:00:00', @recoleccion = '2026-10-08 09:00:00';
+    @entrega = TIMESTAMP(CURDATE() - INTERVAL 13 DAY, '10:00:00'), @recoleccion = TIMESTAMP(CURDATE() + INTERVAL 1 DAY, '09:00:00');
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 SELECT 'Calle Guerrero', '402 Ote.', 'Centro', 'Cd. Obregón', 'Sonora', '85000' FROM DUAL WHERE @falta;
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
                           contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
-                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+                          subtotal, iva, total, precio_definido, estado, fecha_creacion, fecha_envio, fecha_respuesta)
 SELECT 'COT-R2044', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
        @entrega, @recoleccion, LAST_INSERT_ID(), 'Juan Pérez', '6441000006', 0.00, 0.00,
-       0.00, 0.00, 0.00, 'ACEPTADA',
+       0.00, 0.00, 0.00, 1, 'ACEPTADA',
        @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
 FROM clientes c WHERE c.correo = 'reservas@hotelvallegrande.mx' AND @falta;
 
@@ -161,44 +162,76 @@ SELECT d.folio, c.id, q.id, d.inicio, d.fin, d.ent_desde, d.ent_hasta,
        d.rec_desde, d.rec_hasta, d.direccion, d.contacto, d.tel, d.estado
 FROM (
          SELECT 'R-2046' AS folio, 'compras@industriascajeme.mx' AS correo,
-                '2026-10-07' AS inicio, '2026-10-25' AS fin,
-                '2026-10-07 08:00:00' AS ent_desde, '2026-10-07 09:30:00' AS ent_hasta,
+                CURDATE() AS inicio, CURDATE() + INTERVAL 18 DAY AS fin,
+                TIMESTAMP(CURDATE(), '08:00:00') AS ent_desde,
+                TIMESTAMP(CURDATE(), '09:30:00') AS ent_hasta,
                 CAST(NULL AS DATETIME) AS rec_desde, CAST(NULL AS DATETIME) AS rec_hasta,
                 'Blvd. Rodolfo Elías Calles 1520, Cd. Obregón' AS direccion,
                 'Ramón Gutiérrez' AS contacto, '6441000001' AS tel, 'EN_CURSO' AS estado
          UNION ALL SELECT 'R-2048', 'obra@constructorayaqui.mx',
-                '2026-10-07', '2026-10-19',
-                '2026-10-07 10:00:00', '2026-10-07 12:00:00',
-                '2026-10-19 16:00:00', '2026-10-19 18:00:00',
+                CURDATE(), CURDATE() + INTERVAL 12 DAY,
+                TIMESTAMP(CURDATE(), '10:00:00'), TIMESTAMP(CURDATE(), '12:00:00'),
+                TIMESTAMP(CURDATE() + INTERVAL 12 DAY, '16:00:00'), TIMESTAMP(CURDATE() + INTERVAL 12 DAY, '18:00:00'),
                 'Calle 200 s/n, Valle del Yaqui, Cajeme',
                 'Laura Méndez', '6441000002', 'PROGRAMADA'
          UNION ALL SELECT 'R-2050', 'almacen@bodegasnainari.mx',
-                '2026-10-07', '2026-10-28',
-                '2026-10-07 13:00:00', '2026-10-07 14:30:00',
+                CURDATE(), CURDATE() + INTERVAL 21 DAY,
+                TIMESTAMP(CURDATE(), '13:00:00'), TIMESTAMP(CURDATE(), '14:30:00'),
                 CAST(NULL AS DATETIME), CAST(NULL AS DATETIME),
                 'Av. Náinari 845, Col. Centro, Cd. Obregón',
                 'Jesús Rivera', '6441000003', 'PROGRAMADA'
          UNION ALL SELECT 'R-2051', 'contacto@empacadoranoroeste.mx',
-                '2026-10-07', '2026-10-22',
-                '2026-10-07 15:00:00', '2026-10-07 17:00:00',
+                CURDATE(), CURDATE() + INTERVAL 15 DAY,
+                TIMESTAMP(CURDATE(), '15:00:00'), TIMESTAMP(CURDATE(), '17:00:00'),
                 CAST(NULL AS DATETIME), CAST(NULL AS DATETIME),
                 'Calle Norte 300, Parque Industrial, Cd. Obregón',
                 'Carlos Vega', '6441000005', 'PROGRAMADA'
          UNION ALL SELECT 'R-2039', 'ana@agricolavalle.mx',
-                '2026-09-20', '2026-10-07',
-                '2026-09-20 09:00:00', '2026-09-20 11:00:00',
-                '2026-10-07 16:00:00', '2026-10-07 17:30:00',
+                CURDATE() - INTERVAL 17 DAY, CURDATE(),
+                TIMESTAMP(CURDATE() - INTERVAL 17 DAY, '09:00:00'), TIMESTAMP(CURDATE() - INTERVAL 17 DAY, '11:00:00'),
+                TIMESTAMP(CURDATE(), '16:00:00'), TIMESTAMP(CURDATE(), '17:30:00'),
                 'Carretera a Esperanza km 6, Cajeme',
                 'Ana Castro', '6441000004', 'EN_CURSO'
          UNION ALL SELECT 'R-2044', 'reservas@hotelvallegrande.mx',
-                '2026-09-25', '2026-10-08',
-                '2026-09-25 10:00:00', '2026-09-25 12:00:00',
-                '2026-10-08 09:00:00', '2026-10-08 11:00:00',
+                CURDATE() - INTERVAL 13 DAY, CURDATE() + INTERVAL 1 DAY,
+                TIMESTAMP(CURDATE() - INTERVAL 13 DAY, '10:00:00'), TIMESTAMP(CURDATE() - INTERVAL 13 DAY, '12:00:00'),
+                TIMESTAMP(CURDATE() + INTERVAL 1 DAY, '09:00:00'), TIMESTAMP(CURDATE() + INTERVAL 1 DAY, '11:00:00'),
                 'Calle Guerrero 402 Ote., Cd. Obregón',
                 'Juan Pérez', '6441000006', 'EN_CURSO'
      ) d
          JOIN clientes c ON c.correo = d.correo
          JOIN cotizaciones q ON q.folio = CONCAT('COT-', REPLACE(d.folio, '-', ''));
+
+-- Equipos de cada renta (creados previamente por datos-iniciales.sql y mantenimientos.sql)
+INSERT IGNORE INTO equipos_renta (renta_id, equipo_id, fase)
+SELECT r.id, e.id, d.fase
+FROM (
+         SELECT 'R-2046' AS folio, 'MC-16'  AS unidad, 'EN_TRASLADO'   AS fase
+         UNION ALL SELECT 'R-2048', 'MC-11',  'LISTO_ENTREGA'
+         UNION ALL SELECT 'R-2050', 'MC-017', 'LISTO_ENTREGA'
+         UNION ALL SELECT 'R-2051', 'MC-009', 'LISTO_ENTREGA'
+         UNION ALL SELECT 'R-2039', 'MC-021', 'EN_OPERACION'
+         UNION ALL SELECT 'R-2044', 'RT-007', 'EN_OPERACION'
+     ) d
+         JOIN rentas r ON r.folio = d.folio
+         JOIN equipos e ON e.numero_unidad = d.unidad;
+
+-- Cada cotización lleva los equipos de su renta, con la tarifa del modelo; de ahí salen sus totales (IVA 16%)
+INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id)
+SELECT er.equipo_id, m.tarifa_dia, m.tarifa_dia * (DATEDIFF(r.fecha_fin, r.fecha_inicio) + 1), r.cotizacion_id
+FROM rentas r
+         JOIN equipos_renta er ON er.renta_id = r.id
+         JOIN equipos e ON e.id = er.equipo_id
+         JOIN modelos m ON m.id = e.modelo_id
+WHERE r.folio IN ('R-2046', 'R-2048', 'R-2050', 'R-2051', 'R-2039', 'R-2044')
+  AND NOT EXISTS (SELECT 1 FROM equipos_cotizacion ec
+                  WHERE ec.cotizacion_id = r.cotizacion_id AND ec.equipo_id = er.equipo_id);
+
+UPDATE cotizaciones q
+    JOIN (SELECT cotizacion_id, SUM(importe) AS subtotal FROM equipos_cotizacion GROUP BY cotizacion_id) t
+    ON t.cotizacion_id = q.id
+SET q.subtotal = t.subtotal, q.iva = ROUND(t.subtotal * 0.16, 2), q.total = t.subtotal + ROUND(t.subtotal * 0.16, 2)
+WHERE q.folio IN ('COT-R2046', 'COT-R2048', 'COT-R2050', 'COT-R2051', 'COT-R2039', 'COT-R2044');
 
 -- Traslados: se limpian y se vuelven a insertar
 DELETE FROM traslados;
@@ -218,24 +251,37 @@ SET @renta_2044 = (SELECT id FROM rentas WHERE folio = 'R-2044');
 INSERT INTO traslados
 (folio, renta_id, tipo, fecha_hora_inicio, fecha_hora_fin, responsable_id, estado, fecha_asignacion, fecha_inicio_real)
 VALUES
-  -- TR-0086: Entrega Mié 07 oct 08:00 - 09:30, Héctor Quintero (Ya inició)
-  ('TR-0086', @renta_2046, 'ENTREGA', '2026-10-07 08:00:00', '2026-10-07 09:30:00', @opt_hector, 'EN_CURSO', '2026-10-06 17:00:00', '2026-10-07 08:05:00'),
+  -- TR-0086: Entrega hoy 08:00 - 09:30, Héctor Quintero (Ya inició)
+  ('TR-0086', @renta_2046, 'ENTREGA',
+   TIMESTAMP(CURDATE(), '08:00:00'), TIMESTAMP(CURDATE(), '09:30:00'),
+   @opt_hector, 'EN_CURSO', TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '17:00:00'), TIMESTAMP(CURDATE(), '08:05:00')),
 
-  -- TR-0087: Entrega Mié 07 oct 10:00 - 12:00, Luis Valenzuela (Cambiar)
-  ('TR-0087', @renta_2048, 'ENTREGA', '2026-10-07 10:00:00', '2026-10-07 12:00:00', @opt_luis, 'PROGRAMADO', '2026-10-06 17:15:00', NULL),
+  -- TR-0087: Entrega hoy 10:00 - 12:00, Luis Valenzuela (Cambiar)
+  ('TR-0087', @renta_2048, 'ENTREGA',
+   TIMESTAMP(CURDATE(), '10:00:00'), TIMESTAMP(CURDATE(), '12:00:00'),
+   @opt_luis, 'PROGRAMADO', TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '17:15:00'), NULL),
 
-  -- TR-0092: Entrega Mié 07 oct 13:00 - 14:30, Luis Valenzuela (Cambiar)
-  ('TR-0092', @renta_2050, 'ENTREGA', '2026-10-07 13:00:00', '2026-10-07 14:30:00', @opt_luis, 'PROGRAMADO', '2026-10-06 17:30:00', NULL),
+  -- TR-0092: Entrega hoy 13:00 - 14:30, Luis Valenzuela (Cambiar)
+  ('TR-0092', @renta_2050, 'ENTREGA',
+   TIMESTAMP(CURDATE(), '13:00:00'), TIMESTAMP(CURDATE(), '14:30:00'),
+   @opt_luis, 'PROGRAMADO', TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '17:30:00'), NULL),
 
-  -- TR-0088: Entrega Mié 07 oct 15:00 - 17:00, Sin asignar (Asignar)
-  ('TR-0088', @renta_2051, 'ENTREGA', '2026-10-07 15:00:00', '2026-10-07 17:00:00', NULL, 'PROGRAMADO', NULL, NULL),
+  -- TR-0088: Entrega hoy 15:00 - 17:00, Sin asignar (empalma con TR-0093 si se intenta asignar a OPT-10 Luis)
+  ('TR-0088', @renta_2051, 'ENTREGA',
+   TIMESTAMP(CURDATE(), '15:00:00'), TIMESTAMP(CURDATE(), '17:00:00'),
+   NULL, 'PROGRAMADO', NULL, NULL),
 
-  -- TR-0093: Recolección Mié 07 oct 16:00 - 17:30, Luis Valenzuela (Cambiar)
-  ('TR-0093', @renta_2039, 'RECOLECCION', '2026-10-07 16:00:00', '2026-10-07 17:30:00', @opt_luis, 'PROGRAMADO', '2026-10-06 17:45:00', NULL),
+  -- TR-0093: Recolección hoy 16:00 - 17:30, Luis Valenzuela (Cambiar)
+  ('TR-0093', @renta_2039, 'RECOLECCION',
+   TIMESTAMP(CURDATE(), '16:00:00'), TIMESTAMP(CURDATE(), '17:30:00'),
+   @opt_luis, 'PROGRAMADO', TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '17:45:00'), NULL),
 
-  -- TR-0089: Recolección Jue 08 oct 09:00 - 11:00, Sin asignar (Asignar)
-  ('TR-0089', @renta_2044, 'RECOLECCION', '2026-10-08 09:00:00', '2026-10-08 11:00:00', NULL, 'PROGRAMADO', NULL, NULL),
+  -- TR-0089: Recolección mañana 09:00 - 11:00, Sin asignar (Asignar)
+  ('TR-0089', @renta_2044, 'RECOLECCION',
+   TIMESTAMP(CURDATE() + INTERVAL 1 DAY, '09:00:00'), TIMESTAMP(CURDATE() + INTERVAL 1 DAY, '11:00:00'),
+   NULL, 'PROGRAMADO', NULL, NULL),
 
-  -- TR-0094: Recolección Lun 19 oct 16:00 - 18:00, Ramón Félix (Cambiar)
-  ('TR-0094', @renta_2048, 'RECOLECCION', '2026-10-19 16:00:00', '2026-10-19 18:00:00', @opt_ramon, 'PROGRAMADO', '2026-10-06 18:00:00', NULL);
-
+  -- TR-0094: Recolección en 12 días 16:00 - 18:00, Ramón Félix (Cambiar)
+  ('TR-0094', @renta_2048, 'RECOLECCION',
+   TIMESTAMP(CURDATE() + INTERVAL 12 DAY, '16:00:00'), TIMESTAMP(CURDATE() + INTERVAL 12 DAY, '18:00:00'),
+   @opt_ramon, 'PROGRAMADO', TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '18:00:00'), NULL);

@@ -3,54 +3,49 @@ package mx.montacargasobregon.backend.movil.sesion;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.server.ResponseStatusException;
 
-import mx.montacargasobregon.backend.personal.modelo.Personal;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
-import mx.montacargasobregon.backend.personal.repositorio.PersonalRepository;
 
 @ExtendWith(MockitoExtension.class)
 class PersonalActualResolverTest {
 
     @Mock
-    private PersonalRepository personalRepositorio;
+    private SesionMovilService servicio;
 
-    // El resolver pide el repositorio cuando lo necesita, no al construirse
+    // El resolver pide el servicio cuando lo necesita, no al construirse
     @Mock
-    private ObjectProvider<PersonalRepository> proveedor;
+    private ObjectProvider<SesionMovilService> proveedor;
 
-    @InjectMocks
     private PersonalActualResolver resolver;
 
     @BeforeEach
     void setUp() {
-        lenient().when(proveedor.getObject()).thenReturn(personalRepositorio);
+        lenient().when(proveedor.getObject()).thenReturn(servicio);
+        resolver = new PersonalActualResolver(proveedor);
     }
 
     @Test
-    void obtieneAQuienUsaLaAppDelEncabezado() {
-        when(personalRepositorio.findById(7L)).thenReturn(Optional.of(operador()));
+    void obtieneAQuienUsaLaAppDelTokenBearer() {
+        PersonalActual esperado = new PersonalActual(7L, "OPT-10", "Luis Valenzuela", TipoPersonal.OP_TRASLADO);
+        when(servicio.validarToken("abc123")).thenReturn(esperado);
 
-        PersonalActual actual = resolver.resolveArgument(null, null, peticion("7"), null);
+        PersonalActual actual = resolver.resolveArgument(null, null, peticion("Bearer abc123"), null);
 
-        assertEquals(7L, actual.id());
-        assertEquals("Rafael Amaya", actual.nombre());
-        assertEquals(TipoPersonal.OP_TRASLADO, actual.tipo());
+        assertEquals(esperado, actual);
     }
 
     @Test
@@ -59,31 +54,45 @@ class PersonalActualResolverTest {
                 () -> resolver.resolveArgument(null, null, peticion(null), null));
 
         assertEquals(HttpStatus.UNAUTHORIZED, error.getStatusCode());
+        verifyNoInteractions(servicio);
     }
 
     @Test
-    void encabezadoInvalidoResponde401() {
-        ResponseStatusException error = assertThrows(ResponseStatusException.class,
-                () -> resolver.resolveArgument(null, null, peticion("abc"), null));
-
-        assertEquals(HttpStatus.UNAUTHORIZED, error.getStatusCode());
-    }
-
-    @Test
-    void personalInactivoResponde401() {
-        Personal inactivo = operador();
-        inactivo.desactivar();
-        when(personalRepositorio.findById(7L)).thenReturn(Optional.of(inactivo));
-
+    void encabezadoQueNoEsBearerResponde401() {
         ResponseStatusException error = assertThrows(ResponseStatusException.class,
                 () -> resolver.resolveArgument(null, null, peticion("7"), null));
 
         assertEquals(HttpStatus.UNAUTHORIZED, error.getStatusCode());
+        verifyNoInteractions(servicio);
+    }
+
+    @Test
+    void yaNoLeeElEncabezadoInseguroXPersonalId() {
+        MockHttpServletRequest peticion = new MockHttpServletRequest();
+        peticion.addHeader("X-Personal-Id", "7");
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> resolver.resolveArgument(null, null, new ServletWebRequest(peticion), null));
+
+        assertEquals(HttpStatus.UNAUTHORIZED, error.getStatusCode());
+        verifyNoInteractions(servicio);
+    }
+
+    @Test
+    void siElServicioRechazaElTokenElErrorSePropaga() {
+        when(servicio.validarToken("viejo")).thenThrow(
+                new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Tu sesión de 22 horas venció."));
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> resolver.resolveArgument(null, null, peticion("Bearer viejo"), null));
+
+        assertEquals(HttpStatus.UNAUTHORIZED, error.getStatusCode());
+        verify(servicio).validarToken("viejo");
     }
 
     @Test
     void exigirRechazaOtroTipoDePersonal() {
-        PersonalActual actual = PersonalActual.de(operador());
+        PersonalActual actual = new PersonalActual(7L, "OPT-10", "Luis Valenzuela", TipoPersonal.OP_TRASLADO);
 
         ResponseStatusException error = assertThrows(ResponseStatusException.class,
                 () -> actual.exigir(TipoPersonal.MECANICO));
@@ -91,17 +100,11 @@ class PersonalActualResolverTest {
         assertEquals(HttpStatus.FORBIDDEN, error.getStatusCode());
     }
 
-    private static ServletWebRequest peticion(String personalId) {
+    private static ServletWebRequest peticion(String autorizacion) {
         MockHttpServletRequest peticion = new MockHttpServletRequest();
-        if (personalId != null) {
-            peticion.addHeader(PersonalActualResolver.ENCABEZADO, personalId);
+        if (autorizacion != null) {
+            peticion.addHeader(PersonalActualResolver.ENCABEZADO, autorizacion);
         }
         return new ServletWebRequest(peticion);
-    }
-
-    private static Personal operador() {
-        Personal p = new Personal("OP-01", "Rafael", "Amaya", "López", TipoPersonal.OP_TRASLADO);
-        ReflectionTestUtils.setField(p, "id", 7L);
-        return p;
     }
 }

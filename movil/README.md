@@ -23,8 +23,8 @@ src/
     revisiones/      Mecánico
     mantenimientos/  Mecánico
     historial/       Mecánico
-  sesion/            Quién usa la app (temporal hasta HU-28), pestañas y protección de rutas
-  services/api.ts    getApi, postApi, patchApi, deleteApi (mandan X-Personal-Id solos)
+  sesion/            Sesión móvil: entrar con código, token de 22 h, pestañas y protección de rutas
+  services/api.ts    getApi, postApi, patchApi, deleteApi (mandan Authorization: Bearer solos; un 401 con sesión cierra la sesión)
   services/fotosApi.ts  subirFoto, listarFotos, borrarFoto
   utils/fechas.ts    Formatos de fecha y hora (24 h): "Hoy · 8 oct", "15:00 – 17:00"
   utils/domicilio.ts Cómo se muestra un domicilio (texto o por partes con código postal)

@@ -1,39 +1,48 @@
 package mx.montacargasobregon.backend.movil.sesion;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
-import mx.montacargasobregon.backend.personal.repositorio.PersonalRepository;
 
-/** Entrar a la app móvil con el código del gafete, mientras el personal no tiene contraseña. */
+/** Entrar a la app móvil con el código del gafete y manejar la sesión de esa jornada. */
 @RestController
 @RequestMapping("/api/movil")
 public class SesionMovilController {
 
-    private final PersonalRepository personalRepositorio;
+    private final SesionMovilService servicio;
 
-    public SesionMovilController(PersonalRepository personalRepositorio) {
-        this.personalRepositorio = personalRepositorio;
+    public SesionMovilController(SesionMovilService servicio) {
+        this.servicio = servicio;
     }
 
-    /** POST /api/movil/sesion: busca a la persona por su código; 401 si no existe o está de baja. */
+    /**
+     * POST /api/movil/sesion: abre una sesión con el código (la anterior de esa persona se cierra).
+     * Responde { token, venceEn, personal }; 401 si el código no existe o la persona está de baja.
+     */
     @PostMapping("/sesion")
-    public PersonalActual entrar(@Valid @RequestBody IngresarCodigoRequest datos) {
-        return personalRepositorio.findByCodigoIgnoreCaseAndActivoTrue(datos.codigo().trim())
-                .map(PersonalActual::de)
-                // El mismo mensaje si el código no existe o si la persona está de baja
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No encontramos ese código."));
+    public SesionMovilResponse entrar(@Valid @RequestBody IngresarCodigoRequest datos) {
+        return servicio.entrar(datos.codigo());
     }
 
-    /** GET /api/movil/yo: confirma que la persona guardada en el celular sigue activa (401 si no). */
+    /** GET /api/movil/yo: { venceEn, personal } de la sesión del token; 401 si no sirve o ya venció. */
     @GetMapping("/yo")
-    public PersonalActual yo(PersonalActual personal) {
-        return personal;
+    public SesionVigenteResponse yo(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String autorizacion) {
+        return servicio.validarSesion(SesionMovilService.tokenDe(autorizacion));
+    }
+
+    /** DELETE /api/movil/sesion: cierra la sesión del token. 204 siempre, aunque ya estuviera cerrada. */
+    @DeleteMapping("/sesion")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cerrar(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String autorizacion) {
+        servicio.cerrarSesion(SesionMovilService.tokenDe(autorizacion));
     }
 }

@@ -1,24 +1,58 @@
-// Guarda en el celular quién está usando la app, para no elegirlo cada vez.
-// Si el navegador no deja guardar (modo privado), funciona igual mientras la página esté abierta.
+// Guarda en el celular la sesión de la jornada (token y hora en que vence), para no escribir el
+// código cada vez que se abre la app. Si el navegador no deja guardar (modo privado), funciona
+// igual mientras la página esté abierta.
 
-const CLAVE = "montacargas.personalId";
-let enMemoria: number | null = null;
+export interface SesionGuardada {
+  token: string;
+  venceEn: string; // Instante ISO-8601 en UTC, por ejemplo "2026-11-20T03:00:00Z"
+}
 
-export function leerPersonalId(): number | null {
+const CLAVE = "montacargas.sesionMovil";
+// Llave de cuando la app solo guardaba el id de la persona; ya no se usa
+const CLAVE_ANTERIOR = "montacargas.personalId";
+let enMemoria: SesionGuardada | null = null;
+
+function limpiarLlaveAnterior() {
   try {
-    const valor = localStorage.getItem(CLAVE);
-    return valor === null ? enMemoria : Number(valor);
+    localStorage.removeItem(CLAVE_ANTERIOR);
+  } catch {
+    // Sin almacenamiento, no hay nada que limpiar
+  }
+}
+limpiarLlaveAnterior();
+
+function esSesion(valor: unknown): valor is SesionGuardada {
+  const s = valor as Partial<SesionGuardada> | null;
+  return typeof s?.token === "string" && s.token !== "" && typeof s.venceEn === "string" && s.venceEn !== "";
+}
+
+export function leerSesion(): SesionGuardada | null {
+  try {
+    const texto = localStorage.getItem(CLAVE);
+    if (texto === null) return enMemoria;
+    const valor: unknown = JSON.parse(texto);
+    if (esSesion(valor)) return valor;
+    localStorage.removeItem(CLAVE); // Quedó algo que no es una sesión
+    return enMemoria;
   } catch {
     return enMemoria;
   }
 }
 
-export function guardarPersonalId(id: number | null) {
-  enMemoria = id;
+export function guardarSesion(sesion: SesionGuardada) {
+  enMemoria = sesion;
   try {
-    if (id === null) localStorage.removeItem(CLAVE);
-    else localStorage.setItem(CLAVE, String(id));
+    localStorage.setItem(CLAVE, JSON.stringify(sesion));
   } catch {
     // Se queda solo en memoria
+  }
+}
+
+export function borrarSesion() {
+  enMemoria = null;
+  try {
+    localStorage.removeItem(CLAVE);
+  } catch {
+    // Ya no hay nada en memoria
   }
 }

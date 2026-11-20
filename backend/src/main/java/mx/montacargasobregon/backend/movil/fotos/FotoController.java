@@ -19,7 +19,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import mx.montacargasobregon.backend.movil.sesion.PersonalActual;
 
-/** Fotos de revisiones, traslados y mantenimientos tomadas desde la app móvil. */
+/**
+ * Fotos de revisiones, traslados y mantenimientos tomadas desde la app móvil.
+ */
 @RestController
 @RequestMapping("/api/movil/fotos")
 public class FotoController {
@@ -30,24 +32,33 @@ public class FotoController {
         this.servicio = servicio;
     }
 
-    /** POST /api/movil/fotos (multipart): origen, referenciaId, etiqueta y archivo. */
+    /**
+     * POST /api/movil/fotos (multipart): origen, referenciaId, etiqueta y archivo.
+     */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public FotoResponse subir(@RequestParam OrigenFoto origen, @RequestParam Long referenciaId,
-                              @RequestParam String etiqueta, @RequestParam MultipartFile archivo,
-                              PersonalActual personal) {
+            @RequestParam String etiqueta, @RequestParam MultipartFile archivo,
+            PersonalActual personal) {
         return servicio.subir(origen, referenciaId, etiqueta, archivo, personal);
     }
 
-    /** GET /api/movil/fotos?origen=REVISION&referenciaId=15 */
+    /**
+     * GET /api/movil/fotos?origen=REVISION&referenciaId=15
+     * Pide PersonalActual solo para exigir una sesión vigente (401 si no); no se
+     * usa para filtrar.
+     */
     @GetMapping
-    public List<FotoResponse> listar(@RequestParam OrigenFoto origen, @RequestParam Long referenciaId) {
+    public List<FotoResponse> listar(@RequestParam OrigenFoto origen, @RequestParam Long referenciaId,
+            PersonalActual personal) {
         return servicio.listar(origen, referenciaId);
     }
 
     /**
-     * GET /api/movil/fotos/{id}: la imagen. No pide X-Personal-Id porque la carga un <img>,
-     * que no puede mandar encabezados. Una foto nunca cambia (reemplazarla crea otra), así que se guarda en caché.
+     * GET /api/movil/fotos/{id}: la imagen. No pide sesión porque la carga un
+     * <img>,
+     * que no puede mandar encabezados. Una foto nunca cambia (reemplazarla crea
+     * otra), así que se guarda en caché.
      */
     @GetMapping("/{id}")
     public ResponseEntity<byte[]> imagen(@PathVariable Long id) {
