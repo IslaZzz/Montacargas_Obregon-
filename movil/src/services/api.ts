@@ -71,5 +71,6 @@ async function pedir<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise
 
 export const getApi = <T>(ruta: string) => pedir<T>("GET", ruta);
 export const postApi = <T>(ruta: string, cuerpo: unknown) => pedir<T>("POST", ruta, cuerpo);
+export const putApi = <T>(ruta: string, cuerpo: unknown) => pedir<T>("PUT", ruta, cuerpo);
 export const patchApi = <T>(ruta: string, cuerpo: unknown) => pedir<T>("PATCH", ruta, cuerpo);
 export const deleteApi = (ruta: string) => pedir<void>("DELETE", ruta);

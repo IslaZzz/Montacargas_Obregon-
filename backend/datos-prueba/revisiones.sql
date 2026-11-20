@@ -180,6 +180,7 @@ WHERE q.folio IN ('COT-R2061', 'COT-R2070', 'COT-R2071', 'COT-R2052');
 
 -- Revisiones: se quitan los enlaces, se borran y se vuelven a crear
 UPDATE mantenimientos SET revision_id = NULL;
+DELETE FROM valores_revision;
 DELETE FROM revisiones;
 
 SET @rafael  = (SELECT id FROM personal WHERE codigo = 'MEC-10');

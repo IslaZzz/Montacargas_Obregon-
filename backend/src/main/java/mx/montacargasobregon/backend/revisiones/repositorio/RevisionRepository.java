@@ -28,6 +28,20 @@ public interface RevisionRepository extends JpaRepository<Revision, Long> {
         """)
     List<Revision> listar();
 
+    // Las revisiones de un mecánico en esos estados, para su lista en la app móvil
+    @Query("""
+        select rv from Revision rv
+        join fetch rv.equipoRenta er
+        join fetch er.renta r
+        join fetch er.equipo e
+        join fetch e.modelo mo
+        join fetch mo.categoria
+        where rv.mecanico.id = :mecanicoId and rv.estado in :estados
+        order by rv.fechaProgramada, e.numeroUnidad
+        """)
+    List<Revision> buscarPorMecanico(@Param("mecanicoId") Long mecanicoId,
+                                     @Param("estados") Collection<EstadoRevision> estados);
+
     // Cuántas revisiones en esos estados tiene cada mecánico, contadas en la base de datos
     @Query("""
         select new mx.montacargasobregon.backend.personal.dto.CargaPorMecanico(rv.mecanico.id, count(rv))

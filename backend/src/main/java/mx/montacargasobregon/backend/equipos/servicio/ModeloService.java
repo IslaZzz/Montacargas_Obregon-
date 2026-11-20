@@ -20,6 +20,7 @@ import mx.montacargasobregon.backend.equipos.modelo.Modelo;
 import mx.montacargasobregon.backend.equipos.repositorio.CategoriaRepository;
 import mx.montacargasobregon.backend.equipos.repositorio.DefinicionCampoRepository;
 import mx.montacargasobregon.backend.equipos.repositorio.ModeloRepository;
+import mx.montacargasobregon.backend.equipos.modelo.CapturaCampo;
 
 /** Registro y edición de los modelos de equipo con sus especificaciones (HU-36). */
 @Service
@@ -56,7 +57,14 @@ public class ModeloService {
     /** Campos de especificación que pide la categoría, en el orden del formulario. */
     @Transactional(readOnly = true)
     public List<DefinicionCampo> camposDe(Long categoriaId) {
-        return campos.findByCategoriaIdOrderByOrden(categoriaId);
+        return camposDelModelo(categoriaId);
+    }
+
+    /** Solo los que se llenan en el modelo; los de revisión los llena el mecánico. */
+    private List<DefinicionCampo> camposDelModelo(Long categoriaId) {
+        return campos.findByCategoriaIdOrderByOrden(categoriaId).stream()
+                .filter(c -> c.seCapturaEn(CapturaCampo.MODELO))
+                .toList();
     }
 
     /** Registra un modelo sin tarifa; la tarifa se captura después en «Tarifas» (HU-04). */
@@ -133,7 +141,7 @@ public class ModeloService {
         Map<DefinicionCampo, String> especificaciones = new LinkedHashMap<>();
         if (categoria != null) {
             Map<Long, String> valores = datos.especificaciones() == null ? Map.of() : datos.especificaciones();
-            for (DefinicionCampo campo : campos.findByCategoriaIdOrderByOrden(categoria.getId())) {
+            for (DefinicionCampo campo : camposDelModelo(categoria.getId())) {
                 String texto = valores.get(campo.getId());
                 String llave = "especificaciones." + campo.getId();
                 if (texto == null || texto.isBlank()) {
@@ -154,8 +162,11 @@ public class ModeloService {
         return new DatosLimpios(categoria, nombre, marca, codigo, descripcion, especificaciones);
     }
 
-    /** Revisa que el valor sea del tipo del campo y lo deja en un formato fijo, como "3000" o "4.5". */
-    static String normalizar(DefinicionCampo campo, String texto) {
+    /**
+     * Revisa que el valor sea del tipo del campo y lo deja en un formato fijo, como "3000" o "4.5".
+     * También la usa la revisión del mecánico, para que las reglas sean las mismas.
+     */
+    public static String normalizar(DefinicionCampo campo, String texto) {
         return switch (campo.getTipo()) {
             case TEXTO -> {
                 if (texto.length() > 120) {
@@ -196,6 +207,8 @@ public class ModeloService {
                 }
                 yield texto;
             }
+            // Se llenan en la revisión con su propio formulario, no como texto
+            case INSPECCION, FOTO -> throw new IllegalArgumentException("Este campo no se captura como texto");
         };
     }
 

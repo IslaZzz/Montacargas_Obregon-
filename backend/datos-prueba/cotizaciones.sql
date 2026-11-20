@@ -107,6 +107,9 @@ UPDATE mantenimientos SET revision_id = NULL
 WHERE revision_id IN (SELECT rv.id FROM revisiones rv
                           JOIN equipos_renta er ON er.id = rv.equipo_renta_id
                           JOIN rentas_a_borrar b ON b.id = er.renta_id);
+DELETE v FROM valores_revision v JOIN revisiones rv ON rv.id = v.revision_id
+    JOIN equipos_renta er ON er.id = rv.equipo_renta_id
+    JOIN rentas_a_borrar b ON b.id = er.renta_id;
 DELETE rv FROM revisiones rv JOIN equipos_renta er ON er.id = rv.equipo_renta_id
     JOIN rentas_a_borrar b ON b.id = er.renta_id;
 DELETE t FROM traslados t JOIN rentas_a_borrar b ON b.id = t.renta_id;
