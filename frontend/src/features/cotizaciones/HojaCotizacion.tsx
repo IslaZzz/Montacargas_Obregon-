@@ -12,14 +12,40 @@ import { nombreCompleto, textoDias } from "./cotizacionesUtils";
 const enMinuscula = (texto: string) =>
   texto.charAt(0).toLowerCase() + texto.slice(1);
 
+const VIGENCIA_DIAS = 7;
+const ANTICIPO = 0.3;
+
+// Fecha de creación + 7 días: "lunes 25 de noviembre de 2026" (como en el PDF del backend)
+function fechaDeVencimiento(fechaCreacion: string) {
+  const fecha = new Date(fechaCreacion);
+  fecha.setDate(fecha.getDate() + VIGENCIA_DIAS);
+  return fecha
+    .toLocaleDateString("es-MX", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+    .replace(",", "");
+}
+
 // Vista previa del PDF. Muestra lo mismo que genera el backend (CotizacionPdfService).
-export default function HojaCotizacion({ cotizacion: c }: { cotizacion: Cotizacion }) {
+export default function HojaCotizacion({
+  cotizacion: c,
+}: {
+  cotizacion: Cotizacion;
+}) {
   return (
-    <article className="hoja-pdf" aria-label={`Vista previa del PDF de ${c.folio}`}>
+    <article
+      className="hoja-pdf"
+      aria-label={`Vista previa del PDF de ${c.folio}`}
+    >
       <header className="hoja-encabezado">
         <div>
           <p className="hoja-marca">Montacargas Obregón.</p>
-          <p className="hoja-pequena">Renta de maquinaria · Cd. Obregón, Sonora</p>
+          <p className="hoja-pequena">
+            Renta de maquinaria · Cd. Obregón, Sonora
+          </p>
         </div>
         <div className="hoja-folio">
           <p className="hoja-titulo">COTIZACIÓN</p>
@@ -51,7 +77,8 @@ export default function HojaCotizacion({ cotizacion: c }: { cotizacion: Cotizaci
         <p>Recolección: {enMinuscula(formatoFechaHora(c.fechaRecoleccion))}</p>
         <p>Lugar: {formatoDireccion(c.direccionObra)}</p>
         <p>
-          Contacto en la obra: {c.contactoObra} · {formatoTelefono(c.telefonoContacto)}
+          Contacto en la obra: {c.contactoObra} ·{" "}
+          {formatoTelefono(c.telefonoContacto)}
         </p>
       </section>
 
@@ -71,7 +98,9 @@ export default function HojaCotizacion({ cotizacion: c }: { cotizacion: Cotizaci
               <td className="hoja-laptop">{p.unidad}</td>
               <td className="hoja-laptop">{p.modelo}</td>
               <td className="hoja-laptop hoja-numerico">{c.dias}</td>
-              <td className="hoja-laptop hoja-numerico">{formatoMoneda(p.tarifaDia)}</td>
+              <td className="hoja-laptop hoja-numerico">
+                {formatoMoneda(p.tarifaDia)}
+              </td>
               {/* En celular, una línea por equipo como en el prototipo */}
               <td className="hoja-celular">
                 {p.unidad} · {p.modelo} · {textoDias(c.dias)}
@@ -83,10 +112,32 @@ export default function HojaCotizacion({ cotizacion: c }: { cotizacion: Cotizaci
       </table>
 
       <dl className="hoja-totales">
+        {c.trasladoEntrega > 0 && (
+          <div>
+            <dt>Traslado de entrega</dt>
+            <dd>{formatoMoneda(c.trasladoEntrega)}</dd>
+          </div>
+        )}
+        {c.trasladoRecoleccion > 0 && (
+          <div>
+            <dt>Traslado de recolección</dt>
+            <dd>{formatoMoneda(c.trasladoRecoleccion)}</dd>
+          </div>
+        )}
         <div>
           <dt>Subtotal</dt>
           <dd>{formatoMoneda(c.subtotal)}</dd>
         </div>
+        {c.descuentoMonto > 0 && (
+          <div>
+            <dt>
+              {c.descuentoTipo === "PORCENTAJE"
+                ? `Descuento (${c.descuentoValor}%)`
+                : "Descuento"}
+            </dt>
+            <dd>-{formatoMoneda(c.descuentoMonto)}</dd>
+          </div>
+        )}
         <div>
           <dt>IVA (16%)</dt>
           <dd>{formatoMoneda(c.iva)}</dd>
@@ -96,6 +147,32 @@ export default function HojaCotizacion({ cotizacion: c }: { cotizacion: Cotizaci
           <dd>{formatoMoneda(c.total)}</dd>
         </div>
       </dl>
+
+      <section className="hoja-condiciones">
+        <h3>CONDICIONES</h3>
+        <p>
+          <strong>Vigencia:</strong> Esta cotización es válida por{" "}
+          {VIGENCIA_DIAS} días y vence el {fechaDeVencimiento(c.fechaCreacion)}.
+        </p>
+        <p>
+          <strong>Anticipo:</strong> Para confirmar la renta se requiere un
+          anticipo del 30%:{" "}
+          {formatoMoneda(Math.round(c.total * ANTICIPO * 100) / 100)}.
+        </p>
+        <p>
+          <strong>Cancelación:</strong> Si la renta se cancela con menos de 24
+          horas de anticipación, no se reembolsa el anticipo.
+        </p>
+        <p>
+          <strong>Entrega:</strong> El equipo se entrega y se recoge en el
+          lugar, fecha y hora indicados. El cliente debe garantizar el acceso y
+          un espacio seguro para la maniobra.
+        </p>
+        <p>
+          <strong>Carta responsiva:</strong> Antes de la entrega, el cliente o
+          su representante debe firmar la carta responsiva del equipo.
+        </p>
+      </section>
     </article>
   );
 }

@@ -1,6 +1,7 @@
 package mx.montacargasobregon.backend.cotizaciones.servicio;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -78,9 +79,19 @@ public class CrearCotizacionService {
     }
 
     private static int diasDeRenta(LocalDateTime entrega, LocalDateTime recoleccion) {
-        if (recoleccion.isBefore(entrega)) {
+        // Se compara con la fecha de hoy en Sonora, igual que el resto del sistema
+        LocalDate hoy = LocalDate.now(Cotizacion.ZONA_HORARIA);
+        if (entrega.toLocalDate().isBefore(hoy)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "La recolección no puede ser antes de la entrega");
+                    "La fecha de entrega no puede ser anterior a hoy");
+        }
+        if (recoleccion.toLocalDate().isBefore(hoy)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La fecha de recolección no puede ser anterior a hoy");
+        }
+        if (!recoleccion.isAfter(entrega)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La recolección debe ser después de la entrega");
         }
         return CalculoPrecio.calcularDias(entrega.toLocalDate(), recoleccion.toLocalDate());
     }

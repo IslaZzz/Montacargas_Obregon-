@@ -148,10 +148,19 @@ FROM (
      ) d
          JOIN modelos m ON m.codigo = d.modelo;
 
--- Etiquetas: solo MC-11 lleva «Uso en interiores»; MC-07 va sin etiqueta (TC-09-06)
-INSERT IGNORE INTO equipo_etiquetas (equipo_id, etiqueta)
-SELECT e.id, 'USO_INTERIORES'
+-- HU-02: el año de compra o fabricación es opcional.
+-- El backend no quita el NOT NULL de las bases que ya existían; esto lo quita.
+ALTER TABLE equipos MODIFY anio_compra INT NULL;
+
+-- Etiquetas (HU-02): ahora son una tabla y gerencia puede agregar más con «+ Nueva etiqueta»
+INSERT IGNORE INTO etiquetas (nombre) VALUES
+  ('Apto para urgencias'), ('Requiere operador'), ('Uso en interiores');
+
+-- Solo MC-11 lleva «Uso en interiores»; MC-07 va sin etiqueta (TC-09-06)
+INSERT IGNORE INTO equipos_etiquetas (equipo_id, etiqueta_id)
+SELECT e.id, t.id
 FROM equipos e
+         JOIN etiquetas t ON t.nombre = 'Uso en interiores'
 WHERE e.numero_unidad = 'MC-11';
 
 

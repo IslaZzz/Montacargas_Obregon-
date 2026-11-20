@@ -21,6 +21,7 @@ import Disponibilidad from '../features/equipos/disponibilidad/ConsultarDisponib
 import Tarifas from '../features/tarifas/Tarifas'
 
 import ConsultarEquipos from "../features/equipos/estados/ConsultarEquipos";
+import RegistrarEquipo from "../features/equipos/registrar/RegistrarEquipo";
 import DetalleRenta from "../features/rentas/detalle/DetalleRenta";
 import DashboardTraslados from "../features/traslados/DashboardTraslados";
 
@@ -31,6 +32,9 @@ import RutaGerencia from "../features/sesion/RutaGerencia";
 import Categorias from "../features/categorias/Categorias";
 import Modelos from "../features/modelos/Modelos";
 import FormularioModelo from "../features/modelos/FormularioModelo";
+import ConsultarPersonal from "../features/personal/ConsultarPersonal";
+import RegistrarPersonal from "../features/personal/RegistrarPersonal";
+import EditarPersonal from "../features/personal/EditarPersonal";
 
 
 
@@ -100,8 +104,15 @@ export default function AppRoutes() {
         <Route path="/modelos/nuevo" element={<FormularioModelo />} />
         <Route path="/modelos/:id/editar" element={<FormularioModelo />} />
 
+        {/* Personal: operadores de traslado y mecánicos (OHU-26, 27 y 28) */}
+        <Route path="/personal" element={<ConsultarPersonal />} />
+        <Route path="/personal/registrar" element={<RegistrarPersonal />} />
+        <Route path="/personal/:id" element={<EditarPersonal />} />
+
         {/* Solo gerencia (HU-29): el auxiliar ve «No tienes permiso». La pantalla de Autorizaciones llega con HU-16 */}
         <Route element={<RutaGerencia />}>
+          {/* Registrar equipo (HU-02) */}
+          <Route path="/equipos/registrar" element={<RegistrarEquipo />} />
           <Route path="/autorizaciones" />
           <Route path="/ingresos" />
         </Route>

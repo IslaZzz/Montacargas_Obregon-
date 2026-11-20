@@ -1,9 +1,12 @@
 package mx.montacargasobregon.backend.equipos.controlador;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +22,7 @@ import jakarta.validation.Valid;
 import mx.montacargasobregon.backend.equipos.dto.CambiarEstadoRequest;
 import mx.montacargasobregon.backend.equipos.dto.EquipoRequest;
 import mx.montacargasobregon.backend.equipos.dto.EquipoResponse;
+import mx.montacargasobregon.backend.equipos.servicio.EquipoRepetidoException;
 import mx.montacargasobregon.backend.equipos.servicio.EquipoService;
 
 /** Rutas HTTP de los equipos. */
@@ -32,7 +36,7 @@ public class EquipoController {
         this.servicio = servicio;
     }
 
-    /** POST /api/equipos: registra una unidad nueva. */
+    /** POST /api/equipos: registra una unidad nueva, «En revisión de entrada». */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public EquipoResponse registrar(@Valid @RequestBody EquipoRequest datos) {
@@ -53,7 +57,7 @@ public class EquipoController {
         return EquipoResponse.toEquipoResponse(servicio.obtener(id));
     }
 
-    /** PUT /api/equipos/5: cambia la serie y el modelo del equipo. */
+    /** PUT /api/equipos/5: cambia los datos del equipo; su estado no. */
     @PutMapping("/{id}")
     public EquipoResponse actualizar(@PathVariable Long id, @Valid @RequestBody EquipoRequest datos) {
         return EquipoResponse.toEquipoResponse(servicio.actualizar(id, datos));
@@ -70,5 +74,13 @@ public class EquipoController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void darDeBaja(@PathVariable Long id) {
         servicio.darDeBaja(id);
+    }
+
+    /** Número de unidad o de serie repetido: 409 con el mensaje en su campo. */
+    @ExceptionHandler(EquipoRepetidoException.class)
+    public ResponseEntity<Map<String, Object>> repetido(EquipoRepetidoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                "mensaje", ex.getMessage(),
+                "errores", Map.of(ex.getCampo(), ex.getMessage())));
     }
 }

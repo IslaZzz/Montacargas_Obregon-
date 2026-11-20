@@ -105,3 +105,72 @@
   box-sizing: border-box;
   flex-shrink: 0;
 }
+/* Buscador de texto (HU-02) */
+.equipos-buscador {
+  width: 260px;
+  max-width: 100%;
+}
+
+/* Tableta y celular: el resumen deja de ir a un lado y pasa arriba de la lista, en una franja */
+@media (max-width: 1100px) {
+  .equipos-estados {
+    display: flex;
+    flex-direction: column;
+  }
+  .equipos-resumen {
+    order: -1;
+    position: static;
+    height: auto;
+    overflow: visible;
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-left: none;
+    border-bottom: 1px solid var(--secondary-mint);
+    box-shadow: none;
+  }
+  .equipos-resumen-encabezado {
+    display: none;
+  }
+  .equipos-resumen-fechas {
+    flex: 1 1 100%;
+    padding: 12px 16px;
+  }
+  .equipos-conteo {
+    flex: 1 1 110px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .equipos-conteo:nth-of-type(odd) {
+    background: none;
+  }
+  .equipos-conteo-numero {
+    font-size: 32px;
+  }
+  .equipos-conteo-texto {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 700px) {
+  .equipos-encabezado {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .equipos-encabezado .titulo-acciones-botones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .equipos-encabezado .titulo-acciones-botones .btn {
+    flex: 1 1 140px;
+    justify-content: center;
+  }
+  .equipos-estados .operacion-filtros-izquierda,
+  .equipos-estados .operacion-filtro {
+    align-items: stretch;
+  }
+  .equipos-estados label.operacion-filtro,
+  .equipos-buscador {
+    width: 100%;
+  }
+}
