@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import mx.montacargasobregon.backend.avisos.servicio.AvisoDescuentoService;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.ResultadoAutorizacion;
@@ -22,12 +23,14 @@ public class AutorizacionDescuentoService {
     private final CotizacionRepository cotizaciones;
     private final CotizacionService cotizacionService;
     private final UsuarioRepository usuarios;
+    private final AvisoDescuentoService avisos;
 
     public AutorizacionDescuentoService(CotizacionRepository cotizaciones, CotizacionService cotizacionService,
-            UsuarioRepository usuarios) {
+            UsuarioRepository usuarios, AvisoDescuentoService avisos) {
         this.cotizaciones = cotizaciones;
         this.cotizacionService = cotizacionService;
         this.usuarios = usuarios;
+        this.avisos = avisos;
     }
 
     /** Las solicitudes, las pendientes primero y dentro de cada grupo la más reciente primero. */
@@ -54,6 +57,7 @@ public class AutorizacionDescuentoService {
 
         String nota = comentario == null || comentario.isBlank() ? null : comentario.trim();
         c.autorizarDescuento(gerente(correoGerente), nota);
+        avisos.crear(c); // Avisa a quien pidió el descuento que gerencia respondió
         return c;
     }
 
@@ -67,6 +71,7 @@ public class AutorizacionDescuentoService {
         exigirQuePuedaCambiarA(c, EstadoCotizacion.RECHAZADA);
 
         c.rechazarDescuento(gerente(correoGerente), comentario.trim());
+        avisos.crear(c); // Avisa a quien pidió el descuento que gerencia respondió
         return c;
     }
 
