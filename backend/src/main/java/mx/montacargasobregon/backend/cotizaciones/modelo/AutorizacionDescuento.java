@@ -3,37 +3,76 @@ package mx.montacargasobregon.backend.cotizaciones.modelo;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import mx.montacargasobregon.backend.usuarios.Usuario;
 
 /**
- * Respuesta de gerencia a una cotización con descuento (HU-16). No tiene tabla propia: va en la de cotizaciones.
- * Mientras nadie responda, la cotización no la tiene.
+ * Solicitud de autorización de un descuento y la respuesta de gerencia (HU-16).
+ * Se crea cuando el auxiliar aplica un descuento; gerencia la autoriza o la
+ * rechaza.
  */
-@Embeddable
+@Entity
+@Table(name = "autorizaciones_descuento")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AutorizacionDescuento {
 
-    @ManyToOne
-    @JoinColumn(name = "autorizacion_usuario_id")
-    private Usuario autorizadaPor;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(name = "autorizacion_fecha_respuesta")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private ResultadoAutorizacion resultado;
+
+    // Quién pidió la autorización (el auxiliar) y cuándo
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "solicitada_por_id", nullable = false)
+    private Usuario solicitadaPor;
+
+    @Column(name = "fecha_solicitud", nullable = false)
+    private LocalDateTime fechaSolicitud;
+
+    // Quién respondió (gerencia) y cuándo; vacíos mientras esté pendiente
+    @ManyToOne
+    @JoinColumn(name = "respondida_por_id")
+    private Usuario respondidaPor;
+
+    @Column(name = "fecha_respuesta")
     private LocalDateTime fechaRespuesta;
 
-    // Al rechazar, gerencia explica por qué
-    @Column(name = "autorizacion_comentario", length = 500)
+    // Obligatorio al rechazar; vacío al autorizar
+    @Column(length = 500)
     private String comentario;
 
-    public AutorizacionDescuento(Usuario autorizadaPor, LocalDateTime fechaRespuesta, String comentario) {
-        this.autorizadaPor = autorizadaPor;
-        this.fechaRespuesta = fechaRespuesta;
+    public AutorizacionDescuento(Usuario solicitadaPor, LocalDateTime fechaSolicitud) {
+        this.solicitadaPor = solicitadaPor;
+        this.fechaSolicitud = fechaSolicitud;
+        this.resultado = ResultadoAutorizacion.PENDIENTE;
+    }
+
+    public void autorizar(Usuario gerente, String comentario, LocalDateTime cuando) {
+        this.resultado = ResultadoAutorizacion.AUTORIZADA;
+        this.respondidaPor = gerente;
+        this.fechaRespuesta = cuando;
+        this.comentario = comentario;
+    }
+
+    public void rechazar(Usuario gerente, String comentario, LocalDateTime cuando) {
+        this.resultado = ResultadoAutorizacion.RECHAZADA;
+        this.respondidaPor = gerente;
+        this.fechaRespuesta = cuando;
         this.comentario = comentario;
     }
 }

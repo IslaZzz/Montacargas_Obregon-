@@ -1,8 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import type { ApartadoProximo } from "./avisosTypes";
-import { accionCarta, claveAviso, nombreCarta, rutaCarta, textoInicio, unidades } from "./avisosUtils";
+import type { ApartadoProximo, AvisoDescuento } from "./avisosTypes";
+import {
+  accionCarta,
+  claveAviso,
+  nombreCarta,
+  rutaCarta,
+  textoInicio,
+  unidades,
+} from "./avisosUtils";
 import { useApartadosProximos } from "./useApartadosProximos";
+import { useAvisosDescuento } from "./useAvisosDescuento";
 import "../../styles/apartados/panel-avisos.css";
 
 interface ItemAvisoProps {
@@ -16,7 +24,10 @@ function ItemAviso({ aviso, nuevo, onIr }: ItemAvisoProps) {
   const inicio = textoInicio(aviso).replace(",", ""); // "Inicia mañana jue 8 oct"
   return (
     <li className={`panel-aviso${nuevo ? " panel-aviso-nuevo" : ""}`}>
-      <span className="panel-aviso-icono material-symbols-rounded" aria-hidden="true">
+      <span
+        className="panel-aviso-icono material-symbols-rounded"
+        aria-hidden="true"
+      >
         event_upcoming
       </span>
       <div className="panel-aviso-cuerpo">
@@ -31,7 +42,11 @@ function ItemAviso({ aviso, nuevo, onIr }: ItemAvisoProps) {
         <p>
           {inicio}, carta {nombreCarta(aviso).toLowerCase()}
         </p>
-        <Link to={rutaCarta(aviso)} className="panel-aviso-accion" onClick={onIr}>
+        <Link
+          to={rutaCarta(aviso)}
+          className="panel-aviso-accion"
+          onClick={onIr}
+        >
           {accion.texto}
           <span className="material-symbols-rounded" aria-hidden="true">
             arrow_forward
@@ -42,9 +57,58 @@ function ItemAviso({ aviso, nuevo, onIr }: ItemAvisoProps) {
   );
 }
 
-// Botón "Avisos" del encabezado con la lista desplegable (OHU-24)
+interface ItemAvisoDescuentoProps {
+  aviso: AvisoDescuento;
+  onIr: () => void; // Cierra la lista al ir a la cotización
+}
+
+// Respuesta de gerencia a un descuento: autorizado o rechazado
+function ItemAvisoDescuento({ aviso, onIr }: ItemAvisoDescuentoProps) {
+  const autorizado = aviso.resultado === "AUTORIZADA";
+  const nuevo = !aviso.leido;
+  return (
+    <li className={`panel-aviso${nuevo ? " panel-aviso-nuevo" : ""}`}>
+      <span
+        className="panel-aviso-icono material-symbols-rounded"
+        aria-hidden="true"
+      >
+        {autorizado ? "check_circle" : "cancel"}
+      </span>
+      <div className="panel-aviso-cuerpo">
+        <p className="panel-aviso-titulo">
+          {autorizado ? "Descuento autorizado" : "Descuento rechazado"}:
+          Cotización {aviso.folio}
+          {nuevo && <span className="avisos-oculto"> (nuevo)</span>}
+        </p>
+        <p>{aviso.cliente}</p>
+        <p>
+          {aviso.respondidaPor}
+          {aviso.comentario
+            ? `: «${aviso.comentario}»`
+            : autorizado
+              ? " lo autorizó"
+              : " lo rechazó"}
+        </p>
+        <Link
+          to={`/cotizaciones/${aviso.cotizacionId}`}
+          className="panel-aviso-accion"
+          onClick={onIr}
+        >
+          Ver cotización
+          <span className="material-symbols-rounded" aria-hidden="true">
+            arrow_forward
+          </span>
+        </Link>
+      </div>
+    </li>
+  );
+}
+
+// Botón "Avisos" del encabezado con la lista desplegable
 export default function BotonAvisos() {
-  const { apartados, error, noLeidos, marcarComoLeidos } = useApartadosProximos();
+  const { apartados, error, noLeidos, marcarComoLeidos } =
+    useApartadosProximos();
+  const descuentos = useAvisosDescuento();
   const [abierto, setAbierto] = useState(false);
   const contenedor = useRef<HTMLDivElement>(null);
 
@@ -66,7 +130,12 @@ export default function BotonAvisos() {
   }, [abierto]);
 
   const nuevos = new Set(noLeidos.map(claveAviso));
-  const cantidad = noLeidos.length;
+  const cantidad = noLeidos.length + descuentos.noLeidos;
+
+  const marcarTodos = () => {
+    marcarComoLeidos();
+    descuentos.marcarComoLeidos();
+  };
 
   return (
     <div className="avisos-contenedor" ref={contenedor}>
@@ -98,7 +167,7 @@ export default function BotonAvisos() {
             <button
               type="button"
               className="panel-avisos-marcar"
-              onClick={marcarComoLeidos}
+              onClick={marcarTodos}
               disabled={cantidad === 0}
             >
               Marcar como leídos
@@ -106,10 +175,12 @@ export default function BotonAvisos() {
           </header>
 
           {error && apartados === null ? (
-            <p className="panel-avisos-mensaje">No se pudieron cargar los avisos.</p>
+            <p className="panel-avisos-mensaje">
+              No se pudieron cargar los avisos.
+            </p>
           ) : apartados === null ? (
             <p className="panel-avisos-mensaje">Cargando avisos…</p>
-          ) : apartados.length === 0 ? (
+          ) : apartados.length === 0 && descuentos.avisos.length === 0 ? (
             <p className="panel-avisos-mensaje">
               <span className="material-symbols-rounded" aria-hidden="true">
                 check_circle
@@ -118,6 +189,16 @@ export default function BotonAvisos() {
             </p>
           ) : (
             <ul className="panel-avisos-lista">
+              {descuentos.avisos.map((a) => (
+                <ItemAvisoDescuento
+                  key={`descuento-${a.id}`}
+                  aviso={a}
+                  onIr={() => {
+                    descuentos.marcarLeido(a.id);
+                    setAbierto(false);
+                  }}
+                />
+              ))}
               {apartados.map((a) => (
                 <ItemAviso
                   key={a.rentaId}

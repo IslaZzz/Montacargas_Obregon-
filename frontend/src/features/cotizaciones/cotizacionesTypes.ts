@@ -2,16 +2,21 @@ import type { DatosDireccion } from "../../types/comun";
 import type { Cliente, RazonSocial } from "../clientes/clientesTypes";
 import type { EstadoRenta } from "../rentas/detalle/detalleTypes";
 
-// Estados que ya se usan. En autorización llega con HU-15; Rechazada y Vencida con HU-16, HU-32 y HU-17
+// Estados de una cotización. Rechazada es cuando gerencia niega el descuento; Vencida es cuando pasa su vigencia
 export type EstadoCotizacion =
   | "BORRADOR"
   | "ENVIADA"
   | "ACEPTADA"
   | "NO_ACEPTADA"
-  | "EN_AUTORIZACION";
+  | "EN_AUTORIZACION"
+  | "RECHAZADA"
+  | "VENCIDA";
 
 // Equivale a TipoDescuento del backend
 export type TipoDescuento = "NINGUNO" | "PORCENTAJE" | "MONTO";
+
+// Equivale a ResultadoAutorizacion del backend
+export type ResultadoAutorizacion = "PENDIENTE" | "AUTORIZADA" | "RECHAZADA";
 
 // Equivale a CotizacionResumenResponse (una fila de la lista)
 export interface CotizacionResumen {
@@ -35,10 +40,34 @@ export interface PartidaCotizacion {
   importe: number;
 }
 
-// Equivale a RentaDeCotizacionResponse: la renta que nació al aceptar la cotización (HU-37)
+// Equivale a RentaDeCotizacionResponse: la renta que nació al aceptar la cotización
 export interface RentaDeCotizacion {
   folio: string;
   estado: EstadoRenta;
+}
+
+// Equivale a AutorizacionDescuentoResponse: la solicitud de autorización del descuento y su respuesta
+export interface AutorizacionDescuento {
+  resultado: ResultadoAutorizacion;
+  solicitadaPor: string;
+  fechaSolicitud: string;
+  respondidaPor: string | null; // null mientras está pendiente
+  fechaRespuesta: string | null; // null mientras está pendiente
+  comentario: string | null; // Obligatorio al rechazar; opcional al autorizar
+}
+
+// Equivale a AutorizacionResumenResponse (una fila de la pantalla de gerencia)
+export interface AutorizacionResumen {
+  cotizacionId: number;
+  folio: string;
+  cliente: string;
+  empresa: string | null;
+  descuentoTipo: TipoDescuento;
+  descuentoValor: number;
+  descuentoMonto: number; // Pesos que se descuentan
+  descuentoMotivo: string;
+  total: number;
+  autorizacion: AutorizacionDescuento;
 }
 
 // Equivale a CotizacionResponse (el detalle)
@@ -68,6 +97,7 @@ export interface Cotizacion {
   descuentoMonto: number; // Pesos que se descuentan; 0 si no hay
   iva: number;
   total: number;
+  autorizacion: AutorizacionDescuento | null; // null si la cotización nunca pidió autorización
   renta: RentaDeCotizacion | null;
 }
 

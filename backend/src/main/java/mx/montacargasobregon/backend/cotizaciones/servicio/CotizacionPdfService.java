@@ -31,6 +31,7 @@ import mx.montacargasobregon.backend.comun.DatosContactoSitio;
 import mx.montacargasobregon.backend.comun.DatosDireccion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.EquipoCotizacion;
+import mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.TipoDescuento;
 
 /**
@@ -75,9 +76,15 @@ public class CotizacionPdfService {
     @Transactional(readOnly = true)
     public ArchivoPdf generar(Long id) {
         Cotizacion cotizacion = cotizaciones.obtener(id);
+
+        if (cotizacion.getEstado() == EstadoCotizacion.EN_AUTORIZACION) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Esperando autorización");
+        }
+        
         if (cotizacion.getEquipos().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Agrega al menos un equipo");
         }
+        
         return new ArchivoPdf(cotizacion.getFolio() + ".pdf", generar(cotizacion));
     }
 
