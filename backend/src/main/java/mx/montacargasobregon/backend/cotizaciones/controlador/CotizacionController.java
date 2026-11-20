@@ -6,6 +6,7 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -103,8 +104,9 @@ public class CotizacionController {
      */
     @PatchMapping("/{id}/descuento")
     public CotizacionResponse aplicarDescuento(@PathVariable Long id,
-            @Valid @RequestBody DescuentoCotizacionRequest datos) {
-        return respuesta(servicio.aplicarDescuento(id, datos.tipo(), datos.valor(), datos.motivo()));
+            @Valid @RequestBody DescuentoCotizacionRequest datos, Authentication usuario) {
+        return respuesta(servicio.aplicarDescuento(id, datos.tipo(), datos.valor(), datos.motivo(),
+                usuario.getName()));
     }
 
     // El detalle lleva la renta que salió de la cotización, si ya tiene (HU-37)

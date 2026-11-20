@@ -31,6 +31,7 @@ import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 import mx.montacargasobregon.backend.clientes.modelo.RazonSocial;
 import mx.montacargasobregon.backend.comun.DatosContactoSitio;
 import mx.montacargasobregon.backend.comun.DatosDireccion;
+import mx.montacargasobregon.backend.usuarios.Usuario;
 
 /**
  * Cotización de renta para un cliente, como en el diagrama de dominio.
@@ -96,8 +97,10 @@ public class Cotizacion {
     @JoinColumn(name = "descuento_id")
     private Descuento descuento;
 
-    // Respuesta de gerencia al descuento (HU-16); vacía mientras no la haya
-    @Embedded
+    // Solicitud de autorización del descuento, null si no hay descuento.
+    // orphanRemoval borra la solicitud anterior cuando se cambia el descuento
+    @OneToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, orphanRemoval = true)
+    @JoinColumn(name = "autorizacion_id")
     private AutorizacionDescuento autorizacion;
 
     @ManyToOne(optional = false)
@@ -182,15 +185,26 @@ public class Cotizacion {
      */
     public void aplicarDescuento(Descuento nuevoDescuento) {
         this.descuento = nuevoDescuento;
+        this.autorizacion = null; // Un descuento nuevo necesita su propia autorización
         recalcularPrecio();
     }
 
-    /**
-     * Con descuento, la cotización espera la respuesta de gerencia (HU-15 criterio
-     * 5 y HU-16).
-     */
-    public void enviarAAutorizacion() {
+    /** Con descuento, la cotización espera la respuesta de gerencia. */
+    public void enviarAAutorizacion(Usuario solicitante) {
+        this.autorizacion = new AutorizacionDescuento(solicitante, LocalDateTime.now(ZONA_HORARIA));
         this.estado = EstadoCotizacion.EN_AUTORIZACION;
+    }
+
+    /** Gerencia autoriza: vuelve a Borrador, lista para sacar el PDF. */
+     public void autorizarDescuento(Usuario gerente, String comentario) {
+        autorizacion.autorizar(gerente, comentario, LocalDateTime.now(ZONA_HORARIA));
+        this.estado = EstadoCotizacion.BORRADOR;
+    }
+
+    /** Gerencia rechaza con un comentario: la cotización queda Rechazada. */
+    public void rechazarDescuento(Usuario gerente, String comentario) {
+        autorizacion.rechazar(gerente, comentario, LocalDateTime.now(ZONA_HORARIA));
+        this.estado = EstadoCotizacion.RECHAZADA;
     }
 
     /**

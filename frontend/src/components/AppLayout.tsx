@@ -3,7 +3,8 @@ import MenuLateral from "./MenuLateral";
 import BotonAvisos from "../features/avisos/BotonAvisos";
 import MenuUsuario from "../features/sesion/MenuUsuario";
 import { useSesion } from "../features/sesion/useSesion";
-import { puesto, rolMenu } from "../features/sesion/sesionUtils";
+import { esGerencia, puesto, rolMenu } from "../features/sesion/sesionUtils";
+import { useAutorizacionesPendientes } from "../features/cotizaciones/autorizaciones/useAutorizacionesPendientes";
 import { useState } from "react";
 
 export default function AppLayout() {
@@ -11,12 +12,15 @@ export default function AppLayout() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const { sesion, salir } = useSesion();
 
+  // Solicitudes de descuento por responder: solo se consultan si el usuario es de gerencia
+  const pendientes = useAutorizacionesPendientes(sesion != null && esGerencia(sesion.rol));
+
   // RutaProtegida ya revisó que haya sesión
   if (!sesion) return null;
 
   return (
     <div className="app">
-      {/* Usuario con la sesión abierta (HU-28) */}
+      {/* Usuario con la sesión abierta */}
       <MenuLateral
         rol={rolMenu(sesion.rol)}
         nombreUsuario={sesion.nombre}
@@ -24,6 +28,7 @@ export default function AppLayout() {
         abierto={menuAbierto}
         onCerrar={() => setMenuAbierto(false)}
         onCerrarSesion={salir}
+        contadores={{ "/autorizaciones": pendientes }}
       />
 
       {/* Fondo oscuro que cierra el menú al tocarlo */}
