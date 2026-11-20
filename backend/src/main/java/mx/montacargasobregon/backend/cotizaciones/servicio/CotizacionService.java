@@ -135,6 +135,23 @@ public class CotizacionService {
         return cotizacion; // Dentro de la transacción, JPA guarda el cambio solo
     }
 
+    /**
+     * Marca el precio de la cotización como definido, al terminar el último paso del precio.
+     * Si ya no es Borrador, responde 409.
+     */
+    @Transactional
+    public Cotizacion definirPrecio(Long id) {
+        Cotizacion c = obtener(id);
+
+        if (c.getEstado() != EstadoCotizacion.BORRADOR) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "El precio solo se puede definir en una cotización en Borrador");
+        }
+
+        c.definirPrecio();
+        return c;
+    }
+
     /** La renta que salió de la cotización al aceptarla, si ya tiene. */
     @Transactional(readOnly = true)
     public Optional<Renta> renta(Long cotizacionId) {

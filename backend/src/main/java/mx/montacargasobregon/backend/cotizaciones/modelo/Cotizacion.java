@@ -176,6 +176,10 @@ public class Cotizacion {
         this.trasladoEntrega = entrega;
         this.trasladoRecoleccion = recoleccion;
         recalcularPrecio();
+    }
+
+    /** Marca el precio como definido al terminar el último paso: la cotización ya puede generar su PDF. */
+    public void definirPrecio() {
         this.precioDefinido = true;
     }
 
