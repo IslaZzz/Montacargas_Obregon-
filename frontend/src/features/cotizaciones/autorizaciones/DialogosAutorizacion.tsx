@@ -76,7 +76,7 @@ export function DialogoRechazar({ folio, solicitante, guardando, error, onConfir
         </div>
       }
     >
-      <p>{solicitante} verá tu comentario y la cotización quedará en «Rechazada».</p>
+      <p>El auxiliar verá tu comentario y la cotización quedará en «Rechazada».</p>
       <div className={"campo-comentario" + (falta ? " con-error" : "")}>
         <label htmlFor="comentario-rechazo">Comentario para el auxiliar (obligatorio)</label>
         <textarea

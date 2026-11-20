@@ -89,8 +89,8 @@ export default function AutorizacionesLista() {
             <strong>{aviso.resultado === "AUTORIZADA" ? "Descuento autorizado" : "Descuento rechazado"}</strong>
             <p>
               {aviso.resultado === "AUTORIZADA"
-                ? `${aviso.solicitante} ya puede generar el PDF y enviar la cotización ${aviso.folio} al cliente.`
-                : `${aviso.solicitante} verá tu comentario. La cotización ${aviso.folio} quedó en «Rechazada».`}
+                ? `El auxiliar ya puede generar el PDF y enviar la cotización ${aviso.folio} al cliente.`
+                : `El auxiliar verá tu comentario. La cotización ${aviso.folio} quedó en «Rechazada».`}
             </p>
           </div>
         </div>
