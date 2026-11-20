@@ -4,7 +4,7 @@ import { Button } from "../../../components/buttons";
 import Chip from "../../../components/chips";
 import { useTitulo } from "../../../hooks/useTitulo";
 import { ErrorApi } from "../../../services/apiClient";
-import { guardarDescuento, guardarTraslado, obtenerCotizacion } from "../cotizacionesApi";
+import { definirPrecioCotizacion, guardarDescuento, guardarTraslado, obtenerCotizacion } from "../cotizacionesApi";
 import type { Cotizacion, TipoDescuento } from "../cotizacionesTypes";
 import { chipDeEstado, nombreCompleto, textoDias } from "../cotizacionesUtils";
 import PasoPrecioEquipos from "./PasoPrecioEquipo";
@@ -246,7 +246,7 @@ export default function PrecioCotizacion() {
     return Object.keys(encontrados).length === 0;
   }
 
-  // Guarda el descuento al final del paso 4. Con descuento, la cotización pasa a En autorización
+  // Al final del paso 4 define el precio y guarda el descuento. Con descuento, la cotización pasa a En autorización
   async function guardarDescuentoCapturado() {
     if (!validarDescuento()) {
       irAPaso(PASO_DESCUENTO);
@@ -256,6 +256,8 @@ export default function PrecioCotizacion() {
     setGuardando(true);
     setErrorGuardar("");
     try {
+      // Primero el precio, mientras la cotización sigue en Borrador; el descuento la puede mandar a gerencia
+      await definirPrecioCotizacion(c.id);
       await guardarDescuento(
         c.id,
         tipoDescuento === "NINGUNO"
