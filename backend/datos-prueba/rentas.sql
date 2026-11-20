@@ -10,10 +10,10 @@ INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_pos
 SELECT 'Calle 200', '1500', 'Centro', 'Cd. Obregón', 'Sonora', '85000' FROM DUAL WHERE @falta;
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
                           contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
-                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+                          subtotal, iva, total, precio_definido, estado, fecha_creacion, fecha_envio, fecha_respuesta)
 SELECT 'COT-R3001', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
        @entrega, @recoleccion, LAST_INSERT_ID(), 'Juan Pérez', '6441234567', 0.00, 0.00,
-       0.00, 0.00, 0.00, 'ACEPTADA',
+       0.00, 0.00, 0.00, 1, 'ACEPTADA',
        @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
 FROM clientes c WHERE c.correo = 'juan.perez@constructorayaqui.mx' AND @falta;
 
@@ -23,10 +23,10 @@ INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_pos
 SELECT 'Blvd. Rodolfo Elías Calles', '845', 'Centro', 'Cd. Obregón', 'Sonora', '85000' FROM DUAL WHERE @falta;
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
                           contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
-                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+                          subtotal, iva, total, precio_definido, estado, fecha_creacion, fecha_envio, fecha_respuesta)
 SELECT 'COT-R3002', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
        @entrega, @recoleccion, LAST_INSERT_ID(), 'María López', '6449876543', 0.00, 0.00,
-       0.00, 0.00, 0.00, 'ACEPTADA',
+       0.00, 0.00, 0.00, 1, 'ACEPTADA',
        @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
 FROM clientes c WHERE c.correo = 'compras@obrasdelmayo.mx' AND @falta;
 
@@ -36,10 +36,10 @@ INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_pos
 SELECT 'Calle Jalisco', '312', 'Centro', 'Navojoa', 'Sonora', '85800' FROM DUAL WHERE @falta;
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
                           contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
-                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+                          subtotal, iva, total, precio_definido, estado, fecha_creacion, fecha_envio, fecha_respuesta)
 SELECT 'COT-R3003', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
        @entrega, @recoleccion, LAST_INSERT_ID(), 'Carlos Ramírez', '6445551234', 0.00, 0.00,
-       0.00, 0.00, 0.00, 'ACEPTADA',
+       0.00, 0.00, 0.00, 1, 'ACEPTADA',
        @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
 FROM clientes c WHERE c.correo = 'carlos.ramirez@correo.com' AND @falta;
 
@@ -51,7 +51,7 @@ INSERT INTO rentas (
     direccion_obra, contacto_obra, telefono_contacto, estado
 )
 SELECT
-    'R-3001', c.id, (SELECT id FROM cotizaciones WHERE folio = 'COT-R3001'),
+    'R-3001', c.id, q.id,
     CURDATE() + INTERVAL 2 DAY,
     CURDATE() + INTERVAL 9 DAY,
     TIMESTAMP(CURDATE() + INTERVAL 2 DAY, '08:00:00'),
@@ -61,6 +61,7 @@ SELECT
     'Calle 200 No. 1500, Cd. Obregón',
     'Juan Pérez', '6441234567', 'PROGRAMADA'
 FROM clientes c
+JOIN cotizaciones q ON q.folio = 'COT-R3001'
 WHERE c.correo = 'juan.perez@constructorayaqui.mx'
   AND NOT EXISTS (
       SELECT 1 FROM rentas WHERE folio = 'R-3001'
@@ -74,7 +75,7 @@ INSERT INTO rentas (
     direccion_obra, contacto_obra, telefono_contacto, estado
 )
 SELECT
-    'R-3002', c.id, (SELECT id FROM cotizaciones WHERE folio = 'COT-R3002'),
+    'R-3002', c.id, q.id,
     CURDATE() - INTERVAL 5 DAY,
     CURDATE() + INTERVAL 2 DAY,
     TIMESTAMP(CURDATE() - INTERVAL 5 DAY, '08:00:00'),
@@ -84,6 +85,7 @@ SELECT
     'Blvd. Rodolfo Elías Calles 845, Cd. Obregón',
     'María López', '6449876543', 'EN_CURSO'
 FROM clientes c
+JOIN cotizaciones q ON q.folio = 'COT-R3002'
 WHERE c.correo = 'compras@obrasdelmayo.mx'
   AND NOT EXISTS (
       SELECT 1 FROM rentas WHERE folio = 'R-3002'
@@ -97,7 +99,7 @@ INSERT INTO rentas (
     direccion_obra, contacto_obra, telefono_contacto, estado
 )
 SELECT
-    'R-3003', c.id, (SELECT id FROM cotizaciones WHERE folio = 'COT-R3003'),
+    'R-3003', c.id, q.id,
     CURDATE() - INTERVAL 7 DAY,
     CURDATE(),
     TIMESTAMP(CURDATE() - INTERVAL 7 DAY, '08:00:00'),
@@ -107,6 +109,7 @@ SELECT
     'Calle Jalisco 312, Navojoa',
     'Carlos Ramírez', '6445551234', 'EN_CURSO'
 FROM clientes c
+JOIN cotizaciones q ON q.folio = 'COT-R3003'
 WHERE c.correo = 'carlos.ramirez@correo.com'
   AND NOT EXISTS (
       SELECT 1 FROM rentas WHERE folio = 'R-3003'

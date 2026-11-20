@@ -9,7 +9,7 @@ import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 /**
  * Quién usa la app móvil. Se recibe como parámetro en cualquier controlador:
  *   public List<...> misTraslados(PersonalActual personal)
- * y lo llena PersonalActualResolver con el encabezado X-Personal-Id.
+ * y lo llena PersonalActualResolver con el token del encabezado Authorization (sesión móvil vigente).
  */
 public record PersonalActual(Long id, String codigo, String nombre, TipoPersonal tipo) {
 

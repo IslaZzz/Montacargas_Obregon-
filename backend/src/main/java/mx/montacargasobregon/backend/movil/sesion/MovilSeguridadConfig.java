@@ -10,10 +10,14 @@ import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * Seguridad de la app móvil. Los mecánicos y operadores no son usuarios del sistema (no tienen
- * correo ni contraseña), así que /api/movil no usa la sesión de HU-28: quién hace la petición
- * lo resuelve PersonalActualResolver con X-Personal-Id. Se evalúa antes que SeguridadConfig
- * y solo aplica a /api/movil/**; el resto de /api sigue pidiendo sesión.
- * Temporal hasta que el personal tenga su propio inicio de sesión.
+ * correo ni contraseña), así que /api/movil no usa la sesión de HU-28 (cookie): entran con su código
+ * (POST /api/movil/sesion) y reciben un token que mandan en "Authorization: Bearer <token>".
+ * Este filtro solo deja la cadena sin sesión HTTP; el token lo valida PersonalActualResolver, y
+ * cada endpoint que necesita saber quién es recibe un parámetro PersonalActual (401 si no sirve).
+ * Sin PersonalActual solo quedan abiertos, a propósito: POST /sesion (entrar), DELETE /sesion
+ * (cerrar, idempotente), GET /yo (valida el token por su cuenta) y GET /fotos/{id} (la carga un
+ * &lt;img&gt;, que no puede mandar encabezados). MovilEndpointsProtegidosTest vigila esa lista.
+ * Se evalúa antes que SeguridadConfig y solo aplica a /api/movil/**; el resto de /api sigue pidiendo sesión.
  */
 @Configuration
 public class MovilSeguridadConfig {

@@ -12,19 +12,20 @@
 USE montacargas_obregon;
 
 -- Usuarios: gerencia y auxiliares. Con su correo se inicia sesión (HU-28).
--- Los tres tienen la misma contraseña de prueba; aquí solo va cifrada (BCrypt). La contraseña
--- está en la hoja «Datos de prueba» de los casos de prueba; no se escribe en el repositorio.
-SET @contrasena_prueba = '$2a$10$nogcCvdq7InGRTX2APaXeOLEvkltXYK.4CpCCWnZeXhSTUgLSHGQu';
+-- Contraseña de prueba para los tres usuarios: Montacargas2026!
+--   - GERENTE  : patricia.romero@montacargasobregon.mx
+--   - AUXILIAR : daniela.felix@montacargasobregon.mx
+--   - AUXILIAR : luis.ochoa@montacargasobregon.mx
+SET @contrasena_prueba = '$2a$10$iyuaZuPQy/9NbflmynekJ.FxCOnDbAu3ksACPbqwiuXWcxwDMH.1q';
 
 INSERT IGNORE INTO usuarios (numero_empleado, nombres, apellido_paterno, apellido_materno, correo, contrasena, tipo, activo) VALUES
   ('GER-01', 'Patricia', 'Romero', 'Soto',    'patricia.romero@montacargasobregon.mx', @contrasena_prueba, 'GERENTE',  1),
   ('AUX-01', 'Daniela',  'Félix',  'Moreno',  'daniela.felix@montacargasobregon.mx',   @contrasena_prueba, 'AUXILIAR', 1),
   ('AUX-02', 'Luis',     'Ochoa',  'Valdez',  'luis.ochoa@montacargasobregon.mx',      @contrasena_prueba, 'AUXILIAR', 1);
 
--- Bases de antes de HU-28: el backend agrega la columna vacía; se les pone la contraseña de prueba
-UPDATE usuarios SET contrasena = @contrasena_prueba
-WHERE (contrasena IS NULL OR contrasena = '')
-  AND correo IN ('patricia.romero@montacargasobregon.mx', 'daniela.felix@montacargasobregon.mx',
+-- Asegura la contraseña de prueba y el estado activo al re-ejecutar el script
+UPDATE usuarios SET contrasena = @contrasena_prueba, activo = 1
+WHERE correo IN ('patricia.romero@montacargasobregon.mx', 'daniela.felix@montacargasobregon.mx',
                  'luis.ochoa@montacargasobregon.mx');
 
 -- Categorías. «Maniobras» no tiene equipos: sirve para probar la búsqueda sin resultados (HU-09)
@@ -164,11 +165,13 @@ FROM equipos e
 WHERE e.numero_unidad = 'MC-11';
 
 
--- Personal operativo: mecánicos y operadores de traslado
+-- Personal operativo: mecánicos y operadores de traslado (códigos de acceso para app móvil)
 INSERT IGNORE INTO personal (codigo, nombres, apellido_paterno, apellido_materno, tipo, activo) VALUES
-  ('MEC-10', 'Rafael', 'Amaya',      NULL, 'MECANICO',    1),
-  ('MEC-11', 'Martín', 'Cota',       NULL, 'MECANICO',    1),
-  ('MEC-12', 'Jorge',  'Ibarra',     NULL, 'MECANICO',    1),
-  ('OPT-10', 'Luis',   'Valenzuela', NULL, 'OP_TRASLADO', 1),
-  ('OPT-11', 'Ana',    'Soto',       NULL, 'OP_TRASLADO', 1),
-  ('OPT-12', 'Ramón',  'Félix',      NULL, 'OP_TRASLADO', 1);
+  ('MEC-10', 'Rafael',  'Amaya',      NULL, 'MECANICO',    1),
+  ('MEC-11', 'Martín',  'Cota',       NULL, 'MECANICO',    1),
+  ('MEC-12', 'Jorge',   'Ibarra',     NULL, 'MECANICO',    1),
+  ('MEC-13', 'Ernesto', 'Pérez',      NULL, 'MECANICO',    1),
+  ('OPT-10', 'Luis',    'Valenzuela', NULL, 'OP_TRASLADO', 1),
+  ('OPT-11', 'Ana',     'Soto',       NULL, 'OP_TRASLADO', 1),
+  ('OPT-12', 'Ramón',   'Félix',      NULL, 'OP_TRASLADO', 1),
+  ('OPT-13', 'Héctor',  'Quintero',   NULL, 'OP_TRASLADO', 1);
