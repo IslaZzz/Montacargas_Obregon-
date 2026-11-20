@@ -1,0 +1,73 @@
+/* ===== Galería de fotos (resúmenes) ===== */
+.galeria {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.galeria-foto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--teal);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.galeria-foto img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 2px solid var(--menta);
+  border-radius: 10px;
+  background: var(--gris-claro);
+}
+
+/* ===== Fila de un punto revisado o de una tarea ===== */
+.renglon {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.renglon-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.renglon-titulo {
+  color: var(--teal);
+  font-weight: 700;
+}
+.renglon-detalle {
+  color: var(--texto);
+  font-size: 15px;
+}
+.separado + .separado {
+  padding-top: 12px;
+  border-top: 1px solid var(--gris);
+}
+
+/* Varios chips en una línea */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Botón de texto (enlaces secundarios dentro de una pantalla) */
+.boton-texto {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: 6px;
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  color: var(--rojo-fuerte);
+  font-weight: 700;
+  cursor: pointer;
+}
+.boton-texto .icono {
+  font-size: 20px;
+}
