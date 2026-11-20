@@ -21,6 +21,7 @@ import Disponibilidad from '../features/equipos/disponibilidad/ConsultarDisponib
 import Tarifas from '../features/tarifas/Tarifas'
 
 import ConsultarEquipos from "../features/equipos/estados/ConsultarEquipos";
+import RegistrarEquipo from "../features/equipos/registrar/RegistrarEquipo";
 import DetalleRenta from "../features/rentas/detalle/DetalleRenta";
 import DashboardTraslados from "../features/traslados/DashboardTraslados";
 
@@ -109,8 +110,14 @@ export default function AppRoutes() {
 
         {/* Solo gerencia: el auxiliar ve «No tienes permiso» */}
         <Route element={<RutaGerencia />}>
+          {/* Registrar equipo (HU-02) */}
+          <Route path="/equipos/registrar" element={<RegistrarEquipo />} />
+          <Route path="/autorizaciones" />
+          
+          {/* Autorizar descuento */}
           <Route path="/autorizaciones" element={<AutorizacionesLista />} />
           <Route path="/autorizaciones/:id" element={<DetalleAutorizacion />} />
+          
           <Route path="/ingresos" />
         </Route>
 
