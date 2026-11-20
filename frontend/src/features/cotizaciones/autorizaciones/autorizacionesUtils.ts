@@ -23,12 +23,9 @@ export const textoDescuento = (a: AutorizacionResumen) =>
     ? `${a.descuentoValor}% (−${formatoMoneda(a.descuentoMonto)})`
     : formatoMoneda(a.descuentoMonto);
 
-export function lineaSolicitud(a: AutorizacionResumen) {
-  const s = a.autorizacion;
-  return s.resultado === "PENDIENTE"
-    ? `Pidió: ${s.solicitadaPor} · ${cuando(s.fechaSolicitud)}`
-    : `Pidió: ${s.solicitadaPor} · Solicitada el ${formatoFecha(s.fechaSolicitud)}`;
-}
+// "19/11/2026, 10:42 a. m. · Juan Pérez"
+export const solicitadaEl = (a: AutorizacionResumen) =>
+  `${formatoFecha(a.autorizacion.fechaSolicitud)}, ${hora(a.autorizacion.fechaSolicitud)} · ${a.autorizacion.solicitadaPor}`;
 
 // El motivo si espera respuesta; si no, quién respondió y qué
 export function lineaRespuesta(a: AutorizacionResumen) {

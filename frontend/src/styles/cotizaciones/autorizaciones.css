@@ -43,9 +43,6 @@
   font-size: 16px;
   color: var(--primary-teal);
 }
-.autorizacion-info .autorizacion-empresa {
-  color: var(--text-foreground);
-}
 .autorizacion-encabezado {
   display: flex;
   flex-wrap: wrap;
@@ -61,29 +58,34 @@
   color: var(--primary-teal);
 }
 
-.autorizacion-montos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding-top: 4px;
+/* Datos de la ficha: etiqueta arriba y valor debajo */
+.autorizacion-datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 32px;
+  margin: 4px 0 0;
 }
-.autorizacion-monto {
-  display: inline-flex;
-  align-items: center;
-  height: 32px;
-  padding: 0 14px 0 12px;
-  border-radius: 16px;
+.autorizacion-datos > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.autorizacion-datos dt {
+  font:
+    400 14px var(--main-font-inter),
+    sans-serif;
+  color: var(--text-foreground);
+}
+.autorizacion-datos dd {
+  margin: 0;
   font:
     600 16px var(--main-font-inter),
     sans-serif;
   color: var(--primary-teal);
-  white-space: nowrap;
 }
-.autorizacion-monto.descuento {
-  background: var(--warning-red);
-}
-.autorizacion-monto.total {
-  background: var(--selection-gray);
+.autorizacion-datos .descuento dd {
+  color: var(--warning-red-outline);
 }
 
 .autorizacion-acciones {
@@ -170,10 +172,14 @@
   .autorizacion-encabezado h2 {
     font-size: 18px;
   }
-  .autorizacion-monto {
-    height: 23px;
-    padding: 0 10px;
+  .autorizacion-datos {
+    gap: 10px 16px;
+  }
+  .autorizacion-datos dt {
     font-size: 12px;
+  }
+  .autorizacion-datos dd {
+    font-size: 14px;
   }
   .autorizacion-info p {
     font-size: 14px;

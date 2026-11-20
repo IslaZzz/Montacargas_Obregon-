@@ -6,7 +6,7 @@ import { useTitulo } from "../../../hooks/useTitulo";
 import { formatoMoneda } from "../../../utils/formato";
 import type { AutorizacionResumen } from "../../cotizaciones/cotizacionesTypes";
 import { autorizarDescuento, listarAutorizaciones, rechazarDescuento } from "./autorizacionesApi";
-import { chipDeResultado, lineaRespuesta, lineaSolicitud, textoDescuento } from "./autorizacionesUtils";
+import { chipDeResultado, lineaRespuesta, solicitadaEl, textoDescuento } from "./autorizacionesUtils";
 import { DialogoAutorizar, DialogoRechazar } from "./DialogosAutorizacion";
 import "../../../styles/cotizaciones/cotizaciones.css";
 import "../../../styles/cotizaciones/autorizaciones.css";
@@ -134,25 +134,31 @@ export default function AutorizacionesLista() {
           const pendiente = a.autorizacion.resultado === "PENDIENTE";
           return (
             <li key={a.cotizacionId} className={"autorizacion-tarjeta" + (pendiente ? " pendiente" : "")}>
-              <div className="autorizacion-info">
+                            <div className="autorizacion-info">
                 <div className="autorizacion-encabezado">
-                  <h2>
-                    {a.folio}
-                    <span className="solo-laptop"> · {a.cliente}</span>
-                  </h2>
+                  <h2>Folio {a.folio}</h2>
                   <Chip category="cotizacion" status={chipDeResultado(a.autorizacion.resultado)} />
                 </div>
-                <p className="autorizacion-empresa">
-                  <span className="solo-celular">{[a.cliente, a.empresa].filter(Boolean).join(" · ")}</span>
-                  <span className="solo-laptop">{a.empresa}</span>
-                </p>
-                <div className="autorizacion-montos">
-                  <span className="autorizacion-monto descuento">
-                    Descuento: {textoDescuento(a)}
-                  </span>
-                  <span className="autorizacion-monto total">Total con IVA: {formatoMoneda(a.total)}</span>
-                </div>
-                <p>{lineaSolicitud(a)}</p>
+
+                <dl className="autorizacion-datos">
+                  <div>
+                    <dt>Cliente</dt>
+                    <dd>{[a.cliente, a.empresa].filter(Boolean).join(" · ")}</dd>
+                  </div>
+                  <div>
+                    <dt>Total</dt>
+                    <dd>{formatoMoneda(a.total)}</dd>
+                  </div>
+                  <div className="descuento">
+                    <dt>Descuento</dt>
+                    <dd>{textoDescuento(a)}</dd>
+                  </div>
+                  <div>
+                    <dt>Solicitada el</dt>
+                    <dd>{solicitadaEl(a)}</dd>
+                  </div>
+                </dl>
+
                 <p className="solo-laptop">{lineaRespuesta(a)}</p>
               </div>
 

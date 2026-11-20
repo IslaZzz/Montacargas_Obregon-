@@ -8,10 +8,10 @@ function avisarCambio() {
   window.dispatchEvent(new Event(EVENTO_AUTORIZACIONES));
 }
 
+// Siempre se piden todas; la pantalla filtra las pendientes
 export function listarAutorizaciones() {
-  return getApi<AutorizacionResumen[]>("/autorizaciones");
+  return getApi<AutorizacionResumen[]>("/autorizaciones?soloPendientes=false");
 }
-
 export function contarAutorizacionesPendientes() {
   return getApi<number>("/autorizaciones/pendientes/total");
 }
