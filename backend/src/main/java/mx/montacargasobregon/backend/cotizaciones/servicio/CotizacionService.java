@@ -1,6 +1,7 @@
 package mx.montacargasobregon.backend.cotizaciones.servicio;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -68,6 +69,11 @@ public class CotizacionService {
         if (cotizacion.getEstado() == nuevoEstado) {
             return cotizacion;
         }
+        // Si ya pasó la vigencia, no se acepta aunque la tarea todavía no la haya marcado como Vencida (HU-17)
+        if (nuevoEstado == EstadoCotizacion.ACEPTADA
+                && cotizacion.vigenciaTerminada(LocalDate.now(Cotizacion.ZONA_HORARIA))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cotización vencida");
+        }
         if (!cotizacion.getEstado().puedeCambiarA(nuevoEstado)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "La cotización ya no puede cambiar a ese estado");
         }
@@ -93,6 +99,21 @@ public class CotizacionService {
     }
 
     /**
+     * Pasa a Vencida las cotizaciones Enviadas cuya vigencia ya terminó (HU-17).
+     * Vence si hoy es después de «válida hasta» (creación + 7 días). Devuelve cuántas cambiaron.
+     */
+    @Transactional
+    public int vencerCotizaciones() {
+        LocalDate hoy = LocalDate.now(Cotizacion.ZONA_HORARIA);
+        LocalDateTime limite = hoy.minusDays(Cotizacion.DIAS_VIGENCIA).atStartOfDay();
+
+        List<Cotizacion> vencidas = repositorio
+                .findByEstadoAndFechaHoraCreacionBefore(EstadoCotizacion.ENVIADA, limite);
+        vencidas.forEach(Cotizacion::vencer);
+        return vencidas.size(); // Dentro de la transacción, JPA guarda los cambios solo
+    }
+
+    /**
      * Guarda el costo de traslado de una cotización en Borrador y recalcula su
      * precio.
      * Si ya no es Borrador, responde 409.
@@ -113,7 +134,7 @@ public class CotizacionService {
         cotizacion.registrarTraslado(entrega, recoleccion);
         return cotizacion; // Dentro de la transacción, JPA guarda el cambio solo
     }
-    
+
     /** La renta que salió de la cotización al aceptarla, si ya tiene. */
     @Transactional(readOnly = true)
     public Optional<Renta> renta(Long cotizacionId) {

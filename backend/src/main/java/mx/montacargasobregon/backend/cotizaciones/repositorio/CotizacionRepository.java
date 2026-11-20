@@ -1,5 +1,6 @@
 package mx.montacargasobregon.backend.cotizaciones.repositorio;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,4 +22,7 @@ public interface CotizacionRepository extends JpaRepository<Cotizacion, Long> {
     List<Cotizacion> findByAutorizacionIsNotNull();
 
     long countByEstado(EstadoCotizacion estado);
+
+    /** Las cotizaciones en un estado creadas antes de cierto momento: sirve para encontrar las vencidas (HU-17). */
+    List<Cotizacion> findByEstadoAndFechaHoraCreacionBefore(EstadoCotizacion estado, LocalDateTime limite);
 }
