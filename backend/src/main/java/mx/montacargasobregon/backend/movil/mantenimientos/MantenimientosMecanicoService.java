@@ -78,7 +78,7 @@ public class MantenimientosMecanicoService {
     public DetalleMantenimientoMecanicoResponse agregar(Long id, PersonalActual personal, AgregarTareaRequest datos) {
         Mantenimiento m = buscarAbierto(id, personal);
         m.iniciar();
-        m.agregarTarea(datos.categoria().trim(), limpiar(datos.componente()), limpiar(datos.accionSugerida()));
+        m.agregarTarea(datos.titulo().trim(), limpiar(datos.componente()), limpiar(datos.accionSugerida()));
         repositorio.flush();
         return detalleDe(m);
     }
