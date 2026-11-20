@@ -28,9 +28,9 @@ public class VencimientoCotizacionesService {
         revisar();
     }
 
-    /** Al inicio de cada hora. */
-    @Scheduled(cron = "0 0 * * * *", zone = "America/Hermosillo")
-    public void cadaHora() {
+    /** Al inicio de cada minuto. */
+    @Scheduled(cron = "0 * * * * *", zone = "America/Hermosillo")
+    public void cadaMinuto() {
         revisar();
     }
 
