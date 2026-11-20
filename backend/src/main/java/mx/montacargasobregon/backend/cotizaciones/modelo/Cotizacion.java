@@ -48,6 +48,8 @@ public class Cotizacion {
     // Las fechas se toman con la hora de Sonora, aunque el servidor esté en otra
     // zona
     public static final ZoneId ZONA_HORARIA = ZoneId.of("America/Hermosillo");
+    // La cotización vale 7 días desde que se crea (HU-17)
+    public static final int DIAS_VIGENCIA = 7;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -174,6 +176,10 @@ public class Cotizacion {
         this.trasladoEntrega = entrega;
         this.trasladoRecoleccion = recoleccion;
         recalcularPrecio();
+    }
+
+    /** Marca el precio como definido al terminar el último paso: la cotización ya puede generar su PDF. */
+    public void definirPrecio() {
         this.precioDefinido = true;
     }
 
@@ -260,5 +266,20 @@ public class Cotizacion {
         BigDecimal conDescuento = subtotal.subtract(getMontoDescuento());
         this.iva = CalculoPrecio.calcularIva(conDescuento);
         this.total = CalculoPrecio.calcularTotal(conDescuento, iva);
+    }
+
+    /** Último día en que el cliente puede aceptarla: la fecha de creación + 7 días (HU-17). */
+    public LocalDate getValidaHasta() {
+        return fechaHoraCreacion.toLocalDate().plusDays(DIAS_VIGENCIA);
+    }
+
+    /** True si ya pasó el último día de vigencia. */
+    public boolean vigenciaTerminada(LocalDate hoy) {
+        return hoy.isAfter(getValidaHasta());
+    }
+
+    /** Pasó la vigencia sin respuesta del cliente (HU-17). Quien llama revisa que esté Enviada. */
+    public void vencer() {
+        this.estado = EstadoCotizacion.VENCIDA;
     }
 }

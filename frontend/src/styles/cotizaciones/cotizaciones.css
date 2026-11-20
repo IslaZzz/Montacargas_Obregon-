@@ -420,6 +420,110 @@
   font-weight: 700;
 }
 
+/* Aviso amarillo: espera la respuesta de gerencia */
+.aviso-espera {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--reminder-yellow);
+  border: 2px solid var(--outline-reminder-yellow);
+  border-radius: 10px;
+}
+.aviso-espera > .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 28px;
+  color: var(--primary-teal);
+  font-variation-settings: "FILL" 1;
+}
+.aviso-espera strong {
+  display: block;
+  font:
+    600 20px/1.35 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.aviso-espera p {
+  margin: 2px 0 0;
+  font-size: 16px;
+  line-height: 1.35;
+  color: var(--primary-teal);
+}
+
+/* El descuento en los totales, en rojo */
+.totales-descuento strong {
+  color: var(--warning-red-outline);
+}
+
+/* ¿Qué sigue? */
+.que-sigue {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.que-sigue li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(15, 61, 76, 0.15);
+  color: var(--primary-teal);
+}
+.que-sigue li:last-child {
+  border-bottom: 0;
+}
+.que-sigue-numero {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--primary-teal);
+  border-radius: 50%;
+  font-weight: 700;
+}
+.que-sigue li.actual .que-sigue-numero {
+  background: var(--primary-teal);
+  color: #fff;
+}
+.que-sigue strong {
+  display: block;
+  font-weight: 600;
+}
+.que-sigue-texto {
+  font-size: 15px;
+  color: var(--text-foreground);
+}
+.nota-condiciones {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text-foreground);
+}
+.nota-condiciones .material-symbols-rounded {
+  font-size: 18px;
+}
+
+/* Vencida y vigencia en «¿Qué respondió el cliente?» */
+.detalle-vencida {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 16px;
+  color: var(--text-foreground);
+}
+.detalle-vencida .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 22px;
+}
+.detalle-vigencia {
+  font-size: 16px;
+  color: var(--text-foreground);
+}
+
 /* ===== Tableta: una columna; la respuesta del cliente va primero ===== */
 @media (max-width: 1100px) {
   .detalle-cuerpo {

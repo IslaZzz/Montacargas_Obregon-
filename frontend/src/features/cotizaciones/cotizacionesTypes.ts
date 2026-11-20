@@ -97,6 +97,7 @@ export interface Cotizacion {
   descuentoMonto: number; // Pesos que se descuentan; 0 si no hay
   iva: number;
   total: number;
+  validaHasta: string; // "2026-10-15": último día para que el cliente la acepte
   autorizacion: AutorizacionDescuento | null; // null si la cotización nunca pidió autorización
   renta: RentaDeCotizacion | null;
 }

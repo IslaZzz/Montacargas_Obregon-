@@ -350,3 +350,90 @@
     max-width: none;
   }
 }
+
+/* «7 días» y «Válida hasta el…» */
+.vigencia-caja {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 20px;
+  background: var(--off-white-background);
+  border: 1px solid rgba(15, 61, 76, 0.2);
+  border-radius: 8px;
+  color: var(--primary-teal);
+}
+.vigencia-dias {
+  font-size: 36px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.vigencia-caja div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.vigencia-caja span {
+  font-size: 15px;
+  color: var(--text-foreground);
+}
+
+/* Notas con ícono debajo de cada tarjeta */
+.vigencia-nota {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text-foreground);
+}
+.vigencia-nota .material-symbols-rounded {
+  font-size: 18px;
+  font-variation-settings: "FILL" 1;
+}
+
+/* Lista de condiciones de renta */
+.condiciones {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.condiciones li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(15, 61, 76, 0.15);
+  color: var(--primary-teal);
+}
+.condiciones li:last-child {
+  border-bottom: 0;
+}
+.condicion-icono {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(15, 61, 76, 0.08);
+  font-size: 20px;
+}
+.condiciones strong {
+  display: block;
+  font-weight: 600;
+}
+.condiciones p {
+  margin: 2px 0 0;
+  font-size: 15px;
+  color: var(--text-foreground);
+}
+
+/* Celular: «7 días» arriba y el texto debajo */
+@media (max-width: 700px) {
+  .vigencia-caja {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
