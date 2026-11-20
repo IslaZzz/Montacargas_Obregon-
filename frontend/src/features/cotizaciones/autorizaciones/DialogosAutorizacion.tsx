@@ -49,7 +49,7 @@ interface DialogoRechazarProps {
 }
 
 // «Rechazar el descuento de COT-0158», con el comentario obligatorio
-export function DialogoRechazar({ folio, solicitante, guardando, error, onConfirmar, onCerrar }: DialogoRechazarProps) {
+export function DialogoRechazar({ folio, guardando, error, onConfirmar, onCerrar }: DialogoRechazarProps) {
   const [comentario, setComentario] = useState("");
   const [intentado, setIntentado] = useState(false);
   const falta = intentado && comentario.trim() === "";

@@ -35,8 +35,8 @@ import FormularioModelo from "../features/modelos/FormularioModelo";
 import ConsultarPersonal from "../features/personal/ConsultarPersonal";
 import RegistrarPersonal from "../features/personal/RegistrarPersonal";
 import EditarPersonal from "../features/personal/EditarPersonal";
-import AutorizacionesLista from "../features/cotizaciones/autorizaciones/VerAutorizaciones";
 import DetalleAutorizacion from "../features/cotizaciones/autorizaciones/DetalleAutorizacion";
+import AutorizacionesLista from "../features/cotizaciones/autorizaciones/VerAutorizaciones";
 
 export default function AppRoutes() {
   return (
@@ -112,7 +112,6 @@ export default function AppRoutes() {
         <Route element={<RutaGerencia />}>
           {/* Registrar equipo (HU-02) */}
           <Route path="/equipos/registrar" element={<RegistrarEquipo />} />
-          <Route path="/autorizaciones" />
           
           {/* Autorizar descuento */}
           <Route path="/autorizaciones" element={<AutorizacionesLista />} />
