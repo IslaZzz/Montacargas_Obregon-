@@ -165,8 +165,8 @@ export default function DetalleCotizacion() {
   const faltaPrecio = esBorrador && !c.precioDefinido;
   // Borrador con el precio ya guardado: se puede generar el PDF y enviarla
   const precioListo = esBorrador && c.precioDefinido;
-  // Mientras espera a gerencia, o si se rechazó, no hay PDF que mandar
-  const mostrarPdf = !faltaPrecio && !enAutorizacion && !rechazada;
+  // En autorización, BotonVerPdf se muestra deshabilitado con «Esperando autorización» (HU-16).
+  const mostrarPdf = !faltaPrecio && !rechazada;
 
   // Totales
   const subtotalEquipos = redondear(
@@ -301,12 +301,11 @@ export default function DetalleCotizacion() {
         <div className="aviso-error" role="status">
           <span className="material-symbols-rounded">cancel</span>
           <div>
-            <strong>Gerencia rechazó el descuento</strong>
+            <strong>Rechazada: {autorizacion.comentario}</strong>
             <p>
-              Rechazado por {autorizacion.respondidaPor}{" "}
-              {momentoEnTexto(autorizacion.fechaRespuesta)}
-              {autorizacion.comentario ? `: «${autorizacion.comentario}»` : "."}{" "}
-              Esta cotización ya no se puede enviar al cliente.
+              {autorizacion.respondidaPor} rechazó el descuento{" "}
+              {momentoEnTexto(autorizacion.fechaRespuesta)}. Esta cotización ya
+              no se puede enviar al cliente.
             </p>
           </div>
         </div>
@@ -347,6 +346,12 @@ export default function DetalleCotizacion() {
               {c.folio}
             </h1>
             <Chip category="cotizacion" status={chipDeEstado(c.estado)} />
+            {/* Etiqueta de la HU-16: el descuento ya tiene el visto bueno */}
+            {autorizada && (
+              <Chip category="cotizacion" status="autorizada">
+                Autorizada por gerencia
+              </Chip>
+            )}
           </div>
           {recienGuardada ? (
             <p>
@@ -470,11 +475,13 @@ export default function DetalleCotizacion() {
           )}
 
           {/* La solicitud que espera a gerencia (HU-16) */}
-          {enAutorizacion && !recienGuardada && autorizacion && (
+          {enAutorizacion && !recienGuardada && (
             <section className="tarjeta detalle-datos">
               <h2>Solicitud de autorización</h2>
               <dl className="datos">
-                <Dato etiqueta="Fecha">{momento(autorizacion.fechaSolicitud)}</Dato>
+                {autorizacion && (
+                  <Dato etiqueta="Fecha">{momento(autorizacion.fechaSolicitud)}</Dato>
+                )}
                 {c.descuentoMotivo && (
                   <Dato etiqueta="Motivo del descuento">{c.descuentoMotivo}</Dato>
                 )}
@@ -526,7 +533,7 @@ export default function DetalleCotizacion() {
             </section>
           )}
 
-          {/* Pasaron los 7 días sin respuesta (HU-17) */}
+          {/* Pasaron los 7 días sin respuesta (HU-17, criterio 4) */}
           {vencida && (
             <section className="tarjeta detalle-respuesta">
               <h2>¿Qué respondió el cliente?</h2>
@@ -667,7 +674,7 @@ export default function DetalleCotizacion() {
   );
 }
 
-// Justo después de guardar (HU-17)
+// "¿Qué sigue?" justo después de guardar (HU-17)
 function QueSigue({ cotizacion: c }: { cotizacion: Cotizacion }) {
   const pasos = [
     ...(c.estado === "EN_AUTORIZACION"
