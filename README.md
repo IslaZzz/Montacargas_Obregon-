@@ -93,3 +93,16 @@ Si tu base ya existía, haz esto una sola vez:
 Registrar un equipo y agregar una etiqueta son de gerencia: el auxiliar no ve el botón, la pantalla le dice «No tienes permiso» y la API le responde 403 (`ALTAS_DE_GERENCIA` en `SeguridadConfig`).
 
 - **API:** `POST /api/equipos` recibe `etiquetaIds` y responde 409 con el error en `numeroUnidad` o `numeroSerie` si se repiten; `GET/POST /api/etiquetas`; `GET /api/disponibilidad` filtra con `etiquetaId`. Los equipos traen sus etiquetas como `{ id, nombre }`.
+
+## Dirección por código postal (SCRUM-110)
+
+Al escribir el código postal en «Registrar cliente» y en el paso «Fechas y obra» de «Nueva cotización», se llenan la colonia, la ciudad y el estado con el catálogo de SEPOMEX. Si el código tiene varias colonias, se elige de la lista o se escribe otra. Si no se encuentra, se escriben a mano. Todo lo que se llena se puede corregir antes de guardar.
+
+Para cargar el catálogo, una sola vez:
+
+1. Arranca el backend. Crea la tabla `codigos_postales`.
+2. Corre `backend/datos-prueba/codigos-postales.sql` igual que `datos-iniciales.sql`. Tarda unos segundos. Si lo vuelves a correr, borra el catálogo y lo carga de nuevo.
+
+El archivo sale del catálogo de Correos de México (correosdemexico.gob.mx, «Descarga de la base de datos de códigos postales», en formato TXT, versión del 12 de noviembre de 2026).
+
+- **API:** `GET /api/codigos-postales/{cp}` responde las `colonias`, la `ciudad` (o el municipio, si el código no tiene ciudad) y el `estado`. Si no existe, responde 404.

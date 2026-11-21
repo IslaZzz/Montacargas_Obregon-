@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Campo from "../../components/CampoForm";
+import CamposCodigoPostal from "../../components/CamposCodigoPostal";
 import { registrarCliente } from "./clientesApi";
 import { ErrorApi } from "../../services/apiClient";
 import { useTitulo } from "../../hooks/useTitulo";
@@ -113,6 +114,17 @@ export default function RegistrarCliente() {
   const cambiarRazon = (i: number, campo: string, valor: string) => {
     setRazones(razones.map((r, j) => (j === i ? { ...r, [campo]: valor } : r)));
     quitarErrorServidor(`${i}.${campo}`);
+  };
+
+  const llenarDireccion = (
+    i: number,
+    datos: { colonia: string; ciudad: string },
+  ) => {
+    setRazones((actuales) =>
+      actuales.map((r, j) => (j === i ? { ...r, ...datos } : r)),
+    );
+    quitarErrorServidor(`${i}.colonia`);
+    quitarErrorServidor(`${i}.ciudad`);
   };
 
   // Al pulsar Guardar cliente
@@ -325,27 +337,24 @@ export default function RegistrarCliente() {
                     error={errores[`${i}.numero`]}
                     onChange={(v) => cambiarRazon(i, "numero", v)}
                   />
-                  <Campo
-                    etiqueta="Colonia"
-                    value={r.colonia}
-                    error={errores[`${i}.colonia`]}
-                    onChange={(v) => cambiarRazon(i, "colonia", v)}
+                  <CamposCodigoPostal
+                    codigoPostal={r.codigoPostal}
+                    colonia={r.colonia}
+                    errorCodigoPostal={errores[`${i}.codigoPostal`]}
+                    errorColonia={errores[`${i}.colonia`]}
+                    onCambiarCodigoPostal={(v) =>
+                      cambiarRazon(i, "codigoPostal", v)
+                    }
+                    onCambiarColonia={(v) => cambiarRazon(i, "colonia", v)}
+                    onEncontrado={({ colonia, ciudad }) =>
+                      llenarDireccion(i, { colonia, ciudad })
+                    }
                   />
                   <Campo
                     etiqueta="Ciudad"
                     value={r.ciudad}
                     error={errores[`${i}.ciudad`]}
                     onChange={(v) => cambiarRazon(i, "ciudad", v)}
-                  />
-                  <Campo
-                    etiqueta="Código postal"
-                    inputMode="numeric"
-                    maxLength={5}
-                    value={r.codigoPostal}
-                    error={errores[`${i}.codigoPostal`]}
-                    onChange={(v) =>
-                      cambiarRazon(i, "codigoPostal", soloDigitos(v, 5))
-                    }
                   />
                 </div>
 

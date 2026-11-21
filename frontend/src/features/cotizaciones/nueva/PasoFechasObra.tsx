@@ -1,4 +1,5 @@
 import Campo from "../../../components/CampoForm";
+import CamposCodigoPostal from "../../../components/CamposCodigoPostal";
 import { formatoFechaHora } from "../../../utils/formato";
 import { textoDias } from "../cotizacionesUtils";
 import type { BorradorCotizacion, CampoTexto, Errores } from "./nuevaCotizacionTypes";
@@ -24,14 +25,14 @@ const MOMENTOS = [
   { titulo: "Recolección", fecha: "fechaRecoleccion", hora: "horaRecoleccion" },
 ] as const;
 
-// Los mismos campos que la dirección fiscal de Registrar cliente, más el estado
-const CAMPOS_DIRECCION: CampoConfig[] = [
+const CAMPOS_CALLE: CampoConfig[] = [
   { campo: "calleObra", etiqueta: "Calle", maxLength: 100 },
   { campo: "numeroObra", etiqueta: "Número", maxLength: 10 },
-  { campo: "coloniaObra", etiqueta: "Colonia", maxLength: 100 },
+];
+
+const CAMPOS_CIUDAD: CampoConfig[] = [
   { campo: "ciudadObra", etiqueta: "Ciudad", maxLength: 100 },
   { campo: "estadoObra", etiqueta: "Estado", maxLength: 50 },
-  { campo: "codigoPostalObra", etiqueta: "Código postal", maxLength: 5, soloDigitos: true },
 ];
 
 const CAMPOS_CONTACTO: CampoConfig[] = [
@@ -83,7 +84,16 @@ export default function PasoFechasObra({ borrador, cambiar, errores }: Props) {
         <p className="campo-etiqueta">
           Dirección de la obra <small>(obligatorio)</small>
         </p>
-        <div className="direccion">{CAMPOS_DIRECCION.map(campoTexto)}</div>
+        <div className="direccion">
+          {CAMPOS_CALLE.map(campoTexto)}
+          <CamposCodigoPostal codigoPostal={borrador.codigoPostalObra} colonia={borrador.coloniaObra}
+            errorCodigoPostal={errores.codigoPostalObra} errorColonia={errores.coloniaObra}
+            onCambiarCodigoPostal={(valor) => cambiar({ codigoPostalObra: valor })}
+            onCambiarColonia={(valor) => cambiar({ coloniaObra: valor })}
+            onEncontrado={({ colonia, ciudad, estado }) =>
+              cambiar({ coloniaObra: colonia, ciudadObra: ciudad, estadoObra: estado })} />
+          {CAMPOS_CIUDAD.map(campoTexto)}
+        </div>
         <div className="direccion">{CAMPOS_CONTACTO.map(campoTexto)}</div>
       </section>
     </>

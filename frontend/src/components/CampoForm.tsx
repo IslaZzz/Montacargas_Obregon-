@@ -8,6 +8,7 @@ interface CampoProps extends Omit<
   obligatorio?: boolean;
   opcional?: boolean;
   error?: string;
+  ayuda?: string;
   onChange: (valor: string) => void;
 }
 
@@ -16,6 +17,7 @@ export default function Campo({
   obligatorio,
   opcional,
   error,
+  ayuda,
   onChange,
   ...resto
 }: CampoProps) {
@@ -35,6 +37,11 @@ export default function Campo({
         <span className="campo-error" role="alert">
           <span className="material-symbols-rounded">error</span>
           {error}
+        </span>
+      )}
+      {ayuda && !error && (
+        <span className="campo-ayuda" role="status">
+          {ayuda}
         </span>
       )}
     </label>
