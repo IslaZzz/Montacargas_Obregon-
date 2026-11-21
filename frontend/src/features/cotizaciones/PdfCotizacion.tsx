@@ -9,6 +9,7 @@ import {
   urlPdf,
 } from "./cotizacionesApi";
 import type { Cotizacion } from "./cotizacionesTypes";
+import { motivoSinPdf } from "./cotizacionesUtils";
 import "../../styles/cotizaciones/cotizaciones.css";
 import "../../styles/cotizaciones/pdf-cotizacion.css";
 
@@ -40,7 +41,7 @@ export default function PdfCotizacion() {
     obtenerCotizacion(id)
       .then((c) => {
         setCotizacion(c);
-        if (c.partidas.length > 0) {
+        if (!motivoSinPdf(c)) {
           obtenerPdf(c.id, `${c.folio}.pdf`)
             .then(setArchivo)
             .catch(() => setError("No fue posible preparar el PDF para compartirlo."));
@@ -97,7 +98,7 @@ export default function PdfCotizacion() {
     );
   }
 
-  const sinEquipos = cotizacion.partidas.length === 0;
+  const motivo = motivoSinPdf(cotizacion);
 
   return (
     <div className="pagina pdf-cotizacion">
@@ -134,12 +135,12 @@ export default function PdfCotizacion() {
         <section className="tarjeta pdf-acciones">
           <h2>Acciones</h2>
 
-          {sinEquipos ? (
+          {motivo ? (
             <>
               <button type="button" className="btn btn-primary btn-grande" disabled>
                 Descargar PDF
               </button>
-              <p className="pdf-nota">Agrega al menos un equipo</p>
+              <p className="pdf-nota">{motivo}</p>
             </>
           ) : (
             <>
