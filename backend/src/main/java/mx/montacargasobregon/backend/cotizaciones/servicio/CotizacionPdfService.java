@@ -50,6 +50,9 @@ public class CotizacionPdfService {
     private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter FECHA_LARGA = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM 'de' yyyy", ES_MX);
     private static final DateTimeFormatter FECHA_SIN_DIA = DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", ES_MX);
+    private static final DateTimeFormatter DIA_Y_MES = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", ES_MX);
+    private static final int DIAS_CANCELACION = 3;
+    static final String TEXTO_CARTA_RESPONSIVA = "Se firma al recibir el equipo.";
 
     // Colores del prototipo
     private static final Color AZUL = new Color(0x0F3D4C);
@@ -242,14 +245,18 @@ public class CotizacionPdfService {
         celda.addElement(condicion("Vigencia", avisoVigencia(c)));
         celda.addElement(condicion("Anticipo", "Para confirmar la renta se requiere un anticipo del 30%: "
                 + moneda(anticipo) + "."));
-        celda.addElement(condicion("Cancelación", "Si la renta se cancela con menos de 24 horas de anticipación, "
-                + "no se reembolsa el anticipo."));
+        celda.addElement(condicion("Cancelación", textoCancelacion(c)));
         celda.addElement(condicion("Entrega", "El equipo se entrega y se recoge en el lugar, fecha y hora "
                 + "indicados. El cliente debe garantizar el acceso y un espacio seguro para la maniobra."));
-        celda.addElement(condicion("Carta responsiva", "Antes de la entrega, el cliente o su representante "
-                + "debe firmar la carta responsiva del equipo."));
+        celda.addElement(condicion("Carta responsiva", TEXTO_CARTA_RESPONSIVA));
         tabla.addCell(celda);
         return tabla;
+    }
+
+    static String textoCancelacion(Cotizacion c) {
+        String limite = c.getFechaHoraEntrega().toLocalDate().minusDays(DIAS_CANCELACION).format(DIA_Y_MES);
+        return "Sin costo hasta " + DIAS_CANCELACION + " días antes de la entrega (hasta el " + limite
+                + "). Con menos tiempo se pierde el anticipo.";
     }
 
     static String avisoVigencia(Cotizacion c) {

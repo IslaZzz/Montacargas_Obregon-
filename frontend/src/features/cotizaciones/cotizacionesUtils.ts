@@ -1,4 +1,5 @@
 import type { ChipStatus } from "../../components/chips";
+import { aFecha } from "../../utils/formato";
 import type { Cliente } from "../clientes/clientesTypes";
 import type { EstadoRenta } from "../rentas/detalle/detalleTypes";
 import type { EstadoCotizacion } from "./cotizacionesTypes";
@@ -35,3 +36,16 @@ export const nombreCompleto = (c: Cliente) =>
 
 // "1 día", "5 días"
 export const textoDias = (dias: number) => `${dias} ${dias === 1 ? "día" : "días"}`;
+
+export const DIAS_CANCELACION = 3;
+
+export function textoCancelacion(fechaEntrega: string) {
+  const limite = aFecha(fechaEntrega);
+  limite.setDate(limite.getDate() - DIAS_CANCELACION);
+  const dia = limite
+    .toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" })
+    .replace(",", "");
+  return `Sin costo hasta ${DIAS_CANCELACION} días antes de la entrega (hasta el ${dia}). Con menos tiempo se pierde el anticipo.`;
+}
+
+export const TEXTO_CARTA_RESPONSIVA = "Se firma al recibir el equipo.";
