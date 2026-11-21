@@ -661,6 +661,14 @@ export default function DetalleCotizacion() {
         }
       >
         <p className="confirmacion-subtitulo">Al confirmar:</p>
+        {confirmando === "ACEPTADA" && (
+          <p className="confirmacion-punto">
+            <span className="material-symbols-rounded" aria-hidden="true">
+              check
+            </span>
+            Se crea la renta para que Operativo prepare la entrega.
+          </p>
+        )}
         <p className="confirmacion-punto">
           <span className="material-symbols-rounded" aria-hidden="true">
             check
@@ -668,6 +676,12 @@ export default function DetalleCotizacion() {
           {confirmando === "NO_ACEPTADA"
             ? "Ya no se podrá enviar ni marcar como aceptada."
             : "Ya no se podrá marcar como no aceptada."}
+        </p>
+        <p className="confirmacion-punto confirmacion-advertencia">
+          <span className="material-symbols-rounded" aria-hidden="true">
+            warning
+          </span>
+          Este paso no se puede deshacer.
         </p>
       </Modal>
     </div>
