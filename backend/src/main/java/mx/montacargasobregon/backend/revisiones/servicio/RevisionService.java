@@ -116,13 +116,24 @@ public class RevisionService {
         }
 
         revision.registrarResultado(datos.resultado(), notas);
+        aplicarResultado(revision, notas);
+        return listarPorRenta();
+    }
+
+    /**
+     * Lo que pasa cuando una revisión termina, la registre la oficina o el mecánico desde la app.
+     * Requiere mantenimiento: nace el mantenimiento con esa falla y el equipo queda en mantenimiento.
+     * Salida sin falla: el equipo queda listo para entrega. Entrada: el equipo queda fuera de la renta.
+     */
+    public void aplicarResultado(Revision revision, String descripcionFalla) {
         EquipoRenta equipoRenta = revision.getEquipoRenta();
+        boolean requiereMantenimiento = revision.getResultado() == ResultadoRevision.REQUIERE_MANTENIMIENTO;
 
         if (requiereMantenimiento) {
             equipoRenta.getEquipo().cambiarEstado(EstadoEquipo.EN_MANTENIMIENTO);
             // En la salida tiene que quedar antes de la entrega; en la entrada no hay fecha
             LocalDateTime limite = revision.getTipo() == TipoRevision.SALIDA ? revision.getFechaProgramada() : null;
-            mantenimientoRepositorio.save(Mantenimiento.deRevision(revision, notas, limite));
+            mantenimientoRepositorio.save(Mantenimiento.deRevision(revision, descripcionFalla, limite));
         }
 
         if (revision.getTipo() == TipoRevision.SALIDA) {
@@ -132,6 +143,5 @@ public class RevisionService {
         } else {
             avanceRenta.equipoDevuelto(equipoRenta);
         }
-        return listarPorRenta();
     }
 }

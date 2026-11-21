@@ -7,6 +7,7 @@ import "./styles/base.css";
 import "./styles/componentes.css";
 import "./styles/formulario.css";
 import "./styles/traslados.css";
+import "./styles/mecanico.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

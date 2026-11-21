@@ -68,10 +68,10 @@ INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_pos
 SELECT 'Blvd. Rodolfo Elías Calles', '1520', 'Centro', 'Cd. Obregón', 'Sonora', '85000' FROM DUAL WHERE @falta;
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
                           contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
-                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+                          subtotal, iva, total, precio_definido, estado, fecha_creacion, fecha_envio, fecha_respuesta)
 SELECT 'COT-R2061', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
        @entrega, @recoleccion, LAST_INSERT_ID(), 'Ramón Gutiérrez', '6441000001', 0.00, 0.00,
-       0.00, 0.00, 0.00, 'ACEPTADA',
+       0.00, 0.00, 0.00, 1, 'ACEPTADA',
        @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
 FROM clientes c WHERE c.correo = 'compras@industriascajeme.mx' AND @falta;
 
@@ -81,10 +81,10 @@ INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_pos
 SELECT 'Calle 200', 's/n', 'Valle del Yaqui', 'Cajeme', 'Sonora', '85203' FROM DUAL WHERE @falta;
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
                           contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
-                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+                          subtotal, iva, total, precio_definido, estado, fecha_creacion, fecha_envio, fecha_respuesta)
 SELECT 'COT-R2070', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
        @entrega, @recoleccion, LAST_INSERT_ID(), 'Laura Méndez', '6441000002', 0.00, 0.00,
-       0.00, 0.00, 0.00, 'ACEPTADA',
+       0.00, 0.00, 0.00, 1, 'ACEPTADA',
        @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
 FROM clientes c WHERE c.correo = 'obra@constructorayaqui.mx' AND @falta;
 
@@ -94,10 +94,10 @@ INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_pos
 SELECT 'Av. Náinari', '845', 'Centro', 'Cd. Obregón', 'Sonora', '85000' FROM DUAL WHERE @falta;
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
                           contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
-                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+                          subtotal, iva, total, precio_definido, estado, fecha_creacion, fecha_envio, fecha_respuesta)
 SELECT 'COT-R2071', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
        @entrega, @recoleccion, LAST_INSERT_ID(), 'Jesús Rivera', '6441000003', 0.00, 0.00,
-       0.00, 0.00, 0.00, 'ACEPTADA',
+       0.00, 0.00, 0.00, 1, 'ACEPTADA',
        @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
 FROM clientes c WHERE c.correo = 'almacen@bodegasnainari.mx' AND @falta;
 
@@ -107,10 +107,10 @@ INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_pos
 SELECT 'Carretera a Esperanza', 'km 6', 'Campo agrícola', 'Cajeme', 'Sonora', '85210' FROM DUAL WHERE @falta;
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id,
                           contacto_obra, telefono_contacto, traslado_entrega, traslado_recoleccion,
-                          subtotal, iva, total, estado, fecha_creacion, fecha_envio, fecha_respuesta)
+                          subtotal, iva, total, precio_definido, estado, fecha_creacion, fecha_envio, fecha_respuesta)
 SELECT 'COT-R2052', c.id, (SELECT MIN(rs.id) FROM razones_sociales rs WHERE rs.cliente_id = c.id),
        @entrega, @recoleccion, LAST_INSERT_ID(), 'Ana Castro', '6441000004', 0.00, 0.00,
-       0.00, 0.00, 0.00, 'ACEPTADA',
+       0.00, 0.00, 0.00, 1, 'ACEPTADA',
        @entrega - INTERVAL 7 DAY, @entrega - INTERVAL 6 DAY, DATE(@entrega - INTERVAL 5 DAY)
 FROM clientes c WHERE c.correo = 'ana@agricolavalle.mx' AND @falta;
 
@@ -180,6 +180,7 @@ WHERE q.folio IN ('COT-R2061', 'COT-R2070', 'COT-R2071', 'COT-R2052');
 
 -- Revisiones: se quitan los enlaces, se borran y se vuelven a crear
 UPDATE mantenimientos SET revision_id = NULL;
+DELETE FROM valores_revision;
 DELETE FROM revisiones;
 
 SET @rafael  = (SELECT id FROM personal WHERE codigo = 'MEC-10');

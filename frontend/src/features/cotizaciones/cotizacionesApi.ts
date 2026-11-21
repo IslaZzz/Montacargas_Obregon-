@@ -41,3 +41,7 @@ export const guardarTraslado = (
 // Con descuento la cotización pasa a En autorización. Responde 400 si no es válido y 409 si ya no es Borrador
 export const guardarDescuento = (id: number, descuento: DescuentoRequest) =>
   patchApi<Cotizacion>(`/cotizaciones/${id}/descuento`, descuento);
+
+// Marca el precio como definido al terminar el último paso
+export const definirPrecioCotizacion = (id: number) =>
+  patchApi<Cotizacion>(`/cotizaciones/${id}/precio-definido`, {});

@@ -14,6 +14,8 @@ export const ESTADOS: {
   { valor: "ENVIADA", etiqueta: "Enviada", chip: "enviada" },
   { valor: "ACEPTADA", etiqueta: "Aceptada", chip: "aceptada" },
   { valor: "NO_ACEPTADA", etiqueta: "No aceptada", chip: "no-aceptada" },
+  { valor: "RECHAZADA", etiqueta: "Rechazada", chip: "rechazada" },
+  { valor: "VENCIDA", etiqueta: "Vencida", chip: "vencida" },
 ];
 
 export const chipDeEstado = (estado: EstadoCotizacion) =>

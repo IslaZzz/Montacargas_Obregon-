@@ -107,6 +107,9 @@ UPDATE mantenimientos SET revision_id = NULL
 WHERE revision_id IN (SELECT rv.id FROM revisiones rv
                           JOIN equipos_renta er ON er.id = rv.equipo_renta_id
                           JOIN rentas_a_borrar b ON b.id = er.renta_id);
+DELETE v FROM valores_revision v JOIN revisiones rv ON rv.id = v.revision_id
+    JOIN equipos_renta er ON er.id = rv.equipo_renta_id
+    JOIN rentas_a_borrar b ON b.id = er.renta_id;
 DELETE rv FROM revisiones rv JOIN equipos_renta er ON er.id = rv.equipo_renta_id
     JOIN rentas_a_borrar b ON b.id = er.renta_id;
 DELETE t FROM traslados t JOIN rentas_a_borrar b ON b.id = t.renta_id;
@@ -114,8 +117,11 @@ DELETE c FROM cartas_responsivas c JOIN rentas_a_borrar b ON b.id = c.renta_id;
 DELETE er FROM equipos_renta er JOIN rentas_a_borrar b ON b.id = er.renta_id;
 DELETE r FROM rentas r JOIN rentas_a_borrar b ON b.id = r.id;
 DROP TEMPORARY TABLE rentas_a_borrar;
+DELETE ad FROM avisos_descuento ad JOIN cotizaciones q ON q.id = ad.cotizacion_id WHERE q.folio NOT LIKE 'COT-R%';
 DELETE ec FROM equipos_cotizacion ec JOIN cotizaciones q ON q.id = ec.cotizacion_id WHERE q.folio NOT LIKE 'COT-R%';
 DELETE FROM cotizaciones WHERE folio NOT LIKE 'COT-R%';
+DELETE desc_t FROM descuentos desc_t LEFT JOIN cotizaciones q ON q.descuento_id = desc_t.id WHERE q.id IS NULL;
+DELETE aut FROM autorizaciones_descuento aut LEFT JOIN cotizaciones q ON q.autorizacion_id = aut.id WHERE q.id IS NULL;
 DELETE d FROM direcciones_obra d LEFT JOIN cotizaciones q ON q.direccion_obra_id = d.id WHERE q.id IS NULL;
 
 -- Las fechas son relativas a hoy. Importe = días (contando entrega y recolección) × tarifa; IVA 16%.
@@ -125,12 +131,12 @@ DELETE d FROM direcciones_obra d LEFT JOIN cotizaciones q ON q.direccion_obra_id
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 VALUES ('Calle 200', '1500', 'Centro', 'Cd. Obregón', 'Sonora', '85000');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
-                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, precio_definido, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0001', @juan, @rs_yaqui,
         TIMESTAMP(CURDATE() + INTERVAL 12 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 16 DAY, '18:00:00'),
         LAST_INSERT_ID(), 'Ing. Raúl Soto', '6442104455', 0.00, 0.00,
-        6000.00, 960.00, 6960.00, 'NO_ACEPTADA',
+        6000.00, 960.00, 6960.00, 1, 'NO_ACEPTADA',
         TIMESTAMP(CURDATE() - INTERVAL 7 DAY, '10:15:00'), TIMESTAMP(CURDATE() - INTERVAL 7 DAY, '10:30:00'),
         CURDATE() - INTERVAL 4 DAY);
 INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
@@ -140,12 +146,12 @@ INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) V
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 VALUES ('Calle Jalisco', '312', 'Centro', 'Navojoa', 'Sonora', '85800');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
-                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, precio_definido, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0002', @carlos, @rs_carlos,
         TIMESTAMP(CURDATE() + INTERVAL 3 DAY, '07:30:00'), TIMESTAMP(CURDATE() + INTERVAL 3 DAY, '19:00:00'),
         LAST_INSERT_ID(), 'Carlos Ramírez', '6445551234', 0.00, 0.00,
-        150.00, 24.00, 174.00, 'ACEPTADA',
+        150.00, 24.00, 174.00, 1, 'ACEPTADA',
         TIMESTAMP(CURDATE() - INTERVAL 5 DAY, '12:00:00'), TIMESTAMP(CURDATE() - INTERVAL 5 DAY, '12:30:00'),
         CURDATE() - INTERVAL 3 DAY);
 INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
@@ -155,12 +161,12 @@ INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) V
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 VALUES ('Calle Jalisco', '312', 'Centro', 'Navojoa', 'Sonora', '85800');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
-                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, precio_definido, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0003', @carlos, @rs_carlos,
         TIMESTAMP(CURDATE() + INTERVAL 6 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 8 DAY, '18:00:00'),
         LAST_INSERT_ID(), 'Carlos Ramírez', '6445551234', 0.00, 0.00,
-        1500.00, 240.00, 1740.00, 'ENVIADA',
+        1500.00, 240.00, 1740.00, 1, 'ENVIADA',
         TIMESTAMP(CURDATE() - INTERVAL 3 DAY, '09:40:00'), TIMESTAMP(CURDATE() - INTERVAL 2 DAY, '11:00:00'), NULL);
 INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@mc07, 500.00, 1500.00, LAST_INSERT_ID());
@@ -169,12 +175,12 @@ INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) V
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 VALUES ('Calle 200', '1500', 'Centro', 'Cd. Obregón', 'Sonora', '85000');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
-                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, precio_definido, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0004', @juan, @rs_yaqui,
         TIMESTAMP(CURDATE() + INTERVAL 7 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 8 DAY, '18:00:00'),
         LAST_INSERT_ID(), 'Ing. Raúl Soto', '6442104455', 0.00, 0.00,
-        2400.00, 384.00, 2784.00, 'ENVIADA',
+        2400.00, 384.00, 2784.00, 1, 'ENVIADA',
         TIMESTAMP(CURDATE() - INTERVAL 2 DAY, '16:40:00'), TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '09:15:00'), NULL);
 INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@gr02, 1200.00, 2400.00, LAST_INSERT_ID());
@@ -183,12 +189,12 @@ INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) V
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 VALUES ('Carretera Internacional', 'km 4.5', 'Parque Industrial', 'Cd. Obregón', 'Sonora', '85065');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
-                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, precio_definido, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0005', @maria, @rs_maquinaria,
         TIMESTAMP(CURDATE() + INTERVAL 5 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 9 DAY, '18:00:00'),
         LAST_INSERT_ID(), 'Arq. Laura Medina', '6441112233', 0.00, 0.00,
-        8500.00, 1360.00, 9860.00, 'BORRADOR',
+        8500.00, 1360.00, 9860.00, 1, 'BORRADOR',
         TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '11:20:00'), NULL, NULL);
 SET @c = LAST_INSERT_ID();
 INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
@@ -199,12 +205,12 @@ INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) V
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 VALUES ('Calle 200', '1500', 'Centro', 'Cd. Obregón', 'Sonora', '85000');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
-                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, precio_definido, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0006', @juan, @rs_yaqui,
         TIMESTAMP(CURDATE() + INTERVAL 5 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 9 DAY, '18:00:00'),
         LAST_INSERT_ID(), 'Ing. Raúl Soto', '6442104455', 0.00, 0.00,
-        2500.00, 400.00, 2900.00, 'BORRADOR',
+        2500.00, 400.00, 2900.00, 1, 'BORRADOR',
         TIMESTAMP(CURDATE(), '09:30:00'), NULL, NULL);
 INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@mc07, 500.00, 2500.00, LAST_INSERT_ID());
@@ -213,10 +219,10 @@ INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) V
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 VALUES ('Carretera Internacional', 'km 4.5', 'Parque Industrial', 'Cd. Obregón', 'Sonora', '85065');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
-                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, estado,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, precio_definido, estado,
                           fecha_creacion, fecha_envio, fecha_respuesta)
 VALUES ('COT-0007', @maria, @rs_mayo,
         TIMESTAMP(CURDATE() + INTERVAL 10 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 10 DAY, '18:00:00'),
         LAST_INSERT_ID(), 'Arq. Laura Medina', '6441112233', 0.00, 0.00,
-        0.00, 0.00, 0.00, 'BORRADOR',
+        0.00, 0.00, 0.00, 0, 'BORRADOR',
         TIMESTAMP(CURDATE(), '10:10:00'), NULL, NULL);

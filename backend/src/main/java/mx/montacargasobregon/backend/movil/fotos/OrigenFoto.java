@@ -4,5 +4,7 @@ package mx.montacargasobregon.backend.movil.fotos;
 public enum OrigenFoto {
     REVISION,
     TRASLADO,
-    MANTENIMIENTO
+    MANTENIMIENTO,
+    // referenciaId es el id de la tarea
+    TAREA_MANTENIMIENTO
 }

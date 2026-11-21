@@ -44,6 +44,7 @@ INSERT IGNORE INTO personal (codigo, nombres, apellido_paterno, apellido_materno
   ('OPT-10', 'Luis',    'Valenzuela', NULL, 'OP_TRASLADO', 1);
 
 -- Mantenimientos: se borran y se vuelven a crear
+DELETE FROM tareas_mantenimiento;
 DELETE FROM mantenimientos;
 
 SET @rafael  = (SELECT id FROM personal WHERE codigo = 'MEC-10');

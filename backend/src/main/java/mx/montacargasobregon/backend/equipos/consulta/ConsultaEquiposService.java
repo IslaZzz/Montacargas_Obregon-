@@ -62,8 +62,11 @@ public class ConsultaEquiposService {
                 .toList();
     }
 
-    // Mantenimiento y fuera de servicio son del equipo y mandan sobre la renta
+    // Revisión de entrada, mantenimiento y fuera de servicio son del equipo y mandan sobre la renta
     private static EstadoConsultaEquipo estadoDe(Equipo equipo, EquipoRenta enRenta) {
+        if (equipo.getEstado() == EstadoEquipo.EN_REVISION_ENTRADA) {
+            return EstadoConsultaEquipo.EN_REVISION_ENTRADA;
+        }
         if (equipo.getEstado() == EstadoEquipo.FUERA_SERVICIO) {
             return EstadoConsultaEquipo.FUERA_SERVICIO;
         }

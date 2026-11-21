@@ -18,3 +18,16 @@ export interface ApartadoProximo {
   diasParaInicio: number; // 0 = hoy, 1 = mañana
   estadoCarta: Exclude<EstadoCarta, "FIRMADA">;
 }
+
+// GET /api/avisos/descuentos: respuesta de gerencia a un descuento que el usuario pidió
+export interface AvisoDescuento {
+  id: number;
+  cotizacionId: number;
+  folio: string;
+  cliente: string;
+  resultado: "AUTORIZADA" | "RECHAZADA";
+  comentario: string | null;
+  respondidaPor: string;
+  fecha: string;
+  leido: boolean;
+}

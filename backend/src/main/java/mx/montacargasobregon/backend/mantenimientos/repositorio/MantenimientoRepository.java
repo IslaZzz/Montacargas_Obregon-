@@ -25,6 +25,19 @@ public interface MantenimientoRepository extends JpaRepository<Mantenimiento, Lo
         """)
     List<Mantenimiento> listar();
 
+    // Los mantenimientos de un mecánico en esos estados, para su lista en la app móvil
+    @Query("""
+        select m from Mantenimiento m
+        join fetch m.equipo e
+        join fetch e.modelo mo
+        join fetch mo.categoria
+        left join fetch m.revision
+        where m.mecanico.id = :mecanicoId and m.estado in :estados
+        order by m.fechaLimite
+        """)
+    List<Mantenimiento> buscarPorMecanico(@Param("mecanicoId") Long mecanicoId,
+                                          @Param("estados") Collection<EstadoMantenimiento> estados);
+
     // Cuántos mantenimientos en esos estados tiene cada mecánico, contados en la base de datos
     @Query("""
         select new mx.montacargasobregon.backend.personal.dto.CargaPorMecanico(m.mecanico.id, count(m))

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import Aviso from "../components/Aviso";
 import BarraSuperior from "../components/BarraSuperior";
 import Boton from "../components/Boton";
 import Icono from "../components/Icono";
@@ -11,12 +12,15 @@ import { entrarConCodigo } from "./sesionApi";
 import { useSesion } from "./useSesion";
 
 /**
- * Entrar con el código (MEC-10, OP-01…).
+ * Entrar con el código (MEC-10, OPT-10…). La sesión dura una jornada; al vencer, o si se entra
+ * en otro celular, se vuelve aquí con un aviso del motivo.
  */
 export default function Entrar() {
   const { personal: actual, entrar } = useSesion();
   const navigate = useNavigate();
-  const desde = (useLocation().state as { desde?: string } | null)?.desde;
+  const estado = useLocation().state as { desde?: string; aviso?: string } | null;
+  const desde = estado?.desde;
+  const aviso = estado?.aviso;
   const [codigo, setCodigo] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -32,9 +36,9 @@ export default function Entrar() {
     setEnviando(true);
     setError(null);
     try {
-      const persona = await entrarConCodigo(limpio);
-      entrar(persona);
-      navigate(desde ?? INICIO[persona.tipo], { replace: true });
+      const sesion = await entrarConCodigo(limpio);
+      entrar(sesion);
+      navigate(desde ?? INICIO[sesion.personal.tipo], { replace: true });
     } catch (e) {
       setError(mensajeDeError(e, "No se pudo entrar."));
       setEnviando(false);
@@ -43,6 +47,7 @@ export default function Entrar() {
 
   return (
     <Pantalla barraSuperior={<BarraSuperior atras={actual ? INICIO[actual.tipo] : undefined} />}>
+      {aviso && <Aviso tipo="advertencia" titulo={aviso} />}
       <form className="entrar" onSubmit={enviar}>
         <Icono nombre="badge" className="entrar-icono" />
         <h2>Ingresa tu código</h2>

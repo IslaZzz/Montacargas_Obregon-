@@ -21,6 +21,7 @@ public record CotizacionResponse(
         LocalDateTime fechaCreacion,
         LocalDate fechaEnvio,
         LocalDate fechaRespuesta,
+        LocalDate validaHasta, // Último día para que el cliente la acepte
         ClienteResponse cliente,
         RazonSocialResponse razonSocial,
         LocalDateTime fechaEntrega,
@@ -34,13 +35,15 @@ public record CotizacionResponse(
         BigDecimal trasladoRecoleccion,
         Boolean precioDefinido,
         BigDecimal subtotal, // Equipos + traslados, antes del descuento
-        // Descuento (HU-15): tipo es NINGUNO si no hay; valor y motivo vienen en null en ese caso
+        // Descuento: tipo es NINGUNO si no hay; valor y motivo vienen en null en ese caso
         String descuentoTipo,
         BigDecimal descuentoValor,
         String descuentoMotivo,
         BigDecimal descuentoMonto, // Pesos que se descuentan; 0 si no hay
         BigDecimal iva,
         BigDecimal total,
+        // Solicitud de autorización del descuento y la respuesta de gerencia; null si no hay descuento
+        AutorizacionDescuentoResponse autorizacion,
         RentaDeCotizacionResponse renta) {
 
     // Una cotización recién creada todavía no tiene renta
@@ -48,7 +51,7 @@ public record CotizacionResponse(
         return toCotizacionResponse(c, null);
     }
 
-    /** Con la renta que salió de la cotización al aceptarla (HU-37), o null si no tiene. */
+    /** Con la renta que salió de la cotización al aceptarla, o null si no tiene. */
     public static CotizacionResponse toCotizacionResponse(Cotizacion c, Renta renta) {
         Descuento d = c.getDescuento();
         return new CotizacionResponse(
@@ -58,6 +61,7 @@ public record CotizacionResponse(
                 c.getFechaHoraCreacion(),
                 c.getFechaHoraEnvio() == null ? null : c.getFechaHoraEnvio().toLocalDate(),
                 c.getFechaRespuesta(),
+                c.getValidaHasta(),
                 ClienteResponse.toClienteResponse(c.getCliente()),
                 RazonSocialResponse.toRazonSocialResponse(c.getRazonSocial()),
                 c.getFechaHoraEntrega(),
@@ -77,6 +81,7 @@ public record CotizacionResponse(
                 c.getMontoDescuento(),
                 c.getIva(),
                 c.getTotal(),
+                AutorizacionDescuentoResponse.toAutorizacionDescuentoResponse(c.getAutorizacion()),
                 renta == null ? null : RentaDeCotizacionResponse.toRentaDeCotizacionResponse(renta));
     }
 }

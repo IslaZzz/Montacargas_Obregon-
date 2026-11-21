@@ -2,6 +2,7 @@ package mx.montacargasobregon.backend.movil.sesion;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -10,25 +11,23 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.server.ResponseStatusException;
 
-import mx.montacargasobregon.backend.personal.modelo.Personal;
-import mx.montacargasobregon.backend.personal.repositorio.PersonalRepository;
-
 /**
- * Llena los parámetros PersonalActual de los controladores a partir del encabezado X-Personal-Id.
- * Temporal mientras el personal no tenga su propio inicio de sesión.
+ * Llena los parámetros PersonalActual de los controladores a partir del encabezado
+ * "Authorization: Bearer <token>", validando la sesión móvil (existe, no está cerrada,
+ * la persona está activa y no ha vencido). Responde 401 si algo de eso falla.
  *
- * El repositorio se pide con ObjectProvider (no en el constructor) para que este resolver se pueda
- * crear en pruebas de solo la capa web (@WebMvcTest), donde no se cargan los repositorios.
+ * El servicio se pide con ObjectProvider (no en el constructor) para que este resolver se pueda
+ * crear en pruebas de solo la capa web (@WebMvcTest), donde no se cargan los servicios.
  */
 @Component
 public class PersonalActualResolver implements HandlerMethodArgumentResolver {
 
-    public static final String ENCABEZADO = "X-Personal-Id";
+    public static final String ENCABEZADO = HttpHeaders.AUTHORIZATION;
 
-    private final ObjectProvider<PersonalRepository> personalRepositorio;
+    private final ObjectProvider<SesionMovilService> servicio;
 
-    public PersonalActualResolver(ObjectProvider<PersonalRepository> personalRepositorio) {
-        this.personalRepositorio = personalRepositorio;
+    public PersonalActualResolver(ObjectProvider<SesionMovilService> servicio) {
+        this.servicio = servicio;
     }
 
     @Override
@@ -39,24 +38,10 @@ public class PersonalActualResolver implements HandlerMethodArgumentResolver {
     @Override
     public PersonalActual resolveArgument(MethodParameter parametro, ModelAndViewContainer mavContainer,
                                           NativeWebRequest peticion, WebDataBinderFactory binderFactory) {
-        Personal personal = personalRepositorio.getObject().findById(leerId(peticion.getHeader(ENCABEZADO)))
-                .filter(Personal::isActivo)
-                .orElseThrow(() -> noIdentificado("Tu usuario ya no está activo. Elige quién eres de nuevo."));
-        return PersonalActual.de(personal);
-    }
-
-    private static Long leerId(String valor) {
-        if (valor == null || valor.isBlank()) {
-            throw noIdentificado("Elige quién eres para continuar.");
+        String token = SesionMovilService.tokenDe(peticion.getHeader(ENCABEZADO));
+        if (token == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Inicia sesión para continuar.");
         }
-        try {
-            return Long.valueOf(valor.trim());
-        } catch (NumberFormatException e) {
-            throw noIdentificado("Elige quién eres para continuar.");
-        }
-    }
-
-    private static ResponseStatusException noIdentificado(String mensaje) {
-        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, mensaje);
+        return servicio.getObject().validarToken(token);
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -98,13 +99,25 @@ public class CotizacionController {
 
     /**
      * PATCH /api/cotizaciones/5/descuento: aplica o quita el descuento (HU-15).
-     * Con descuento la cotización pasa a En autorización. Responde 400 si el descuento
+     * Con descuento la cotización pasa a En autorización. Responde 400 si el
+     * descuento
      * no es válido y 409 si la cotización ya no es Borrador.
      */
     @PatchMapping("/{id}/descuento")
     public CotizacionResponse aplicarDescuento(@PathVariable Long id,
-            @Valid @RequestBody DescuentoCotizacionRequest datos) {
-        return respuesta(servicio.aplicarDescuento(id, datos.tipo(), datos.valor(), datos.motivo()));
+            @Valid @RequestBody DescuentoCotizacionRequest datos, Authentication usuario) {
+        return respuesta(servicio.aplicarDescuento(id, datos.tipo(), datos.valor(), datos.motivo(),
+                usuario.getName()));
+    }
+
+    /**
+     * PATCH /api/cotizaciones/5/precio-definido: marca el precio como definido al
+     * terminar
+     * el último paso; si la cotización ya no está en Borrador, responde 409.
+     */
+    @PatchMapping("/{id}/precio-definido")
+    public CotizacionResponse definirPrecio(@PathVariable Long id) {
+        return respuesta(servicio.definirPrecio(id));
     }
 
     // El detalle lleva la renta que salió de la cotización, si ya tiene (HU-37)

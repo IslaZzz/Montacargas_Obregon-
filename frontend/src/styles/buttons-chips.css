@@ -218,9 +218,34 @@
     background-color: var(--warning-red-outline);
 }
 
-/* En autorización (HU-15 y HU-16): ámbar, espera la respuesta de gerencia */
+/* En autorización: amarillo, espera la respuesta de gerencia */
 .chip-cotizacion-en-autorizacion {
-  background-color: rgba(214, 140, 0, 0.15);
-  border-color: #b87800;
-  color: #7a5000;
+    background-color: var(--reminder-yellow);
+}
+.chip-cotizacion-en-autorizacion::before {
+    background-color: var(--outline-reminder-yellow);
+}
+
+/* Autorizada: verde, gerencia aprobó el descuento */
+.chip-cotizacion-autorizada {
+    background-color: var(--ok-green);
+}
+.chip-cotizacion-autorizada::before {
+    background-color: var(--ok-green-outline);
+}
+
+/* Rechazada: rojo, gerencia negó el descuento */
+.chip-cotizacion-rechazada {
+    background-color: var(--warning-red);
+}
+.chip-cotizacion-rechazada::before {
+    background-color: var(--warning-red-outline);
+}
+
+/* Vencida: gris, pasó la vigencia de la cotización */
+.chip-cotizacion-vencida {
+    background-color: var(--light-gray);
+}
+.chip-cotizacion-vencida::before {
+    background-color: var(--search-bar-grey-teal);
 }

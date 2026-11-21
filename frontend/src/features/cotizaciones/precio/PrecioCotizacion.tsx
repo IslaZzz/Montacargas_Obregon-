@@ -4,7 +4,7 @@ import { Button } from "../../../components/buttons";
 import Chip from "../../../components/chips";
 import { useTitulo } from "../../../hooks/useTitulo";
 import { ErrorApi } from "../../../services/apiClient";
-import { guardarDescuento, guardarTraslado, obtenerCotizacion } from "../cotizacionesApi";
+import { definirPrecioCotizacion, guardarDescuento, guardarTraslado, obtenerCotizacion } from "../cotizacionesApi";
 import type { Cotizacion, TipoDescuento } from "../cotizacionesTypes";
 import { chipDeEstado, nombreCompleto, textoDias } from "../cotizacionesUtils";
 import PasoPrecioEquipos from "./PasoPrecioEquipo";
@@ -13,6 +13,7 @@ import type { CampoTraslado } from "./PasoTraslado";
 import PasoDescuento from "./PasoDescuento";
 import type { CampoDescuento } from "./PasoDescuento";
 import PasosPrecio, { PASOS_PRECIO } from "./PasosPrecio";
+import PasoVigencia from "./PasoVigencia";
 import {
   calcularDescuento,
   calcularPrecio,
@@ -31,8 +32,9 @@ import "../../../styles/cotizaciones/precio-cotizacion.css";
 const PASO_EQUIPOS = 0;
 const PASO_TRASLADO = 1;
 const PASO_DESCUENTO = 2;
+const PASO_VIGENCIA = 3;
 // Último paso que ya está construido; la Vigencia (HU-17) llega después
-const ULTIMO_PASO_LISTO = PASO_DESCUENTO;
+const ULTIMO_PASO_LISTO = PASO_VIGENCIA;
 
 type Errores = Partial<Record<CampoTraslado, string>>;
 type ErroresDescuento = Partial<Record<CampoDescuento, string>>;
@@ -146,6 +148,14 @@ export default function PrecioCotizacion() {
   const { subtotal } = calcularPrecio(subtotalEquipos, montoEntrega, montoRecoleccion);
   const montoDescuento = calcularDescuento(tipoDescuento, descuento.valor, subtotal);
 
+  // Anticipo del 30 % con el descuento ya aplicado, para las condiciones del paso 4
+  const { anticipo } = calcularPrecio(
+    subtotalEquipos,
+    montoEntrega,
+    montoRecoleccion,
+    montoDescuento ?? 0,
+  );
+
   const resumenDescuento: DescuentoResumen =
     paso < PASO_DESCUENTO && tipoDescuento === "NINGUNO"
       ? { tipo: "pendiente" }
@@ -154,13 +164,13 @@ export default function PrecioCotizacion() {
         : montoDescuento === null
           ? { tipo: "invalido" }
           : {
-              tipo: "aplicado",
-              monto: montoDescuento,
-              etiqueta:
-                tipoDescuento === "PORCENTAJE"
-                  ? `Descuento (${Number(descuento.valor)}%)`
-                  : "Descuento",
-            };
+            tipo: "aplicado",
+            monto: montoDescuento,
+            etiqueta:
+              tipoDescuento === "PORCENTAJE"
+                ? `Descuento (${Number(descuento.valor)}%)`
+                : "Descuento",
+          };
 
   // «Descuento inválido» sale mientras se escribe, como en el prototipo; el motivo, al guardar
   const erroresDescuentoVisibles: ErroresDescuento = {
@@ -225,35 +235,45 @@ export default function PrecioCotizacion() {
     }
   }
 
-  // Valida y guarda el descuento; devuelve true si quedó guardado (HU-15)
-  async function guardarDescuentoCapturado() {
+  // Revisa el descuento sin guardarlo; devuelve true si se puede seguir (HU-15)
+  function validarDescuento() {
     const encontrados: ErroresDescuento = {};
     if (tipoDescuento !== "NINGUNO") {
       if (montoDescuento === null) encontrados.valor = MENSAJE_DESCUENTO;
       if (!descuento.motivo.trim()) encontrados.motivo = MENSAJE_MOTIVO;
     }
     setErroresDescuento(encontrados);
-    if (Object.keys(encontrados).length > 0) return false;
+    return Object.keys(encontrados).length === 0;
+  }
+
+  // Al final del paso 4 define el precio y guarda el descuento. Con descuento, la cotización pasa a En autorización
+  async function guardarDescuentoCapturado() {
+    if (!validarDescuento()) {
+      irAPaso(PASO_DESCUENTO);
+      return false;
+    }
 
     setGuardando(true);
     setErrorGuardar("");
     try {
+      // Primero el precio, mientras la cotización sigue en Borrador; el descuento la puede mandar a gerencia
+      await definirPrecioCotizacion(c.id);
       await guardarDescuento(
         c.id,
         tipoDescuento === "NINGUNO"
           ? { tipo: "NINGUNO", valor: null, motivo: null }
           : {
-              tipo: tipoDescuento,
-              valor: Number(descuento.valor),
-              motivo: descuento.motivo.trim(),
-            },
+            tipo: tipoDescuento,
+            valor: Number(descuento.valor),
+            motivo: descuento.motivo.trim(),
+          },
       );
       return true;
     } catch (err) {
       setErrorGuardar(
         err instanceof ErrorApi
           ? err.message
-          : "No se pudo guardar el descuento. Intenta de nuevo.",
+          : "No se pudo guardar la cotización. Intenta de nuevo.",
       );
       return false;
     } finally {
@@ -263,17 +283,18 @@ export default function PrecioCotizacion() {
 
   const siguiente = async () => {
     if (paso === PASO_TRASLADO && !(await guardarTrasladoCapturado())) return;
-    if (paso === PASO_DESCUENTO && !(await guardarDescuentoCapturado())) return;
+    if (paso === PASO_DESCUENTO && !validarDescuento()) return;
+    if (paso === PASO_VIGENCIA && !(await guardarDescuentoCapturado())) return;
 
     if (paso < ULTIMO_PASO_LISTO) irAPaso(paso + 1);
-    // Mientras no exista el paso 4, al terminar el descuento se envía al detalle
+    // Al terminar el paso 4 se va al detalle con el aviso «Cotización guardada»
     else navigate(`/cotizaciones/${c.id}`, { state: { precioGuardado: true } });
   };
 
-  // Con descuento, el botón final avisa que va a gerencia (criterio 5)
+  // En el paso 4, con descuento, el botón avisa que va a gerencia (HU-15, criterio 5)
   const textoSiguiente = guardando
     ? "Guardando…"
-    : paso === PASO_DESCUENTO
+    : paso === PASO_VIGENCIA
       ? tipoDescuento === "NINGUNO"
         ? "Guardar cotización"
         : "Guardar y enviar a autorización"
@@ -282,20 +303,22 @@ export default function PrecioCotizacion() {
   const aviso =
     paso === PASO_EQUIPOS
       ? {
-          titulo: `La renta dura ${textoDias(c.dias)}`,
-          texto: `${textoPeriodo(c.fechaEntrega, c.fechaRecoleccion)}. Se toma la tarifa vigente. El sistema hace las cuentas de cada equipo.`,
-        }
+        titulo: `La renta dura ${textoDias(c.dias)}`,
+        texto: `${textoPeriodo(c.fechaEntrega, c.fechaRecoleccion)}. Se toma la tarifa vigente. El sistema hace las cuentas de cada equipo.`,
+      }
       : paso === PASO_TRASLADO
         ? {
-            titulo: "Los traslados son opcionales",
-            texto:
-              "Si no hay traslado, déjalos en 0.00. Se suman como conceptos separados del importe de cada equipo.",
-          }
-        : {
+          titulo: "Los traslados son opcionales",
+          texto:
+            "Si no hay traslado, déjalos en 0.00. Se suman como conceptos separados del importe de cada equipo.",
+        }
+        : paso === PASO_DESCUENTO
+          ? {
             titulo: "El descuento solo cambia esta cotización",
             texto:
               "No cambia las tarifas del catálogo ni el precio de cada equipo. Si agregas un descuento, gerencia lo tiene que autorizar antes de mandarlo al cliente.",
-          };
+          }
+          : null; // El paso 4 no lleva aviso
 
   return (
     <div className="pagina-form">
@@ -315,15 +338,17 @@ export default function PrecioCotizacion() {
 
         <PasosPrecio actual={paso} />
 
-        <div className="aviso-info precio-aviso">
-          <span className="material-symbols-rounded" aria-hidden="true">
-            info
-          </span>
-          <div>
-            <strong>{aviso.titulo}</strong>
-            <p>{aviso.texto}</p>
+        {aviso && (
+          <div className="aviso-info precio-aviso">
+            <span className="material-symbols-rounded" aria-hidden="true">
+              info
+            </span>
+            <div>
+              <strong>{aviso.titulo}</strong>
+              <p>{aviso.texto}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {errorGuardar && (
           <div className="aviso-error" role="alert">
@@ -363,6 +388,9 @@ export default function PrecioCotizacion() {
                 elegirTipo={elegirTipoDescuento}
                 cambiar={cambiarDescuento}
               />
+            )}
+            {paso === PASO_VIGENCIA && (
+              <PasoVigencia cotizacion={c} anticipo={anticipo} />
             )}
           </div>
 

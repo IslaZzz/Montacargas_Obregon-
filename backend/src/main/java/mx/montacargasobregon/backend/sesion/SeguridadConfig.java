@@ -36,6 +36,9 @@ public class SeguridadConfig {
     /** Rutas de la API que solo puede usar gerencia: autorizaciones (HU-16) e ingresos. */
     static final String[] SOLO_GERENCIA = {"/api/autorizaciones/**", "/api/ingresos/**"};
 
+    /** Altas que solo hace gerencia: registrar un equipo y agregar una etiqueta (HU-02). Consultarlos es de todos. */
+    static final String[] ALTAS_DE_GERENCIA = {"/api/equipos", "/api/etiquetas"};
+
     @Bean
     public SecurityFilterChain filtros(HttpSecurity http, SecurityContextRepository sesiones) throws Exception {
         http
@@ -52,6 +55,7 @@ public class SeguridadConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/sesion").permitAll()
                         // Acceso por rol (HU-29): lo de estas rutas es solo para gerencia
                         .requestMatchers(SOLO_GERENCIA).hasRole(TipoUsuario.GERENTE.name())
+                        .requestMatchers(HttpMethod.POST, ALTAS_DE_GERENCIA).hasRole(TipoUsuario.GERENTE.name())
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll())
                 .exceptionHandling(e -> e

@@ -1,7 +1,7 @@
 import { deleteApi, getApi, postApi } from "./api";
 
 // A qué pertenece una foto. Equivale a OrigenFoto del backend
-export type OrigenFoto = "REVISION" | "TRASLADO" | "MANTENIMIENTO";
+export type OrigenFoto = "REVISION" | "TRASLADO" | "MANTENIMIENTO" | "TAREA_MANTENIMIENTO";
 
 // Equivale a FotoResponse
 export interface Foto {

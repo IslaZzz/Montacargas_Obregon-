@@ -12,19 +12,20 @@
 USE montacargas_obregon;
 
 -- Usuarios: gerencia y auxiliares. Con su correo se inicia sesión (HU-28).
--- Los tres tienen la misma contraseña de prueba; aquí solo va cifrada (BCrypt). La contraseña
--- está en la hoja «Datos de prueba» de los casos de prueba; no se escribe en el repositorio.
-SET @contrasena_prueba = '$2a$10$nogcCvdq7InGRTX2APaXeOLEvkltXYK.4CpCCWnZeXhSTUgLSHGQu';
+-- Contraseña de prueba para los tres usuarios: Montacargas2026!
+--   - GERENTE  : patricia.romero@montacargasobregon.mx
+--   - AUXILIAR : daniela.felix@montacargasobregon.mx
+--   - AUXILIAR : luis.ochoa@montacargasobregon.mx
+SET @contrasena_prueba = '$2a$10$iyuaZuPQy/9NbflmynekJ.FxCOnDbAu3ksACPbqwiuXWcxwDMH.1q';
 
 INSERT IGNORE INTO usuarios (numero_empleado, nombres, apellido_paterno, apellido_materno, correo, contrasena, tipo, activo) VALUES
   ('GER-01', 'Patricia', 'Romero', 'Soto',    'patricia.romero@montacargasobregon.mx', @contrasena_prueba, 'GERENTE',  1),
   ('AUX-01', 'Daniela',  'Félix',  'Moreno',  'daniela.felix@montacargasobregon.mx',   @contrasena_prueba, 'AUXILIAR', 1),
   ('AUX-02', 'Luis',     'Ochoa',  'Valdez',  'luis.ochoa@montacargasobregon.mx',      @contrasena_prueba, 'AUXILIAR', 1);
 
--- Bases de antes de HU-28: el backend agrega la columna vacía; se les pone la contraseña de prueba
-UPDATE usuarios SET contrasena = @contrasena_prueba
-WHERE (contrasena IS NULL OR contrasena = '')
-  AND correo IN ('patricia.romero@montacargasobregon.mx', 'daniela.felix@montacargasobregon.mx',
+-- Asegura la contraseña de prueba y el estado activo al re-ejecutar el script
+UPDATE usuarios SET contrasena = @contrasena_prueba, activo = 1
+WHERE correo IN ('patricia.romero@montacargasobregon.mx', 'daniela.felix@montacargasobregon.mx',
                  'luis.ochoa@montacargasobregon.mx');
 
 -- Categorías. «Maniobras» no tiene equipos: sirve para probar la búsqueda sin resultados (HU-09)
@@ -55,6 +56,15 @@ ON DUPLICATE KEY UPDATE descripcion = COALESCE(modelos.descripcion, d.descripcio
 -- HU-36: un modelo nuevo se registra sin tarifa (se captura en «Tarifas»).
 -- El backend no quita el NOT NULL de las bases que ya existían; esto lo quita.
 ALTER TABLE modelos MODIFY tarifa_dia DECIMAL(10,2) NULL;
+
+
+-- Campos que se llenan en cada revisión (app del mecánico). Hibernate no cambia columnas que ya existen,
+-- los tipos de campo, el origen de las fotos y dónde se captura cada campo admiten los valores nuevos.
+ALTER TABLE definiciones_campo
+    MODIFY tipo ENUM('BOOLEANO', 'DECIMAL', 'ENTERO', 'FECHA', 'FOTO', 'INSPECCION', 'LISTA', 'TEXTO') NOT NULL,
+    MODIFY captura_campo ENUM('MODELO', 'REVISION') NOT NULL DEFAULT 'MODELO';
+ALTER TABLE fotos
+    MODIFY origen ENUM('MANTENIMIENTO', 'REVISION', 'TAREA_MANTENIMIENTO', 'TRASLADO') NOT NULL;
 
 -- Campos de especificación de cada categoría (HU-36). Por ahora solo Montacargas los pide.
 INSERT IGNORE INTO definiciones_campo (categoria_id, nombre, tipo, unidad, requerido, orden)
@@ -90,6 +100,42 @@ FROM (
          JOIN modelos m ON m.codigo = d.modelo
          JOIN definiciones_campo f ON f.nombre = d.campo AND f.categoria_id = m.categoria_id;
 
+-- Campos de revisión: lo que el mecánico llena en cada revisión, según la categoría del equipo.
+-- Montacargas y Patín de ejemplo; una categoría sin campos de revisión solo pide notas.
+INSERT IGNORE INTO definiciones_campo (categoria_id, nombre, tipo, unidad, requerido, orden, captura_campo)
+SELECT c.id, d.nombre, d.tipo, d.unidad, 1, d.orden, 'REVISION'
+FROM (
+         SELECT 'Montacargas' AS categoria, 'Horómetro' AS nombre, 'DECIMAL' AS tipo, 'h' AS unidad, 1 AS orden
+         UNION ALL SELECT 'Montacargas', 'Combustible o batería', 'LISTA', NULL, 2
+         UNION ALL SELECT 'Montacargas', 'Daños y estructura', 'INSPECCION', NULL, 3
+         UNION ALL SELECT 'Montacargas', 'Fluidos y fugas', 'INSPECCION', NULL, 4
+         UNION ALL SELECT 'Montacargas', 'Llantas', 'INSPECCION', NULL, 5
+         UNION ALL SELECT 'Montacargas', 'Frenos y dirección', 'INSPECCION', NULL, 6
+         UNION ALL SELECT 'Montacargas', 'Mástil y horquillas', 'INSPECCION', NULL, 7
+         UNION ALL SELECT 'Montacargas', 'Luces y alarma de reversa', 'INSPECCION', NULL, 8
+         UNION ALL SELECT 'Montacargas', 'Seguridad (cinturón y extintor)', 'INSPECCION', NULL, 9
+         UNION ALL SELECT 'Montacargas', 'Foto de frente', 'FOTO', NULL, 10
+         UNION ALL SELECT 'Montacargas', 'Foto lateral', 'FOTO', NULL, 11
+         UNION ALL SELECT 'Montacargas', 'Foto del tablero', 'FOTO', NULL, 12
+         UNION ALL SELECT 'Montacargas', 'Foto de las llantas', 'FOTO', NULL, 13
+         UNION ALL SELECT 'Patín', 'Daños y estructura', 'INSPECCION', NULL, 1
+         UNION ALL SELECT 'Patín', 'Ruedas', 'INSPECCION', NULL, 2
+         UNION ALL SELECT 'Patín', 'Sistema hidráulico', 'INSPECCION', NULL, 3
+         UNION ALL SELECT 'Patín', 'Foto general', 'FOTO', NULL, 4
+     ) d
+         JOIN categorias c ON c.nombre = d.categoria;
+
+INSERT IGNORE INTO definicion_campo_opciones (campo_id, posicion, opcion)
+SELECT f.id, o.posicion, o.opcion
+FROM (
+         SELECT 0 AS posicion, '1/4' AS opcion
+         UNION ALL SELECT 1, '1/2'
+         UNION ALL SELECT 2, '3/4'
+         UNION ALL SELECT 3, 'Lleno'
+     ) o
+         JOIN definiciones_campo f ON f.nombre = 'Combustible o batería'
+         JOIN categorias c ON c.id = f.categoria_id AND c.nombre = 'Montacargas';
+
 -- Equipos: 5 disponibles y MC-15 en mantenimiento, que no debe aparecer en la disponibilidad (TC-09-05)
 INSERT IGNORE INTO equipos (numero_unidad, numero_serie, anio_compra, estado, modelo_id)
 SELECT d.unidad, d.serie, d.anio, d.estado, m.id
@@ -103,18 +149,29 @@ FROM (
      ) d
          JOIN modelos m ON m.codigo = d.modelo;
 
--- Etiquetas: solo MC-11 lleva «Uso en interiores»; MC-07 va sin etiqueta (TC-09-06)
-INSERT IGNORE INTO equipo_etiquetas (equipo_id, etiqueta)
-SELECT e.id, 'USO_INTERIORES'
+-- HU-02: el año de compra o fabricación es opcional.
+-- El backend no quita el NOT NULL de las bases que ya existían; esto lo quita.
+ALTER TABLE equipos MODIFY anio_compra INT NULL;
+
+-- Etiquetas (HU-02): ahora son una tabla y gerencia puede agregar más con «+ Nueva etiqueta»
+INSERT IGNORE INTO etiquetas (nombre) VALUES
+  ('Apto para urgencias'), ('Requiere operador'), ('Uso en interiores');
+
+-- Solo MC-11 lleva «Uso en interiores»; MC-07 va sin etiqueta (TC-09-06)
+INSERT IGNORE INTO equipos_etiquetas (equipo_id, etiqueta_id)
+SELECT e.id, t.id
 FROM equipos e
+         JOIN etiquetas t ON t.nombre = 'Uso en interiores'
 WHERE e.numero_unidad = 'MC-11';
 
 
--- Personal operativo: mecánicos y operadores de traslado
+-- Personal operativo: mecánicos y operadores de traslado (códigos de acceso para app móvil)
 INSERT IGNORE INTO personal (codigo, nombres, apellido_paterno, apellido_materno, tipo, activo) VALUES
-  ('MEC-10', 'Rafael', 'Amaya',      NULL, 'MECANICO',    1),
-  ('MEC-11', 'Martín', 'Cota',       NULL, 'MECANICO',    1),
-  ('MEC-12', 'Jorge',  'Ibarra',     NULL, 'MECANICO',    1),
-  ('OPT-10', 'Luis',   'Valenzuela', NULL, 'OP_TRASLADO', 1),
-  ('OPT-11', 'Ana',    'Soto',       NULL, 'OP_TRASLADO', 1),
-  ('OPT-12', 'Ramón',  'Félix',      NULL, 'OP_TRASLADO', 1);
+  ('MEC-10', 'Rafael',  'Amaya',      NULL, 'MECANICO',    1),
+  ('MEC-11', 'Martín',  'Cota',       NULL, 'MECANICO',    1),
+  ('MEC-12', 'Jorge',   'Ibarra',     NULL, 'MECANICO',    1),
+  ('MEC-13', 'Ernesto', 'Pérez',      NULL, 'MECANICO',    1),
+  ('OPT-10', 'Luis',    'Valenzuela', NULL, 'OP_TRASLADO', 1),
+  ('OPT-11', 'Ana',     'Soto',       NULL, 'OP_TRASLADO', 1),
+  ('OPT-12', 'Ramón',   'Félix',      NULL, 'OP_TRASLADO', 1),
+  ('OPT-13', 'Héctor',  'Quintero',   NULL, 'OP_TRASLADO', 1);

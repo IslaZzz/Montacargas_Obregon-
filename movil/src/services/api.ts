@@ -1,7 +1,7 @@
-import { leerPersonalId } from "../sesion/almacen";
+import { leerSesion } from "../sesion/almacen";
 
-// Encabezado con el que el backend sabe quién usa la app (lo lee PersonalActualResolver)
-const ENCABEZADO_PERSONAL = "X-Personal-Id";
+// Con el token que dio POST /api/movil/sesion el backend sabe quién usa la app (lo lee PersonalActualResolver)
+const ENCABEZADO_AUTORIZACION = "Authorization";
 
 // Error con el mensaje y los errores por campo que manda el backend: { mensaje, errores }
 export class ErrorApi extends Error {
@@ -21,10 +21,22 @@ export function mensajeDeError(error: unknown, porDefecto = "No fue posible comp
   return `${porDefecto} Revisa tu conexión.`;
 }
 
+// Quién atiende un 401 de una petición con sesión (la sesión venció o la cerraron): lo registra SesionProvider.
+// Recibe el mensaje del backend y el token con el que se hizo la petición.
+type AlSesionInvalida = (mensaje: string, tokenEnviado: string) => void;
+let alSesionInvalida: AlSesionInvalida | null = null;
+
+export function registrarAlSesionInvalida(atiende: AlSesionInvalida | null) {
+  alSesionInvalida = atiende;
+}
+
+// Un código mal escrito también responde 401, pero eso es un error del formulario, no una sesión vencida
+const esEntrar = (metodo: string, ruta: string) => metodo === "POST" && ruta === "/movil/sesion";
+
 async function pedir<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T> {
   const encabezados: Record<string, string> = {};
-  const personalId = leerPersonalId();
-  if (personalId !== null) encabezados[ENCABEZADO_PERSONAL] = String(personalId);
+  const token = leerSesion()?.token ?? null;
+  if (token !== null) encabezados[ENCABEZADO_AUTORIZACION] = `Bearer ${token}`;
 
   // FormData (fotos) lleva su propio Content-Type; lo demás va como JSON
   let body: BodyInit | undefined;
@@ -44,11 +56,12 @@ async function pedir<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise
     } catch {
       // La respuesta no trae JSON
     }
-    throw new ErrorApi(
-      datos.mensaje ?? `No fue posible completar la operación (error ${respuesta.status}).`,
-      respuesta.status,
-      datos.errores,
-    );
+    const mensaje = datos.mensaje ?? `No fue posible completar la operación (error ${respuesta.status}).`;
+
+    if (respuesta.status === 401 && token !== null && !esEntrar(metodo, ruta)) {
+      alSesionInvalida?.(mensaje, token);
+    }
+    throw new ErrorApi(mensaje, respuesta.status, datos.errores);
   }
 
   // 204: respondió bien, sin contenido
@@ -58,5 +71,6 @@ async function pedir<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise
 
 export const getApi = <T>(ruta: string) => pedir<T>("GET", ruta);
 export const postApi = <T>(ruta: string, cuerpo: unknown) => pedir<T>("POST", ruta, cuerpo);
+export const putApi = <T>(ruta: string, cuerpo: unknown) => pedir<T>("PUT", ruta, cuerpo);
 export const patchApi = <T>(ruta: string, cuerpo: unknown) => pedir<T>("PATCH", ruta, cuerpo);
 export const deleteApi = (ruta: string) => pedir<void>("DELETE", ruta);
