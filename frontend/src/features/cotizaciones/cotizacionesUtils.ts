@@ -1,7 +1,7 @@
 import type { ChipStatus } from "../../components/chips";
 import type { Cliente } from "../clientes/clientesTypes";
 import type { EstadoRenta } from "../rentas/detalle/detalleTypes";
-import type { EstadoCotizacion } from "./cotizacionesTypes";
+import type { Cotizacion, EstadoCotizacion } from "./cotizacionesTypes";
 
 // Estados en el orden de los filtros, con su texto y su chip
 export const ESTADOS: {
@@ -32,6 +32,12 @@ export const ESTADOS_RENTA: Record<EstadoRenta, string> = {
 // "Ramón Gutiérrez Soto"
 export const nombreCompleto = (c: Cliente) =>
   [c.nombre, c.apellidoPaterno, c.apellidoMaterno].filter(Boolean).join(" ");
+
+export function motivoSinPdf(c: Cotizacion): string | null {
+  if (c.partidas.length === 0) return "Agrega al menos un equipo";
+  if (c.estado === "EN_AUTORIZACION") return "Esperando autorización";
+  return null;
+}
 
 // "1 día", "5 días"
 export const textoDias = (dias: number) => `${dias} ${dias === 1 ? "día" : "días"}`;

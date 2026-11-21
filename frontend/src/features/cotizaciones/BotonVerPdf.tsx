@@ -1,6 +1,7 @@
 import { useId } from "react";
 import { Link } from "react-router-dom";
 import type { Cotizacion } from "./cotizacionesTypes";
+import { motivoSinPdf } from "./cotizacionesUtils";
 
 interface BotonVerPdfProps {
   cotizacion: Cotizacion;
@@ -8,7 +9,7 @@ interface BotonVerPdfProps {
   className?: string;
 }
 
-// Botón "Ver PDF" del detalle. Sin equipos no hay PDF: queda deshabilitado y lo explica.
+// Botón "Ver PDF" del detalle. Sin equipos o en autorización no hay PDF: queda deshabilitado y lo explica.
 export default function BotonVerPdf({
   cotizacion,
   primario = false,
@@ -25,13 +26,15 @@ export default function BotonVerPdf({
     </>
   );
 
-  if (cotizacion.partidas.length === 0) {
+  const motivo = motivoSinPdf(cotizacion);
+
+  if (motivo) {
     return (
       <div className={`ver-pdf-deshabilitado ${className}`}>
         <button type="button" className={clases} disabled aria-describedby={idAyuda}>
           {contenido}
         </button>
-        <span id={idAyuda}>Agrega al menos un equipo</span>
+        <span id={idAyuda}>{motivo}</span>
       </div>
     );
   }
