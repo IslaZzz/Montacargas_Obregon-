@@ -98,6 +98,7 @@ export interface Cotizacion {
   iva: number;
   total: number;
   validaHasta: string; // "2026-10-15": último día para que el cliente la acepte
+  diasVigencia: number;
   autorizacion: AutorizacionDescuento | null; // null si la cotización nunca pidió autorización
   renta: RentaDeCotizacion | null;
 }

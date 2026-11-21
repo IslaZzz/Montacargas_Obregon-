@@ -100,7 +100,7 @@ public class CotizacionService {
 
     /**
      * Pasa a Vencida las cotizaciones Enviadas cuya vigencia ya terminó (HU-17).
-     * Vence si hoy es después de «válida hasta» (creación + 7 días). Devuelve cuántas cambiaron.
+     * Vence si hoy es después de «válida hasta» (creación + Cotizacion.DIAS_VIGENCIA). Devuelve cuántas cambiaron.
      */
     @Transactional
     public int vencerCotizaciones() {

@@ -26,7 +26,6 @@ import "../../styles/cotizaciones/cotizaciones.css";
 type Respuesta = "ACEPTADA" | "NO_ACEPTADA";
 
 const ANTICIPO = 0.3;
-const DIAS_VIGENCIA = 7;
 
 // Redondea a centavos para que las cuentas no arrastren decimales
 const redondear = (pesos: number) => Math.round(pesos * 100) / 100;
@@ -700,7 +699,7 @@ function QueSigue({ cotizacion: c }: { cotizacion: Cotizacion }) {
     },
     {
       titulo: `El cliente acepta antes del ${diaYMes(c.validaHasta)}`,
-      texto: `Si no responde en ${DIAS_VIGENCIA} días, pasa a «Vencida».`,
+      texto: `Si no responde en ${c.diasVigencia} días, pasa a «Vencida».`,
     },
   ];
 

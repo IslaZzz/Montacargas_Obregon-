@@ -49,7 +49,7 @@ public class CotizacionPdfService {
     private static final Locale ES_MX = Locale.forLanguageTag("es-MX");
     private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter FECHA_LARGA = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM 'de' yyyy", ES_MX);
-    private static final int VIGENCIA_DIAS = 7;
+    private static final DateTimeFormatter FECHA_SIN_DIA = DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", ES_MX);
 
     // Colores del prototipo
     private static final Color AZUL = new Color(0x0F3D4C);
@@ -236,12 +236,10 @@ public class CotizacionPdfService {
         tabla.setKeepTogether(true);
 
         BigDecimal anticipo = c.getTotal().multiply(new BigDecimal("0.30")).setScale(2, RoundingMode.HALF_UP);
-        String vence = c.getFechaHoraCreacion().plusDays(VIGENCIA_DIAS).format(FECHA_LARGA);
 
         PdfPCell celda = celda();
         celda.addElement(new Paragraph("CONDICIONES", ETIQUETA));
-        celda.addElement(condicion("Vigencia", "Esta cotización es válida por " + VIGENCIA_DIAS
-                + " días y vence el " + vence + "."));
+        celda.addElement(condicion("Vigencia", avisoVigencia(c)));
         celda.addElement(condicion("Anticipo", "Para confirmar la renta se requiere un anticipo del 30%: "
                 + moneda(anticipo) + "."));
         celda.addElement(condicion("Cancelación", "Si la renta se cancela con menos de 24 horas de anticipación, "
@@ -252,6 +250,11 @@ public class CotizacionPdfService {
                 + "debe firmar la carta responsiva del equipo."));
         tabla.addCell(celda);
         return tabla;
+    }
+
+    static String avisoVigencia(Cotizacion c) {
+        return "Esta cotización es válida por " + Cotizacion.DIAS_VIGENCIA + " días, hasta el "
+                + c.getValidaHasta().format(FECHA_SIN_DIA) + ".";
     }
 
     // "Vigencia: texto", con el título en negrita

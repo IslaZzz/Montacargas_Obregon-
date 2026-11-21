@@ -1,4 +1,5 @@
 import {
+  aFecha,
   formatoFecha,
   formatoFechaHora,
   formatoDireccion,
@@ -12,22 +13,14 @@ import { nombreCompleto, textoDias } from "./cotizacionesUtils";
 const enMinuscula = (texto: string) =>
   texto.charAt(0).toLowerCase() + texto.slice(1);
 
-const VIGENCIA_DIAS = 7;
 const ANTICIPO = 0.3;
 
-// Fecha de creación + 7 días: "lunes 25 de noviembre de 2026" (como en el PDF del backend)
-function fechaDeVencimiento(fechaCreacion: string) {
-  const fecha = new Date(fechaCreacion);
-  fecha.setDate(fecha.getDate() + VIGENCIA_DIAS);
-  return fecha
-    .toLocaleDateString("es-MX", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    })
-    .replace(",", "");
-}
+const fechaSinDia = (texto: string) =>
+  aFecha(texto).toLocaleDateString("es-MX", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
 // Vista previa del PDF. Muestra lo mismo que genera el backend (CotizacionPdfService).
 export default function HojaCotizacion({
@@ -152,7 +145,7 @@ export default function HojaCotizacion({
         <h3>CONDICIONES</h3>
         <p>
           <strong>Vigencia:</strong> Esta cotización es válida por{" "}
-          {VIGENCIA_DIAS} días y vence el {fechaDeVencimiento(c.fechaCreacion)}.
+          {c.diasVigencia} días, hasta el {fechaSinDia(c.validaHasta)}.
         </p>
         <p>
           <strong>Anticipo:</strong> Para confirmar la renta se requiere un

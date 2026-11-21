@@ -48,8 +48,8 @@ public class Cotizacion {
     // Las fechas se toman con la hora de Sonora, aunque el servidor esté en otra
     // zona
     public static final ZoneId ZONA_HORARIA = ZoneId.of("America/Hermosillo");
-    // La cotización vale 7 días desde que se crea (HU-17)
-    public static final int DIAS_VIGENCIA = 7;
+    // La cotización vale 15 días desde que se crea (HU-17, SCRUM-112)
+    public static final int DIAS_VIGENCIA = 15;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -268,7 +268,7 @@ public class Cotizacion {
         this.total = CalculoPrecio.calcularTotal(conDescuento, iva);
     }
 
-    /** Último día en que el cliente puede aceptarla: la fecha de creación + 7 días (HU-17). */
+    /** Último día en que el cliente puede aceptarla: la fecha de creación + DIAS_VIGENCIA (HU-17). */
     public LocalDate getValidaHasta() {
         return fechaHoraCreacion.toLocalDate().plusDays(DIAS_VIGENCIA);
     }
