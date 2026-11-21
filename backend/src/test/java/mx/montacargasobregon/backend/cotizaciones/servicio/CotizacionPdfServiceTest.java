@@ -88,6 +88,16 @@ class CotizacionPdfServiceTest {
         assertContiene(texto, "válida por 15 días, hasta el");
     }
 
+    @Test
+    void cancelacionYCartaResponsivaComoEnElPaso4() throws Exception {
+        assertEquals("Sin costo hasta 3 días antes de la entrega (hasta el sábado 7 de noviembre). "
+                + "Con menos tiempo se pierde el anticipo.", CotizacionPdfService.textoCancelacion(cotizacionDePrueba()));
+
+        String texto = textoDelPdf(cotizacionDePrueba()).replaceAll("\\s+", " ");
+        assertContiene(texto, "Cancelación: Sin costo hasta 3 días antes de la entrega (hasta el sábado 7 de noviembre).");
+        assertContiene(texto, "Carta responsiva: Se firma al recibir el equipo.");
+    }
+
     // MC-07 ($500/día) y GR-02 ($1,200/día) por 5 días, como en TC-18-02
     private Cotizacion cotizacionDePrueba() {
         Cliente cliente = new Cliente("María", "López", "Ruiz", "Obras del Mayo", "6449876543",

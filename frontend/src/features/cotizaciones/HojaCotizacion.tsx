@@ -7,7 +7,12 @@ import {
   formatoTelefono,
 } from "../../utils/formato";
 import type { Cotizacion } from "./cotizacionesTypes";
-import { nombreCompleto, textoDias } from "./cotizacionesUtils";
+import {
+  TEXTO_CARTA_RESPONSIVA,
+  nombreCompleto,
+  textoCancelacion,
+  textoDias,
+} from "./cotizacionesUtils";
 
 // "Lunes 12 de..." → "lunes 12 de...", como va dentro de una oración
 const enMinuscula = (texto: string) =>
@@ -153,8 +158,7 @@ export default function HojaCotizacion({
           {formatoMoneda(Math.round(c.total * ANTICIPO * 100) / 100)}.
         </p>
         <p>
-          <strong>Cancelación:</strong> Si la renta se cancela con menos de 24
-          horas de anticipación, no se reembolsa el anticipo.
+          <strong>Cancelación:</strong> {textoCancelacion(c.fechaEntrega)}
         </p>
         <p>
           <strong>Entrega:</strong> El equipo se entrega y se recoge en el
@@ -162,8 +166,7 @@ export default function HojaCotizacion({
           un espacio seguro para la maniobra.
         </p>
         <p>
-          <strong>Carta responsiva:</strong> Antes de la entrega, el cliente o
-          su representante debe firmar la carta responsiva del equipo.
+          <strong>Carta responsiva:</strong> {TEXTO_CARTA_RESPONSIVA}
         </p>
       </section>
     </article>

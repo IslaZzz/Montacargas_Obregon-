@@ -6,9 +6,7 @@ import {
   formatoMoneda,
 } from "../../../utils/formato";
 import type { Cotizacion } from "../cotizacionesTypes";
-
-// La cancelación es sin costo hasta 3 días antes de la entrega
-const DIAS_CANCELACION = 3;
+import { TEXTO_CARTA_RESPONSIVA, textoCancelacion } from "../cotizacionesUtils";
 
 interface Props {
   cotizacion: Cotizacion;
@@ -23,16 +21,8 @@ const fechaLarga = (texto: string) =>
     year: "numeric",
   });
 
-const diaConSemana = (fecha: Date) =>
-  fecha
-    .toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" })
-    .replace(",", "");
-
 // Paso 4 del precio: Vigencia y condiciones (HU-17)
 export default function PasoVigencia({ cotizacion: c, anticipo }: Props) {
-  const limiteCancelacion = aFecha(c.fechaEntrega);
-  limiteCancelacion.setDate(limiteCancelacion.getDate() - DIAS_CANCELACION);
-
   return (
     <>
       <section className="tarjeta">
@@ -77,7 +67,7 @@ export default function PasoVigencia({ cotizacion: c, anticipo }: Props) {
           <Condicion
             icono="event_busy"
             titulo="Política de cancelación"
-            texto={`Sin costo hasta ${DIAS_CANCELACION} días antes de la entrega (hasta el ${diaConSemana(limiteCancelacion)}). Con menos tiempo se pierde el anticipo.`}
+            texto={textoCancelacion(c.fechaEntrega)}
           />
           <Condicion
             icono="local_shipping"
@@ -87,7 +77,7 @@ export default function PasoVigencia({ cotizacion: c, anticipo }: Props) {
           <Condicion
             icono="assignment"
             titulo="Carta responsiva"
-            texto="Se firma al recibir el equipo."
+            texto={TEXTO_CARTA_RESPONSIVA}
           />
         </ul>
 
