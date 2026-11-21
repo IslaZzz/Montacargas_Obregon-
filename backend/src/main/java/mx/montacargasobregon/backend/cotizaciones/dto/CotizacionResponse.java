@@ -22,6 +22,7 @@ public record CotizacionResponse(
         LocalDate fechaEnvio,
         LocalDate fechaRespuesta,
         LocalDate validaHasta, // Último día para que el cliente la acepte
+        int diasVigencia,
         ClienteResponse cliente,
         RazonSocialResponse razonSocial,
         LocalDateTime fechaEntrega,
@@ -62,6 +63,7 @@ public record CotizacionResponse(
                 c.getFechaHoraEnvio() == null ? null : c.getFechaHoraEnvio().toLocalDate(),
                 c.getFechaRespuesta(),
                 c.getValidaHasta(),
+                Cotizacion.DIAS_VIGENCIA,
                 ClienteResponse.toClienteResponse(c.getCliente()),
                 RazonSocialResponse.toRazonSocialResponse(c.getRazonSocial()),
                 c.getFechaHoraEntrega(),

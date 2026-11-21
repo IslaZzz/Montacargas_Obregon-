@@ -1,6 +1,7 @@
 package mx.montacargasobregon.backend.cotizaciones.servicio;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.openpdf.text.pdf.PdfReader;
 import org.openpdf.text.pdf.parser.PdfTextExtractor;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 import mx.montacargasobregon.backend.clientes.modelo.DireccionFiscal;
@@ -58,6 +60,32 @@ class CotizacionPdfServiceTest {
         assertEquals("644 123 4567", CotizacionPdfService.telefono("6441234567"));
         assertEquals("jueves 5 de noviembre de 2026, 12:30 p. m.",
                 CotizacionPdfService.fechaHora(LocalDateTime.of(2026, 11, 5, 12, 30)));
+    }
+
+    @Test
+    void avisoDeVigenciaConQuinceDias() {
+        Cotizacion cotizacion = cotizacionDePrueba();
+        ReflectionTestUtils.setField(cotizacion, "fechaHoraCreacion", LocalDateTime.of(2026, 11, 17, 10, 30));
+
+        assertEquals(LocalDate.of(2026, 12, 2), cotizacion.getValidaHasta());
+        assertEquals("Esta cotización es válida por 15 días, hasta el 2 de diciembre de 2026.",
+                CotizacionPdfService.avisoVigencia(cotizacion));
+    }
+
+    @Test
+    void venceElDiaDespuesDeLosQuinceDias() {
+        Cotizacion cotizacion = cotizacionDePrueba();
+        ReflectionTestUtils.setField(cotizacion, "fechaHoraCreacion", LocalDateTime.of(2026, 11, 17, 10, 30));
+
+        assertFalse(cotizacion.vigenciaTerminada(LocalDate.of(2026, 12, 2)));
+        assertTrue(cotizacion.vigenciaTerminada(LocalDate.of(2026, 12, 3)));
+    }
+
+    @Test
+    void pdfTraeElAvisoDeVigencia() throws Exception {
+        String texto = textoDelPdf(cotizacionDePrueba());
+
+        assertContiene(texto, "válida por 15 días, hasta el");
     }
 
     // MC-07 ($500/día) y GR-02 ($1,200/día) por 5 días, como en TC-18-02

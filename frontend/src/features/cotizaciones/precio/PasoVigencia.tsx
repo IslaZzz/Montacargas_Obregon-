@@ -7,7 +7,6 @@ import {
 } from "../../../utils/formato";
 import type { Cotizacion } from "../cotizacionesTypes";
 
-const DIAS_VIGENCIA = 7;
 // La cancelación es sin costo hasta 3 días antes de la entrega
 const DIAS_CANCELACION = 3;
 
@@ -45,7 +44,7 @@ export default function PasoVigencia({ cotizacion: c, anticipo }: Props) {
         </div>
 
         <div className="vigencia-caja">
-          <strong className="vigencia-dias">{DIAS_VIGENCIA} días</strong>
+          <strong className="vigencia-dias">{c.diasVigencia} días</strong>
           <div>
             <strong>Válida hasta el {fechaLarga(c.validaHasta)}</strong>
             <span>Contando desde el {formatoFecha(c.fechaCreacion)}, día en que se creó.</span>
@@ -56,7 +55,7 @@ export default function PasoVigencia({ cotizacion: c, anticipo }: Props) {
           <span className="material-symbols-rounded" aria-hidden="true">
             info
           </span>
-          Si el cliente no responde en {DIAS_VIGENCIA} días, la cotización pasa a «Vencida» y
+          Si el cliente no responde en {c.diasVigencia} días, la cotización pasa a «Vencida» y
           hay que hacer otra.
         </p>
       </section>

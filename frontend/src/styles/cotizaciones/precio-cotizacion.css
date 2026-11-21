@@ -351,7 +351,7 @@
   }
 }
 
-/* «7 días» y «Válida hasta el…» */
+/* «15 días» y «Válida hasta el…» */
 .vigencia-caja {
   display: flex;
   align-items: center;
@@ -429,7 +429,7 @@
   color: var(--text-foreground);
 }
 
-/* Celular: «7 días» arriba y el texto debajo */
+/* Celular: «15 días» arriba y el texto debajo */
 @media (max-width: 700px) {
   .vigencia-caja {
     flex-direction: column;

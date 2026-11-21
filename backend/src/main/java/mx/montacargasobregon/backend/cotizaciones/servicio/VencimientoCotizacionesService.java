@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Marca como Vencidas las cotizaciones Enviadas que pasaron sus 7 días sin respuesta (HU-17).
+ * Marca como Vencidas las cotizaciones Enviadas que pasaron sus días de vigencia sin respuesta (HU-17).
  * Revisa al arrancar el backend y después al inicio de cada hora, con la hora de Sonora.
  */
 @Component
