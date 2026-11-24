@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Aviso from "../../components/Aviso";
+import Boton from "../../components/Boton";
 import Cargando from "../../components/Cargando";
 import Chip from "../../components/Chip";
 import EncabezadoGrupo from "../../components/EncabezadoGrupo";
@@ -9,6 +10,8 @@ import Filtros from "../../components/Filtros";
 import Icono from "../../components/Icono";
 import PantallaPrincipal from "../../components/PantallaPrincipal";
 import { mensajeDeError } from "../../services/api";
+import { listarAvisos, marcarAvisosLeidos } from "../../services/avisosApi";
+import type { AvisoMovil } from "../../services/avisosApi";
 import { agruparPorDia, etiquetaDia, hora } from "../../utils/fechas";
 import { lineasDomicilio } from "../../utils/domicilio";
 import { listarTareas } from "./trasladosApi";
@@ -19,11 +22,27 @@ const FILTROS = [
   { valor: "RECOLECCION" as TipoTraslado, etiqueta: "Recolecciones" },
 ];
 
-/** HU09: las entregas y recolecciones asignadas al operador, agrupadas por día. */
+/**
+ * HU09: las entregas y recolecciones asignadas al operador, agrupadas por día.
+ * Arriba, el aviso de las tareas que la oficina le pasó a otro operador.
+ */
 export default function MisTareas() {
   const [tipo, setTipo] = useState<TipoTraslado>("ENTREGA");
   const [tareas, setTareas] = useState<Tarea[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [intento, setIntento] = useState(0); // Sube con "Reintentar" para volver a pedir la lista
+  const [avisos, setAvisos] = useState<AvisoMovil[]>([]);
+
+  useEffect(() => {
+    listarAvisos()
+      .then(setAvisos)
+      .catch(() => {}); // Si no llegan, la lista de tareas sigue funcionando
+  }, []);
+
+  function enterado() {
+    setAvisos([]);
+    marcarAvisosLeidos().catch(() => {});
+  }
 
   useEffect(() => {
     let vigente = true;
@@ -38,15 +57,33 @@ export default function MisTareas() {
     return () => {
       vigente = false;
     };
-  }, [tipo]);
+  }, [tipo, intento]);
 
   const grupos = tareas ? agruparPorDia(tareas, (t) => t.inicio) : [];
 
   return (
     <PantallaPrincipal titulo="Mis tareas">
+      {avisos.map((aviso) => (
+        <Aviso key={aviso.id} tipo="info" titulo={aviso.titulo}>
+          {aviso.detalle}
+        </Aviso>
+      ))}
+      {avisos.length > 0 && (
+        <Boton variante="secundario" onClick={enterado}>
+          Entendido
+        </Boton>
+      )}
+
       <Filtros etiqueta="Tipo de tarea" opciones={FILTROS} seleccionado={tipo} onCambio={setTipo} />
 
-      {error && <Aviso tipo="error" titulo={error} />}
+      {error && (
+        <>
+          <Aviso tipo="error" titulo={error} />
+          <Boton variante="secundario" icono="refresh" onClick={() => setIntento((n) => n + 1)}>
+            Reintentar
+          </Boton>
+        </>
+      )}
       {!tareas && !error && <Cargando />}
 
       {tareas && tareas.length === 0 && (
