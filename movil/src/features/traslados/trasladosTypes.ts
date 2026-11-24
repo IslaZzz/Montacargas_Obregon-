@@ -1,3 +1,4 @@
+import type { Foto } from "../../services/fotosApi";
 import type { Domicilio } from "../../utils/domicilio";
 
 // Equivalen a los enums del backend
@@ -43,11 +44,35 @@ export interface EquipoTarea {
 export interface DetalleTarea extends Omit<Tarea, "equipos"> {
   estadoRenta: EstadoRenta;
   carta: CartaTarea | null; // null en las recolecciones
+  fotosTomadas: number | null; // Evidencia de la recolección; null en las entregas
+  fotosRequeridas: number | null;
   equipos: EquipoTarea[];
   listos: number;
   puedeIniciar: boolean;
   puedeCompletar: boolean;
   bloqueo: string | null;
+}
+
+// Equivale a EvidenciaResponse (OHU13)
+export interface VistaEvidencia {
+  vista: string; // "Frente", "Parte trasera", "Lateral izquierdo", "Lateral derecho"
+  foto: Foto | null;
+}
+
+export interface EquipoEvidencia {
+  id: number;
+  numeroUnidad: string;
+  tomadas: number;
+  vistas: VistaEvidencia[];
+}
+
+export interface Evidencia {
+  folio: string;
+  rentaFolio: string;
+  tomadas: number;
+  requeridas: number;
+  editable: boolean; // false una vez confirmada la recolección
+  equipos: EquipoEvidencia[];
 }
 
 export const NOMBRE_TIPO: Record<TipoTraslado, string> = {

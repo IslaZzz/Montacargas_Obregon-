@@ -104,24 +104,33 @@ export default function MisTareas() {
   );
 }
 
-/** "1 pendiente", "2 en camino", o las dos cosas. */
+/** "1 pendiente", "2 en camino", "1 recibida": las recibidas ya no cuentan como pendientes. */
 function resumen(tareas: Tarea[]) {
+  const pendientes = tareas.filter((t) => t.estado === "PROGRAMADO").length;
   const enCamino = tareas.filter((t) => t.estado === "EN_CURSO").length;
-  const pendientes = tareas.length - enCamino;
+  const recibidas = tareas.filter((t) => t.estado === "COMPLETADO").length;
   const partes: string[] = [];
   if (pendientes > 0) partes.push(`${pendientes} pendiente${pendientes === 1 ? "" : "s"}`);
   if (enCamino > 0) partes.push(`${enCamino} en camino`);
+  if (recibidas > 0) partes.push(`${recibidas} recibida${recibidas === 1 ? "" : "s"}`);
   return partes.join(" · ");
 }
 
 function TarjetaTarea({ tarea }: { tarea: Tarea }) {
+
+
   const enCamino = tarea.estado === "EN_CURSO";
+  const recibida = tarea.estado === "COMPLETADO"; // Recolección recibida hoy en la oficina
   const entrega = tarea.tipo === "ENTREGA";
 
   return (
     <Link to={`/traslados/${tarea.id}`} className="tarjeta tarea">
       <span className="tarea-encabezado">
-        {enCamino ? (
+        {recibida ? (
+          <Chip tono="verde" icono="check_circle">
+            Recibida
+          </Chip>
+        ) : enCamino ? (
           <Chip tono="lila" icono="local_shipping">
             En camino
           </Chip>
