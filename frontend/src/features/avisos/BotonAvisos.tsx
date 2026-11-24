@@ -11,6 +11,8 @@ import {
 } from "./avisosUtils";
 import { useApartadosProximos } from "./useApartadosProximos";
 import { useAvisosDescuento } from "./useAvisosDescuento";
+import { useAvisosOperacion } from "./useAvisosOperacion";
+import ItemAvisoOperacion from "./ItemAvisoOperacion";
 import "../../styles/apartados/panel-avisos.css";
 
 interface ItemAvisoProps {
@@ -109,6 +111,7 @@ export default function BotonAvisos() {
   const { apartados, error, noLeidos, marcarComoLeidos } =
     useApartadosProximos();
   const descuentos = useAvisosDescuento();
+  const operacion = useAvisosOperacion();
   const [abierto, setAbierto] = useState(false);
   const contenedor = useRef<HTMLDivElement>(null);
 
@@ -130,11 +133,12 @@ export default function BotonAvisos() {
   }, [abierto]);
 
   const nuevos = new Set(noLeidos.map(claveAviso));
-  const cantidad = noLeidos.length + descuentos.noLeidos;
+  const cantidad = noLeidos.length + descuentos.noLeidos + operacion.noLeidos;
 
   const marcarTodos = () => {
     marcarComoLeidos();
     descuentos.marcarComoLeidos();
+    operacion.marcarComoLeidos();
   };
 
   return (
@@ -180,7 +184,9 @@ export default function BotonAvisos() {
             </p>
           ) : apartados === null ? (
             <p className="panel-avisos-mensaje">Cargando avisos…</p>
-          ) : apartados.length === 0 && descuentos.avisos.length === 0 ? (
+          ) : apartados.length === 0 &&
+            descuentos.avisos.length === 0 &&
+            operacion.avisos.length === 0 ? (
             <p className="panel-avisos-mensaje">
               <span className="material-symbols-rounded" aria-hidden="true">
                 check_circle
@@ -189,6 +195,16 @@ export default function BotonAvisos() {
             </p>
           ) : (
             <ul className="panel-avisos-lista">
+              {operacion.avisos.map((a) => (
+                <ItemAvisoOperacion
+                  key={`operacion-${a.id}`}
+                  aviso={a}
+                  onIr={() => {
+                    operacion.marcarLeido(a.id);
+                    setAbierto(false);
+                  }}
+                />
+              ))}
               {descuentos.avisos.map((a) => (
                 <ItemAvisoDescuento
                   key={`descuento-${a.id}`}

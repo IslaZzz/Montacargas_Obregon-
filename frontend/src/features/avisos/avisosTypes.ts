@@ -31,3 +31,21 @@ export interface AvisoDescuento {
   fecha: string;
   leido: boolean;
 }
+
+// GET /api/avisos/operacion: lo que pasa en los traslados
+export type TipoAvisoOperacion =
+  | "TRASLADO_INICIADO"
+  | "ENTREGA_REGISTRADA"
+  | "RECOLECCION_CONFIRMADA"
+  | "EQUIPOS_RECIBIDOS"
+  | "TAREA_REASIGNADA";
+
+export interface AvisoOperacion {
+  id: number;
+  tipo: TipoAvisoOperacion;
+  titulo: string; // "Traslado iniciado: TR-0087"
+  detalle: string;
+  rentaId: number | null;
+  fecha: string;
+  leido: boolean;
+}
