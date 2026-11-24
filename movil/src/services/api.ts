@@ -33,7 +33,8 @@ export function registrarAlSesionInvalida(atiende: AlSesionInvalida | null) {
 // Un código mal escrito también responde 401, pero eso es un error del formulario, no una sesión vencida
 const esEntrar = (metodo: string, ruta: string) => metodo === "POST" && ruta === "/movil/sesion";
 
-async function pedir<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T> {
+// comoArchivo: la respuesta es un archivo (la carta firmada), no JSON
+async function pedir<T>(metodo: string, ruta: string, cuerpo?: unknown, comoArchivo = false): Promise<T> {
   const encabezados: Record<string, string> = {};
   const token = leerSesion()?.token ?? null;
   if (token !== null) encabezados[ENCABEZADO_AUTORIZACION] = `Bearer ${token}`;
@@ -66,6 +67,7 @@ async function pedir<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise
 
   // 204: respondió bien, sin contenido
   if (respuesta.status === 204) return undefined as T;
+  if (comoArchivo) return respuesta.blob() as Promise<T>;
   return respuesta.json() as Promise<T>;
 }
 
@@ -74,3 +76,4 @@ export const postApi = <T>(ruta: string, cuerpo: unknown) => pedir<T>("POST", ru
 export const putApi = <T>(ruta: string, cuerpo: unknown) => pedir<T>("PUT", ruta, cuerpo);
 export const patchApi = <T>(ruta: string, cuerpo: unknown) => pedir<T>("PATCH", ruta, cuerpo);
 export const deleteApi = (ruta: string) => pedir<void>("DELETE", ruta);
+export const getArchivoApi = (ruta: string) => pedir<Blob>("GET", ruta, undefined, true);

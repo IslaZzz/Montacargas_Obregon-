@@ -4,6 +4,8 @@ import type { Domicilio } from "../../utils/domicilio";
 export type TipoTraslado = "ENTREGA" | "RECOLECCION";
 export type EstadoTraslado = "PROGRAMADO" | "EN_CURSO" | "COMPLETADO" | "CANCELADO";
 export type EstadoRenta = "PROGRAMADA" | "EN_CURSO" | "CERRADA" | "CANCELADA";
+// Equivale a CartaTarea: la carta responsiva en una entrega
+export type CartaTarea = "SIN_GENERAR" | "PENDIENTE" | "FIRMADA";
 export type FaseEquipo =
   | "RESERVADO"
   | "EN_REVISION_SALIDA"
@@ -40,6 +42,7 @@ export interface EquipoTarea {
 // Equivale a DetalleTareaResponse
 export interface DetalleTarea extends Omit<Tarea, "equipos"> {
   estadoRenta: EstadoRenta;
+  carta: CartaTarea | null; // null en las recolecciones
   equipos: EquipoTarea[];
   listos: number;
   puedeIniciar: boolean;
@@ -50,6 +53,13 @@ export interface DetalleTarea extends Omit<Tarea, "equipos"> {
 export const NOMBRE_TIPO: Record<TipoTraslado, string> = {
   ENTREGA: "Entrega",
   RECOLECCION: "Recolección",
+};
+
+export const NOMBRE_ESTADO_TRASLADO: Record<EstadoTraslado, string> = {
+  PROGRAMADO: "Programado",
+  EN_CURSO: "En camino",
+  COMPLETADO: "Realizado",
+  CANCELADO: "Cancelado",
 };
 
 export const NOMBRE_ESTADO_RENTA: Record<EstadoRenta, string> = {

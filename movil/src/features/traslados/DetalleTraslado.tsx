@@ -16,13 +16,18 @@ import { Tarjeta } from "../../components/Tarjeta";
 import { conNotificacion } from "../../components/Notificacion";
 import { mensajeDeError } from "../../services/api";
 import { horario } from "../../utils/fechas";
+import CartaResponsivaTarea from "./CartaResponsivaTarea";
 import { completarTraslado, iniciarTraslado, obtenerTarea } from "./trasladosApi";
 import type { DetalleTarea, EquipoTarea } from "./trasladosTypes";
-import { NOMBRE_ESTADO_RENTA, NOMBRE_FASE } from "./trasladosTypes";
+import { NOMBRE_ESTADO_RENTA, NOMBRE_ESTADO_TRASLADO, NOMBRE_FASE } from "./trasladosTypes";
 
-type Hecho = { titulo: string; texto: string };
+type Accion = "iniciar" | "completar";
+type Hecho = { accion: Accion; titulo: string; texto: string };
 
-/** OHU10: el detalle de la tarea, con iniciar el traslado y marcarlo como realizado. */
+/**
+ * OHU10 y OHU11: el detalle de la tarea, con iniciar el traslado y marcarlo como realizado.
+ * Una entrega se registra solo con la carta responsiva firmada.
+ */
 export default function DetalleTraslado() {
   const id = Number(useParams().id);
   const navigate = useNavigate();
@@ -38,7 +43,7 @@ export default function DetalleTraslado() {
       .catch((e) => setError(mensajeDeError(e, "No se pudo cargar la tarea.")));
   }, [id]);
 
-  async function ejecutar(accion: "iniciar" | "completar") {
+  async function ejecutar(accion: Accion) {
     if (!tarea) return;
     setEnviando(true);
     setFallo(null);
@@ -55,14 +60,30 @@ export default function DetalleTraslado() {
 
   const volver = () => navigate("/traslados", conNotificacion(avisoDeVuelta(hecho, tarea)));
 
-  if (hecho) {
+  if (hecho && tarea) {
+    const entregaRegistrada = hecho.accion === "completar" && tarea.tipo === "ENTREGA";
     return (
       <Resultado
         tipo="exito"
         titulo={hecho.titulo}
         texto={hecho.texto}
         accion={{ texto: "Volver a mis tareas", onClick: volver }}
-      />
+      >
+        {entregaRegistrada && (
+          <ul className="lista">
+            {tarea.equipos.map((equipo) => (
+              <li key={equipo.id}>
+                <Tarjeta>
+                  <div className="equipo">
+                    <span className="equipo-unidad">{equipo.numeroUnidad}</span>
+                    <Chip tono="verde">Entregado</Chip>
+                  </div>
+                </Tarjeta>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Resultado>
     );
   }
 
@@ -84,6 +105,7 @@ export default function DetalleTraslado() {
 
   const entrega = tarea.tipo === "ENTREGA";
   const enCurso = tarea.estado === "EN_CURSO";
+  const titulo = !enCurso ? "Iniciar traslado" : entrega ? "Entrega e instalación" : "Traslado en curso";
 
   return (
     <Pantalla
@@ -100,8 +122,13 @@ export default function DetalleTraslado() {
         >
           {fallo && <Aviso tipo="error" titulo={fallo} />}
           {enCurso ? (
-            <Boton icono="check" cargando={enviando} onClick={() => ejecutar("completar")}>
-              {entrega ? "Marcar entrega realizada" : "Marcar recolección realizada"}
+            <Boton
+              icono="check"
+              bloqueado={!tarea.puedeCompletar}
+              cargando={enviando}
+              onClick={() => ejecutar("completar")}
+            >
+              {entrega ? "Marcar todos como entregados e instalados" : "Marcar recolección realizada"}
             </Boton>
           ) : (
             <Boton
@@ -116,7 +143,7 @@ export default function DetalleTraslado() {
         </BarraAccion>
       }
     >
-      <Encabezado titulo={enCurso ? "Traslado en curso" : "Iniciar traslado"}>
+      <Encabezado titulo={titulo}>
         <Icono nombre="schedule" />
         <span>{horario(tarea.inicio, tarea.fin)}</span>
       </Encabezado>
@@ -125,6 +152,9 @@ export default function DetalleTraslado() {
         <ListaDatos>
           <Dato etiqueta="Cliente">{tarea.cliente}</Dato>
           <Dato etiqueta={entrega ? "Entrega" : "Recolección"}>{tarea.folio}</Dato>
+          <Dato etiqueta="Estado del traslado">
+            <Chip tono={enCurso ? "lila" : "gris"}>{NOMBRE_ESTADO_TRASLADO[tarea.estado]}</Chip>
+          </Dato>
           <Dato etiqueta="Estado de la renta">
             <Chip tono={tarea.estadoRenta === "EN_CURSO" ? "azul" : "gris"}>
               {NOMBRE_ESTADO_RENTA[tarea.estadoRenta]}
@@ -144,11 +174,13 @@ export default function DetalleTraslado() {
         </Aviso>
       )}
 
-      {tarea.firmaEnSitio && (
+      {tarea.firmaEnSitio && !enCurso && (
         <Aviso tipo="advertencia" titulo="Lleva la carta responsiva">
           El cliente la firma al recibir los equipos.
         </Aviso>
       )}
+
+      {entrega && enCurso && tarea.carta && <CartaResponsivaTarea tarea={tarea} onAdjuntada={setTarea} />}
 
       <h3 className="seccion-titulo">
         {entrega ? "Equipos de la renta" : "Equipos a recolectar"} ({tarea.equipos.length})
@@ -182,10 +214,12 @@ function tonoDeFase(equipo: EquipoTarea) {
   return equipo.listo ? ("verde" as const) : ("amarillo" as const);
 }
 
-function mensajeDeHecho(accion: "iniciar" | "completar", tarea: DetalleTarea): Hecho {
-  const equipos = `${tarea.equipos.length} equipo${tarea.equipos.length === 1 ? "" : "s"}`;
+function mensajeDeHecho(accion: Accion, tarea: DetalleTarea): Hecho {
+  const total = tarea.equipos.length;
+  const equipos = `${total} equipo${total === 1 ? "" : "s"}`;
   if (accion === "iniciar") {
     return {
+      accion,
       titulo: "Traslado iniciado",
       texto:
         tarea.tipo === "ENTREGA"
@@ -194,8 +228,12 @@ function mensajeDeHecho(accion: "iniciar" | "completar", tarea: DetalleTarea): H
     };
   }
   return tarea.tipo === "ENTREGA"
-    ? { titulo: "Entrega realizada", texto: `Renta ${tarea.rentaFolio} · los ${equipos} quedaron con el cliente.` }
-    : { titulo: "Recolección realizada", texto: `Renta ${tarea.rentaFolio} · los ${equipos} regresan a revisión.` };
+    ? {
+        accion,
+        titulo: "Entrega e instalación registradas",
+        texto: `Renta ${tarea.rentaFolio} · ${total} de ${total} equipo${total === 1 ? "" : "s"} entregado${total === 1 ? "" : "s"}.`,
+      }
+    : { accion, titulo: "Recolección realizada", texto: `Renta ${tarea.rentaFolio} · los ${equipos} regresan a revisión.` };
 }
 
 function avisoDeVuelta(hecho: Hecho | null, tarea: DetalleTarea | null) {
