@@ -1,5 +1,5 @@
 import { getApi, patchApi } from "../../services/apiClient";
-import type { ApartadoProximo, AvisoDescuento, AvisoOperacion } from "./avisosTypes";
+import type { ApartadoProximo, AvisoDescuento, AvisoOperacion, RecoleccionProxima } from "./avisosTypes";
 
 // Rentas que empiezan entre hoy y dentro de `dias` días y no tienen la carta firmada
 export const listarApartadosProximos = (dias: number) =>
@@ -26,3 +26,8 @@ export const marcarAvisosOperacionLeidos = () =>
 
 export const marcarAvisoOperacionLeido = (id: number) =>
   patchApi<AvisoOperacion[]>(`/avisos/operacion/${id}/leido`, {});
+
+
+// Rentas en curso que terminan entre hoy y dentro de `dias` días (o ya terminaron) sin recolección confirmada
+export const listarRecoleccionesProximas = (dias: number) =>
+  getApi<RecoleccionProxima[]>(`/avisos/recolecciones-proximas?dias=${dias}`);

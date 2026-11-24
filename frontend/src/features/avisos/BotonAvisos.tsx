@@ -13,6 +13,8 @@ import { useApartadosProximos } from "./useApartadosProximos";
 import { useAvisosDescuento } from "./useAvisosDescuento";
 import { useAvisosOperacion } from "./useAvisosOperacion";
 import ItemAvisoOperacion from "./ItemAvisoOperacion";
+import ItemRecoleccionProxima from "./ItemRecoleccionProxima";
+import { claveRecoleccion, useRecoleccionesProximas } from "./useRecoleccionesProximas";
 import "../../styles/apartados/panel-avisos.css";
 
 interface ItemAvisoProps {
@@ -112,6 +114,7 @@ export default function BotonAvisos() {
     useApartadosProximos();
   const descuentos = useAvisosDescuento();
   const operacion = useAvisosOperacion();
+  const recolecciones = useRecoleccionesProximas();
   const [abierto, setAbierto] = useState(false);
   const contenedor = useRef<HTMLDivElement>(null);
 
@@ -133,12 +136,13 @@ export default function BotonAvisos() {
   }, [abierto]);
 
   const nuevos = new Set(noLeidos.map(claveAviso));
-  const cantidad = noLeidos.length + descuentos.noLeidos + operacion.noLeidos;
+  const cantidad = noLeidos.length + descuentos.noLeidos + operacion.noLeidos + recolecciones.noLeidos;
 
   const marcarTodos = () => {
     marcarComoLeidos();
     descuentos.marcarComoLeidos();
     operacion.marcarComoLeidos();
+    recolecciones.marcarComoLeidos();
   };
 
   return (
@@ -186,7 +190,8 @@ export default function BotonAvisos() {
             <p className="panel-avisos-mensaje">Cargando avisos…</p>
           ) : apartados.length === 0 &&
             descuentos.avisos.length === 0 &&
-            operacion.avisos.length === 0 ? (
+            operacion.avisos.length === 0 &&
+            recolecciones.recolecciones.length === 0 ? (
             <p className="panel-avisos-mensaje">
               <span className="material-symbols-rounded" aria-hidden="true">
                 check_circle
@@ -195,6 +200,14 @@ export default function BotonAvisos() {
             </p>
           ) : (
             <ul className="panel-avisos-lista">
+              {recolecciones.recolecciones.map((r) => (
+                <ItemRecoleccionProxima
+                  key={`recoleccion-${r.rentaId}`}
+                  recoleccion={r}
+                  nuevo={recolecciones.nuevas.has(claveRecoleccion(r))}
+                  onIr={() => setAbierto(false)}
+                />
+              ))}
               {operacion.avisos.map((a) => (
                 <ItemAvisoOperacion
                   key={`operacion-${a.id}`}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Aviso from "../../components/Aviso";
 import { Button } from "../../components/buttons";
 import Campo from "../../components/CampoForm";
@@ -13,12 +13,15 @@ import "../../styles/clientes/registrar-cliente.css";
 import "../../styles/rentas-captura/registrar-renta.css";
 
 /*
+ * El recordatorio de recolecciones (OHU-25) llega con ?renta=ID y la renta ya elegida.
  * Horario de recolección de una renta en curso. Es temporal, igual que la captura de rentas:
  * no tiene opción en el menú, se entra escribiendo /rentas/recoleccion.
  * Al guardar nace el traslado de recolección por asignar.
  */
 export default function ProgramarRecoleccion() {
   useTitulo("Programar recolección");
+  const [parametros] = useSearchParams();
+  const rentaDelAviso = parametros.get("renta");
 
   const [rentas, setRentas] = useState<RentaCreada[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -32,10 +35,18 @@ export default function ProgramarRecoleccion() {
 
   useEffect(() => {
     listarRentasSinRecoleccion()
-      .then(setRentas)
+      .then((lista) => {
+        setRentas(lista);
+        // Desde el recordatorio: se propone la renta y su último día
+        const renta = lista.find((r) => String(r.id) === rentaDelAviso);
+        if (renta) {
+          setRentaId(String(renta.id));
+          setDia(renta.fechaFin);
+        }
+      })
       .catch(() => setError("No fue posible cargar las rentas. Revisa tu conexión."))
       .finally(() => setCargando(false));
-  }, []);
+  }, [rentaDelAviso]);
 
   // Al elegir la renta se propone su último día
   function elegirRenta(id: string) {
