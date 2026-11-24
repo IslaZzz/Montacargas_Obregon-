@@ -13,16 +13,17 @@ import mx.montacargasobregon.backend.traslados.modelo.Traslado;
 
 /**
  * El detalle de una tarea. Trae ya resuelto si el operador puede iniciarla o marcarla realizada,
- * y el motivo cuando no, para que la app solo lo muestre.
+ * y el motivo cuando no, para que la app solo lo muestre. carta es null en las recolecciones.
  */
 public record DetalleTareaResponse(Long id, String folio, TipoTraslado tipo, EstadoTraslado estado,
                                    LocalDateTime inicio, LocalDateTime fin, String rentaFolio,
                                    EstadoRenta estadoRenta, String cliente, DomicilioResponse domicilio,
-                                   boolean firmaEnSitio, List<EquipoTareaResponse> equipos, int listos,
+                                   boolean firmaEnSitio, CartaTarea carta,
+                                   List<EquipoTareaResponse> equipos, int listos,
                                    boolean puedeIniciar, boolean puedeCompletar, String bloqueo) {
 
     public static DetalleTareaResponse de(Traslado traslado, boolean firmaEnSitio, FaseEquipoRenta faseRequerida,
-                                          boolean puedeIniciar, boolean puedeCompletar, String bloqueo) {
+                                          CartaTarea carta, boolean puedeIniciar, boolean puedeCompletar, String bloqueo) {
         Renta renta = traslado.getRenta();
         List<EquipoTareaResponse> equipos = renta.getEquipos().stream()
                 .filter(er -> er.getFase() != FaseEquipoRenta.CANCELADO)
@@ -41,6 +42,7 @@ public record DetalleTareaResponse(Long id, String folio, TipoTraslado tipo, Est
                 TareaResponse.nombreCliente(renta.getCliente()),
                 TareaResponse.domicilioDeLaObra(renta),
                 firmaEnSitio,
+                carta,
                 equipos,
                 (int) equipos.stream().filter(EquipoTareaResponse::listo).count(),
                 puedeIniciar,

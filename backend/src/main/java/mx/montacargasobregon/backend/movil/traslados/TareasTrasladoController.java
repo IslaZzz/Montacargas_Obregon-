@@ -2,13 +2,18 @@ package mx.montacargasobregon.backend.movil.traslados;
 
 import java.util.List;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import mx.montacargasobregon.backend.cartas.servicio.CartaResponsivaService.ArchivoCarta;
 import mx.montacargasobregon.backend.movil.sesion.PersonalActual;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.traslados.modelo.TipoTraslado;
@@ -50,5 +55,25 @@ public class TareasTrasladoController {
     public DetalleTareaResponse completar(@PathVariable Long id, PersonalActual personal) {
         personal.exigir(TipoPersonal.OP_TRASLADO);
         return servicio.completar(id, personal);
+    }
+
+    /** POST /api/movil/traslados/{id}/carta (multipart: firmante, archivo): el cliente firmó al recibir. */
+    @PostMapping(value = "/{id}/carta", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public DetalleTareaResponse adjuntarCarta(@PathVariable Long id, @RequestParam(required = false) String firmante,
+                                              @RequestParam(required = false) MultipartFile archivo,
+                                              PersonalActual personal) {
+        personal.exigir(TipoPersonal.OP_TRASLADO);
+        return servicio.adjuntarCarta(id, firmante, archivo, personal);
+    }
+
+    /** GET /api/movil/traslados/{id}/carta: la carta firmada de la renta. */
+    @GetMapping("/{id}/carta")
+    public ResponseEntity<byte[]> cartaFirmada(@PathVariable Long id, PersonalActual personal) {
+        personal.exigir(TipoPersonal.OP_TRASLADO);
+        ArchivoCarta archivo = servicio.cartaFirmada(id, personal);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(archivo.tipo()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + archivo.nombre() + "\"")
+                .body(archivo.contenido());
     }
 }

@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import mx.montacargasobregon.backend.avisos.servicio.AvisoOperacionService;
+import mx.montacargasobregon.backend.cartas.modelo.EstadoCarta;
+import mx.montacargasobregon.backend.cartas.repositorio.CartaResponsivaRepository;
 import mx.montacargasobregon.backend.personal.modelo.Personal;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.personal.repositorio.PersonalRepository;
@@ -29,12 +32,17 @@ public class TrasladoService {
     private final TrasladoRepository repositorio;
     private final PersonalRepository personalRepositorio;
     private final AvanceRentaService avanceRenta;
+    private final CartaResponsivaRepository cartaRepositorio;
+    private final AvisoOperacionService avisos;
 
     public TrasladoService(TrasladoRepository repositorio, PersonalRepository personalRepositorio,
-                           AvanceRentaService avanceRenta) {
+                           AvanceRentaService avanceRenta, CartaResponsivaRepository cartaRepositorio,
+                           AvisoOperacionService avisos) {
         this.repositorio = repositorio;
         this.personalRepositorio = personalRepositorio;
         this.avanceRenta = avanceRenta;
+        this.cartaRepositorio = cartaRepositorio;
+        this.avisos = avisos;
     }
 
     /**
@@ -242,8 +250,14 @@ public class TrasladoService {
                             nombreOp, conflicto.getFolio(), horarioConflicto));
         }
 
+        Personal anterior = traslado.getResponsable();
         traslado.asignarResponsable(operador);
         Traslado guardado = repositorio.save(traslado);
+
+        // OHU09: el operador anterior se entera en su app de que la tarea ya no es suya
+        if (anterior != null && !anterior.getId().equals(operador.getId())) {
+            avisos.tareaReasignada(guardado, anterior);
+        }
         return TrasladoResponse.from(guardado);
     }
 
@@ -269,10 +283,21 @@ public class TrasladoService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Primero marca como realizada la entrega de la renta " + traslado.getRenta().getFolio());
         }
+        // OHU11: la misma regla que en la app; desde la oficina tampoco se entrega sin la carta firmada
+        if (traslado.getTipo() == TipoTraslado.ENTREGA && !cartaFirmada(traslado)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Obligatoria: sin la carta firmada no se puede registrar la entrega.");
+        }
 
         traslado.completar();
         avanceRenta.trasladoRealizado(traslado);
         return TrasladoResponse.from(traslado);
+    }
+
+    private boolean cartaFirmada(Traslado traslado) {
+        return cartaRepositorio.findByRentaId(traslado.getRenta().getId())
+                .map(c -> c.getEstado() == EstadoCarta.FIRMADA)
+                .orElse(false);
     }
 
     private String obtenerIniciales(String nombreCompleto) {

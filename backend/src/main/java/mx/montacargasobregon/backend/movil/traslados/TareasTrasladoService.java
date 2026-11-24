@@ -1,5 +1,7 @@
 package mx.montacargasobregon.backend.movil.traslados;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,11 +11,16 @@ import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import mx.montacargasobregon.backend.cartas.modelo.CartaResponsiva;
 import mx.montacargasobregon.backend.cartas.modelo.EstadoCarta;
+import mx.montacargasobregon.backend.cartas.modelo.TipoFirma;
 import mx.montacargasobregon.backend.cartas.repositorio.CartaResponsivaRepository;
+import mx.montacargasobregon.backend.cartas.servicio.CartaResponsivaService;
+import mx.montacargasobregon.backend.cartas.servicio.CartaResponsivaService.ArchivoCarta;
+import mx.montacargasobregon.backend.avisos.servicio.AvisoOperacionService;
 import mx.montacargasobregon.backend.movil.sesion.PersonalActual;
 import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
@@ -26,21 +33,31 @@ import mx.montacargasobregon.backend.traslados.repositorio.TrasladoRepository;
 
 /**
  * Las tareas del operador de traslado en la app móvil: ver las suyas, abrir el detalle,
- * iniciar el traslado y marcarlo como realizado.
+ * iniciar el traslado y marcarlo como realizado. Una entrega solo se marca realizada
+ * con la carta responsiva firmada; si el cliente la firma al recibir, el operador la adjunta ahí.
  */
 @Service
 public class TareasTrasladoService {
 
+    static final String SIN_CARTA_FIRMADA = "Obligatoria: sin la carta firmada no se puede registrar la entrega.";
+    static final String ROL_OPERADOR = "Operador de traslado";
+
     private final TrasladoRepository trasladoRepositorio;
     private final CartaResponsivaRepository cartaRepositorio;
+    private final CartaResponsivaService cartaServicio;
     private final AvanceRentaService avanceRenta;
+    private final AvisoOperacionService avisos;
 
     public TareasTrasladoService(TrasladoRepository trasladoRepositorio,
                                  CartaResponsivaRepository cartaRepositorio,
-                                 AvanceRentaService avanceRenta) {
+                                 CartaResponsivaService cartaServicio,
+                                 AvanceRentaService avanceRenta,
+                                 AvisoOperacionService avisos) {
         this.trasladoRepositorio = trasladoRepositorio;
         this.cartaRepositorio = cartaRepositorio;
+        this.cartaServicio = cartaServicio;
         this.avanceRenta = avanceRenta;
+        this.avisos = avisos;
     }
 
     /**
@@ -86,10 +103,18 @@ public class TareasTrasladoService {
 
         traslado.iniciar();
         avanceRenta.trasladoIniciado(traslado);
+        if (traslado.getTipo() == TipoTraslado.ENTREGA) {
+            avisos.trasladoIniciado(traslado);
+        } else {
+            avisos.recoleccionConfirmada(traslado);
+        }
         return detalleDe(traslado);
     }
 
-    /** El operador llegó: los equipos quedan con el cliente, o regresan a revisión de entrada. */
+    /**
+     * El operador llegó: los equipos quedan con el cliente, o regresan a revisión de entrada.
+     * Una entrega pide la carta responsiva firmada.
+     */
     @Transactional
     public DetalleTareaResponse completar(Long id, PersonalActual personal) {
         Traslado traslado = buscarMia(id, personal);
@@ -97,10 +122,47 @@ public class TareasTrasladoService {
         if (traslado.getEstado() != EstadoTraslado.EN_CURSO) {
             throw conflicto("Primero inicia el traslado " + traslado.getFolio() + ".");
         }
+        if (traslado.getTipo() == TipoTraslado.ENTREGA && !estaFirmada(cartaDe(traslado))) {
+            throw conflicto(SIN_CARTA_FIRMADA);
+        }
 
         traslado.completar();
         avanceRenta.trasladoRealizado(traslado);
+        if (traslado.getTipo() == TipoTraslado.ENTREGA) {
+            avisos.entregaRegistrada(traslado);
+        } else {
+            avisos.equiposRecibidos(traslado);
+        }
         return detalleDe(traslado);
+    }
+
+    /**
+     * El cliente firmó la carta impresa al recibir: el operador sube la foto y queda Firmada.
+     * Las validaciones de la firma son las mismas que en la oficina.
+     */
+    @Transactional
+    public DetalleTareaResponse adjuntarCarta(Long id, String firmante, MultipartFile archivo,
+                                              PersonalActual personal) {
+        Traslado traslado = buscarMia(id, personal);
+
+        if (traslado.getTipo() != TipoTraslado.ENTREGA) {
+            throw conflicto("La carta responsiva se firma en la entrega.");
+        }
+        if (traslado.getEstado() != EstadoTraslado.PROGRAMADO && traslado.getEstado() != EstadoTraslado.EN_CURSO) {
+            throw conflicto("El traslado " + traslado.getFolio() + " ya terminó.");
+        }
+
+        cartaServicio.registrarFirma(traslado.getRenta().getId(), TipoFirma.FISICA,
+                LocalDateTime.now(CartaResponsiva.ZONA_HORARIA), firmante, leer(archivo),
+                personal.nombre(), ROL_OPERADOR);
+        return detalleDe(traslado);
+    }
+
+    /** La carta firmada de la renta de la tarea, para que el operador la vea. */
+    @Transactional(readOnly = true)
+    public ArchivoCarta cartaFirmada(Long id, PersonalActual personal) {
+        Traslado traslado = buscarMia(id, personal);
+        return cartaServicio.archivoFirmado(traslado.getRenta().getId());
     }
 
     // ---- apoyo ----
@@ -119,12 +181,44 @@ public class TareasTrasladoService {
     private DetalleTareaResponse detalleDe(Traslado traslado) {
         String bloqueo = motivoBloqueo(traslado);
         boolean programado = traslado.getEstado() == EstadoTraslado.PROGRAMADO;
-        CartaResponsiva carta = cartaRepositorio.findByRentaId(traslado.getRenta().getId()).orElse(null);
+        boolean entrega = traslado.getTipo() == TipoTraslado.ENTREGA;
+        CartaResponsiva carta = cartaDe(traslado);
 
         return DetalleTareaResponse.de(traslado, firmaEnSitio(traslado, carta), faseRequerida(traslado.getTipo()),
+                entrega ? estadoCarta(carta) : null,
                 programado && bloqueo == null,
-                traslado.getEstado() == EstadoTraslado.EN_CURSO,
+                traslado.getEstado() == EstadoTraslado.EN_CURSO && (!entrega || estaFirmada(carta)),
                 programado ? bloqueo : null);
+    }
+
+    private CartaResponsiva cartaDe(Traslado traslado) {
+        return cartaRepositorio.findByRentaId(traslado.getRenta().getId()).orElse(null);
+    }
+
+    private static boolean estaFirmada(CartaResponsiva carta) {
+        return carta != null && carta.getEstado() == EstadoCarta.FIRMADA;
+    }
+
+    /** Cómo ve el operador la carta: firmada, pendiente de firma, o sin generar todavía en la oficina. */
+    static CartaTarea estadoCarta(CartaResponsiva carta) {
+        if (estaFirmada(carta)) {
+            return CartaTarea.FIRMADA;
+        }
+        if (carta == null || !carta.tieneArchivo()) {
+            return CartaTarea.SIN_GENERAR;
+        }
+        return CartaTarea.PENDIENTE;
+    }
+
+    private static byte[] leer(MultipartFile archivo) {
+        if (archivo == null || archivo.isEmpty()) {
+            return null; // registrarFirma responde con el mensaje de que falta la carta
+        }
+        try {
+            return archivo.getBytes();
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se pudo leer la foto. Intenta de nuevo.");
+        }
     }
 
     /** Qué fase deben tener los equipos para poder salir. */

@@ -3,8 +3,12 @@ package mx.montacargasobregon.backend.movil.traslados;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -21,10 +25,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import mx.montacargasobregon.backend.avisos.servicio.AvisoOperacionService;
+import mx.montacargasobregon.backend.cartas.modelo.CartaResponsiva;
+import mx.montacargasobregon.backend.cartas.modelo.TipoFirma;
 import mx.montacargasobregon.backend.cartas.repositorio.CartaResponsivaRepository;
+import mx.montacargasobregon.backend.cartas.servicio.CartaResponsivaService;
 import mx.montacargasobregon.backend.clientes.modelo.Cliente;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
 import mx.montacargasobregon.backend.movil.sesion.PersonalActual;
@@ -53,7 +62,13 @@ class TareasTrasladoServiceTest {
     private CartaResponsivaRepository cartaRepositorio;
 
     @Mock
+    private CartaResponsivaService cartaServicio;
+
+    @Mock
     private AvanceRentaService avanceRenta;
+
+    @Mock
+    private AvisoOperacionService avisos;
 
     private TareasTrasladoService servicio;
 
@@ -67,7 +82,7 @@ class TareasTrasladoServiceTest {
 
     @BeforeEach
     void setUp() {
-        servicio = new TareasTrasladoService(trasladoRepositorio, cartaRepositorio, avanceRenta);
+        servicio = new TareasTrasladoService(trasladoRepositorio, cartaRepositorio, cartaServicio, avanceRenta, avisos);
 
         Cliente cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
@@ -117,7 +132,7 @@ class TareasTrasladoServiceTest {
         mc030.cambiarFase(FaseEquipoRenta.LISTO_ENTREGA);
         mc031.cambiarFase(FaseEquipoRenta.LISTO_ENTREGA);
         when(trasladoRepositorio.findById(50L)).thenReturn(Optional.of(entrega));
-        when(cartaRepositorio.findByRentaId(90L)).thenReturn(Optional.empty());
+        when(cartaRepositorio.findByRentaId(90L)).thenReturn(Optional.of(cartaFirmada()));
 
         DetalleTareaResponse detalle = servicio.iniciar(50L, actual);
 
@@ -125,6 +140,7 @@ class TareasTrasladoServiceTest {
         assertTrue(detalle.puedeCompletar());
         assertFalse(detalle.puedeIniciar());
         verify(avanceRenta).trasladoIniciado(entrega);
+        verify(avisos).trasladoIniciado(entrega); // La oficina se entera
     }
 
     @Test
@@ -155,12 +171,109 @@ class TareasTrasladoServiceTest {
     void completarMarcaElTrasladoYHaceAvanzarLaRenta() {
         entrega.iniciar();
         when(trasladoRepositorio.findById(50L)).thenReturn(Optional.of(entrega));
-        when(cartaRepositorio.findByRentaId(90L)).thenReturn(Optional.empty());
+        when(cartaRepositorio.findByRentaId(90L)).thenReturn(Optional.of(cartaFirmada()));
 
         servicio.completar(50L, actual);
 
         assertEquals(EstadoTraslado.COMPLETADO, entrega.getEstado());
         verify(avanceRenta).trasladoRealizado(entrega);
+        verify(avisos).entregaRegistrada(entrega); //La oficina se entera
+    }
+
+    // ---- HU 11: la entrega pide la carta firmada ----
+
+    @Test
+    void noSeRegistraLaEntregaConLaCartaSinFirmar() {
+        entrega.iniciar();
+        when(trasladoRepositorio.findById(50L)).thenReturn(Optional.of(entrega));
+        when(cartaRepositorio.findByRentaId(90L)).thenReturn(Optional.of(cartaGenerada()));
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> servicio.completar(50L, actual));
+
+        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
+        assertEquals(TareasTrasladoService.SIN_CARTA_FIRMADA, error.getReason());
+        assertEquals(EstadoTraslado.EN_CURSO, entrega.getEstado());
+        verify(avanceRenta, never()).trasladoRealizado(any());
+        verifyNoInteractions(avisos);
+    }
+
+    @Test
+    void noSeRegistraLaEntregaSiLaRentaNoTieneCarta() {
+        entrega.iniciar();
+        when(trasladoRepositorio.findById(50L)).thenReturn(Optional.of(entrega));
+        when(cartaRepositorio.findByRentaId(90L)).thenReturn(Optional.empty());
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> servicio.completar(50L, actual));
+
+        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
+        verify(avanceRenta, never()).trasladoRealizado(any());
+    }
+
+    @Test
+    void elDetalleDiceQueLaCartaEstaPendienteYNoDejaCompletar() {
+        entrega.iniciar();
+        when(trasladoRepositorio.findById(50L)).thenReturn(Optional.of(entrega));
+        when(cartaRepositorio.findByRentaId(90L)).thenReturn(Optional.of(cartaGenerada()));
+
+        DetalleTareaResponse detalle = servicio.detalle(50L, actual);
+
+        assertEquals(CartaTarea.PENDIENTE, detalle.carta());
+        assertFalse(detalle.puedeCompletar());
+    }
+
+    @Test
+    void conLaCartaFirmadaElDetalleDejaCompletar() {
+        entrega.iniciar();
+        when(trasladoRepositorio.findById(50L)).thenReturn(Optional.of(entrega));
+        when(cartaRepositorio.findByRentaId(90L)).thenReturn(Optional.of(cartaFirmada()));
+
+        DetalleTareaResponse detalle = servicio.detalle(50L, actual);
+
+        assertEquals(CartaTarea.FIRMADA, detalle.carta());
+        assertTrue(detalle.puedeCompletar());
+    }
+
+    @Test
+    void laRecoleccionNoPideCarta() {
+        Traslado recoleccion = traslado(51L, TipoTraslado.RECOLECCION);
+        recoleccion.asignarResponsable(operador);
+        recoleccion.iniciar();
+        when(trasladoRepositorio.findById(51L)).thenReturn(Optional.of(recoleccion));
+        when(cartaRepositorio.findByRentaId(90L)).thenReturn(Optional.empty());
+
+        DetalleTareaResponse detalle = servicio.completar(51L, actual);
+
+        assertNull(detalle.carta());
+        assertEquals(EstadoTraslado.COMPLETADO, recoleccion.getEstado());
+        verify(avanceRenta).trasladoRealizado(recoleccion);
+        verify(avisos).equiposRecibidos(recoleccion);
+    }
+
+    @Test
+    void adjuntarLaCartaRegistraLaFirmaFisicaConElOperador() throws Exception {
+        when(trasladoRepositorio.findById(50L)).thenReturn(Optional.of(entrega));
+        MockMultipartFile foto = new MockMultipartFile("archivo", "carta.jpg", "image/jpeg",
+                new byte[] { (byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 1 });
+
+        servicio.adjuntarCarta(50L, "Ramón Gutiérrez", foto, actual);
+
+        verify(cartaServicio).registrarFirma(eq(90L), eq(TipoFirma.FISICA), any(), eq("Ramón Gutiérrez"),
+                eq(foto.getBytes()), eq("Rafael Amaya"), eq(TareasTrasladoService.ROL_OPERADOR));
+    }
+
+    @Test
+    void noSeAdjuntaCartaEnUnaRecoleccion() {
+        Traslado recoleccion = traslado(51L, TipoTraslado.RECOLECCION);
+        recoleccion.asignarResponsable(operador);
+        when(trasladoRepositorio.findById(51L)).thenReturn(Optional.of(recoleccion));
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> servicio.adjuntarCarta(51L, "Ramón Gutiérrez", null, actual));
+
+        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
+        verifyNoInteractions(cartaServicio);
     }
 
     @Test
@@ -172,6 +285,17 @@ class TareasTrasladoServiceTest {
                 () -> servicio.detalle(50L, otro));
 
         assertEquals(HttpStatus.FORBIDDEN, error.getStatusCode());
+    }
+
+    private CartaResponsiva cartaGenerada() {
+        return new CartaResponsiva(renta, "", new byte[] { '%', 'P', 'D', 'F' });
+    }
+
+    private CartaResponsiva cartaFirmada() {
+        CartaResponsiva carta = cartaGenerada();
+        carta.registrarFirma(TipoFirma.FISICA, DESDE, "Ramón Gutiérrez", "Rafael Amaya", "Operador de traslado",
+                new byte[] { (byte) 0xFF, (byte) 0xD8, (byte) 0xFF }, "image/jpeg");
+        return carta;
     }
 
     private Traslado traslado(Long id, TipoTraslado tipo) {
