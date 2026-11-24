@@ -154,6 +154,16 @@ public class CartaResponsivaService {
     @Transactional
     public CartaResponse registrarFirma(Long rentaId, TipoFirma tipo, LocalDateTime fecha, String firmante,
                                         byte[] archivo) {
+        return registrarFirma(rentaId, tipo, fecha, firmante, archivo, USUARIO_PROVISIONAL, ROL_PROVISIONAL);
+    }
+
+    /**
+     * Igual que la anterior, pero con quién la registra. La app móvil la usa cuando el operador
+     * adjunta la carta que el cliente firmó al recibir los equipos.
+     */
+    @Transactional
+    public CartaResponse registrarFirma(Long rentaId, TipoFirma tipo, LocalDateTime fecha, String firmante,
+                                        byte[] archivo, String registradaPor, String rol) {
         Renta renta = renta(rentaId);
         CartaResponsiva carta = cartas.findByRentaId(rentaId)
                 .filter(CartaResponsiva::tieneArchivo)
@@ -185,8 +195,7 @@ public class CartaResponsivaService {
         }
         String tipoArchivo = validarArchivo(tipo, archivo);
 
-        carta.registrarFirma(tipo, fecha, firmante.strip(), USUARIO_PROVISIONAL, ROL_PROVISIONAL,
-                archivo, tipoArchivo);
+        carta.registrarFirma(tipo, fecha, firmante.strip(), registradaPor, rol, archivo, tipoArchivo);
         return respuesta(renta, carta);
     }
 
