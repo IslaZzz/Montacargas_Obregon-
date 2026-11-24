@@ -42,6 +42,7 @@ import mx.montacargasobregon.backend.personal.modelo.Personal;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.rentas.RentaDePrueba;
 import mx.montacargasobregon.backend.rentas.modelo.EquipoRenta;
+import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.FaseEquipoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.traslados.modelo.EstadoTraslado;
@@ -70,6 +71,9 @@ class TareasTrasladoServiceTest {
     @Mock
     private AvisoOperacionService avisos;
 
+    @Mock
+    private EvidenciaRecoleccionService evidencia;
+
     private TareasTrasladoService servicio;
 
     private final Personal operador = personal(7L, "OP-01");
@@ -82,7 +86,8 @@ class TareasTrasladoServiceTest {
 
     @BeforeEach
     void setUp() {
-        servicio = new TareasTrasladoService(trasladoRepositorio, cartaRepositorio, cartaServicio, avanceRenta, avisos);
+        servicio = new TareasTrasladoService(trasladoRepositorio, cartaRepositorio, cartaServicio, avanceRenta,
+                avisos, evidencia);
 
         Cliente cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
@@ -91,6 +96,8 @@ class TareasTrasladoServiceTest {
         ReflectionTestUtils.setField(renta, "id", 90L);
         mc030 = renta.agregarEquipo(new Equipo("MC-030", "SN-030", 2021, null));
         mc031 = renta.agregarEquipo(new Equipo("MC-031", "SN-031", 2021, null));
+        ReflectionTestUtils.setField(mc030, "id", 1L);
+        ReflectionTestUtils.setField(mc031, "id", 2L);
 
         entrega = traslado(50L, TipoTraslado.ENTREGA);
         entrega.asignarResponsable(operador);
@@ -140,7 +147,7 @@ class TareasTrasladoServiceTest {
         assertTrue(detalle.puedeCompletar());
         assertFalse(detalle.puedeIniciar());
         verify(avanceRenta).trasladoIniciado(entrega);
-        verify(avisos).trasladoIniciado(entrega); // La oficina se entera
+        verify(avisos).trasladoIniciado(entrega);
     }
 
     @Test
@@ -177,7 +184,7 @@ class TareasTrasladoServiceTest {
 
         assertEquals(EstadoTraslado.COMPLETADO, entrega.getEstado());
         verify(avanceRenta).trasladoRealizado(entrega);
-        verify(avisos).entregaRegistrada(entrega); //La oficina se entera
+        verify(avisos).entregaRegistrada(entrega);
     }
 
     // ---- HU 11: la entrega pide la carta firmada ----
@@ -241,7 +248,6 @@ class TareasTrasladoServiceTest {
         recoleccion.asignarResponsable(operador);
         recoleccion.iniciar();
         when(trasladoRepositorio.findById(51L)).thenReturn(Optional.of(recoleccion));
-        when(cartaRepositorio.findByRentaId(90L)).thenReturn(Optional.empty());
 
         DetalleTareaResponse detalle = servicio.completar(51L, actual);
 
@@ -276,6 +282,89 @@ class TareasTrasladoServiceTest {
         verifyNoInteractions(cartaServicio);
     }
 
+    // ---- HU 13 y 14: la recolección se confirma con las fotos de evidencia ----
+
+    @Test
+    void noSeConfirmaLaRecoleccionSinLasFotos() {
+        Traslado recoleccion = recoleccionEnSitio();
+        when(trasladoRepositorio.findById(51L)).thenReturn(Optional.of(recoleccion));
+        when(evidencia.motivo(recoleccion)).thenReturn("Primero registra las 8 fotografías de evidencia (faltan 3).");
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> servicio.iniciar(51L, actual));
+
+        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
+        assertTrue(error.getReason().contains("faltan 3"));
+        assertEquals(EstadoTraslado.PROGRAMADO, recoleccion.getEstado());
+        verifyNoInteractions(avanceRenta, avisos);
+    }
+
+    @Test
+    void conLasFotosCompletasSeConfirmaLaRecoleccion() {
+        Traslado recoleccion = recoleccionEnSitio();
+        when(trasladoRepositorio.findById(51L)).thenReturn(Optional.of(recoleccion));
+        when(evidencia.motivo(recoleccion)).thenReturn(null);
+
+        servicio.iniciar(51L, actual);
+
+        assertEquals(EstadoTraslado.EN_CURSO, recoleccion.getEstado());
+        verify(avanceRenta).trasladoIniciado(recoleccion);
+        verify(avisos).recoleccionConfirmada(recoleccion);
+    }
+
+    @Test
+    void seSubeLaFotoDeUnEquipoDeLaRecoleccion() {
+        Traslado recoleccion = recoleccionEnSitio();
+        when(trasladoRepositorio.findById(51L)).thenReturn(Optional.of(recoleccion));
+        MockMultipartFile foto = new MockMultipartFile("archivo", "frente.jpg", "image/jpeg", new byte[] { 1 });
+
+        servicio.subirEvidencia(51L, 1L, "Frente", foto, actual);
+
+        verify(evidencia).subir(recoleccion, mc030, "Frente", foto, actual);
+    }
+
+    @Test
+    void lasFotosNoSeCambianDespuesDeConfirmar() {
+        Traslado recoleccion = recoleccionEnSitio();
+        recoleccion.iniciar();
+        when(trasladoRepositorio.findById(51L)).thenReturn(Optional.of(recoleccion));
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> servicio.subirEvidencia(51L, 1L, "Frente", null, actual));
+
+        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
+        verifyNoInteractions(evidencia);
+    }
+
+    @Test
+    void noSeSubeFotoDeUnEquipoAjenoNiDeOtraVista() {
+        Traslado recoleccion = recoleccionEnSitio();
+        when(trasladoRepositorio.findById(51L)).thenReturn(Optional.of(recoleccion));
+
+        ResponseStatusException ajeno = assertThrows(ResponseStatusException.class,
+                () -> servicio.subirEvidencia(51L, 99L, "Frente", null, actual));
+        ResponseStatusException vista = assertThrows(ResponseStatusException.class,
+                () -> servicio.subirEvidencia(51L, 1L, "Techo", null, actual));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ajeno.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, vista.getStatusCode());
+        verifyNoInteractions(evidencia);
+    }
+
+    @Test
+    void laRecoleccionRecibidaHoySeQuedaEnLaLista() {
+        Traslado recibida = recoleccionEnSitio();
+        recibida.iniciar();
+        recibida.completar();
+        when(trasladoRepositorio.buscarPorOperador(7L)).thenReturn(List.of(recibida));
+        when(cartaRepositorio.findByRentaIdIn(Set.of(90L))).thenReturn(List.of());
+
+        List<TareaResponse> tareas = servicio.misTareas(actual, TipoTraslado.RECOLECCION);
+
+        assertEquals(1, tareas.size());
+        assertEquals(EstadoTraslado.COMPLETADO, tareas.get(0).estado());
+    }
+
     @Test
     void noSePuedeAbrirUnaTareaDeOtroOperador() {
         PersonalActual otro = PersonalActual.de(personal(8L, "OP-02"));
@@ -285,6 +374,16 @@ class TareasTrasladoServiceTest {
                 () -> servicio.detalle(50L, otro));
 
         assertEquals(HttpStatus.FORBIDDEN, error.getStatusCode());
+    }
+
+    /** Una recolección programada, con la renta en curso y los equipos con el cliente. */
+    private Traslado recoleccionEnSitio() {
+        renta.cambiarEstado(EstadoRenta.EN_CURSO);
+        mc030.cambiarFase(FaseEquipoRenta.EN_OPERACION);
+        mc031.cambiarFase(FaseEquipoRenta.EN_OPERACION);
+        Traslado recoleccion = traslado(51L, TipoTraslado.RECOLECCION);
+        recoleccion.asignarResponsable(operador);
+        return recoleccion;
     }
 
     private CartaResponsiva cartaGenerada() {

@@ -32,10 +32,12 @@ import mx.montacargasobregon.backend.cartas.modelo.CartaResponsiva;
 import mx.montacargasobregon.backend.cartas.modelo.TipoFirma;
 import mx.montacargasobregon.backend.cartas.repositorio.CartaResponsivaRepository;
 import mx.montacargasobregon.backend.clientes.modelo.Cliente;
+import mx.montacargasobregon.backend.movil.traslados.EvidenciaRecoleccionService;
 import mx.montacargasobregon.backend.personal.modelo.Personal;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.personal.repositorio.PersonalRepository;
 import mx.montacargasobregon.backend.rentas.RentaDePrueba;
+import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.traslados.dto.AsignarTrasladoRequest;
 import mx.montacargasobregon.backend.traslados.dto.OperadorDisponibilidadResponse;
@@ -63,6 +65,9 @@ class TrasladoServiceTest {
     @Mock
     private AvisoOperacionService avisos;
 
+    @Mock
+    private EvidenciaRecoleccionService evidencia;
+
     private TrasladoService servicio;
 
     private Cliente cliente;
@@ -73,7 +78,7 @@ class TrasladoServiceTest {
 
     @BeforeEach
     void setUp() {
-        servicio = new TrasladoService(repositorio, personalRepositorio, avanceRenta, cartaRepositorio, avisos);
+        servicio = new TrasladoService(repositorio, personalRepositorio, avanceRenta, cartaRepositorio, avisos, evidencia);
 
         cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
@@ -277,6 +282,24 @@ class TrasladoServiceTest {
         assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
         assertTrue(ex.getReason().contains("carta firmada"));
         assertEquals(EstadoTraslado.PROGRAMADO, trasladoEntrega.getEstado());
+        verifyNoInteractions(avanceRenta);
+    }
+
+    // OHU13: desde la oficina tampoco se cierra una recolección sin la evidencia fotográfica
+    @Test
+    void completar_rechazaLaRecoleccion_sinEvidencia() {
+        renta.cambiarEstado(EstadoRenta.EN_CURSO);
+        Traslado recoleccion = new Traslado("TR-0093", renta, TipoTraslado.RECOLECCION,
+                LocalDateTime.of(2026, 10, 20, 14, 0),
+                LocalDateTime.of(2026, 10, 20, 16, 0));
+        recoleccion.asignarResponsable(operadorAna);
+        when(repositorio.findById(201L)).thenReturn(Optional.of(recoleccion));
+        when(evidencia.motivo(recoleccion)).thenReturn("Primero registra las 4 fotografías de evidencia (faltan 4).");
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> servicio.completar(201L));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        assertEquals(EstadoTraslado.PROGRAMADO, recoleccion.getEstado());
         verifyNoInteractions(avanceRenta);
     }
 

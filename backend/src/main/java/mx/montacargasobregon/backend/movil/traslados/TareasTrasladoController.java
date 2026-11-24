@@ -66,6 +66,22 @@ public class TareasTrasladoController {
         return servicio.adjuntarCarta(id, firmante, archivo, personal);
     }
 
+    /** GET /api/movil/traslados/{id}/evidencia: las fotos de la recolección por equipo. */
+    @GetMapping("/{id}/evidencia")
+    public EvidenciaResponse evidencia(@PathVariable Long id, PersonalActual personal) {
+        personal.exigir(TipoPersonal.OP_TRASLADO);
+        return servicio.evidencia(id, personal);
+    }
+
+    /** POST /api/movil/traslados/{id}/evidencia (multipart: equipoId, vista, archivo): sube o cambia una vista. */
+    @PostMapping(value = "/{id}/evidencia", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public EvidenciaResponse subirEvidencia(@PathVariable Long id, @RequestParam Long equipoId,
+                                            @RequestParam String vista, @RequestParam MultipartFile archivo,
+                                            PersonalActual personal) {
+        personal.exigir(TipoPersonal.OP_TRASLADO);
+        return servicio.subirEvidencia(id, equipoId, vista, archivo, personal);
+    }
+
     /** GET /api/movil/traslados/{id}/carta: la carta firmada de la renta. */
     @GetMapping("/{id}/carta")
     public ResponseEntity<byte[]> cartaFirmada(@PathVariable Long id, PersonalActual personal) {

@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import mx.montacargasobregon.backend.avisos.servicio.AvisoOperacionService;
 import mx.montacargasobregon.backend.cartas.modelo.EstadoCarta;
 import mx.montacargasobregon.backend.cartas.repositorio.CartaResponsivaRepository;
+import mx.montacargasobregon.backend.movil.traslados.EvidenciaRecoleccionService;
 import mx.montacargasobregon.backend.personal.modelo.Personal;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.personal.repositorio.PersonalRepository;
@@ -34,15 +35,17 @@ public class TrasladoService {
     private final AvanceRentaService avanceRenta;
     private final CartaResponsivaRepository cartaRepositorio;
     private final AvisoOperacionService avisos;
+    private final EvidenciaRecoleccionService evidencia;
 
     public TrasladoService(TrasladoRepository repositorio, PersonalRepository personalRepositorio,
                            AvanceRentaService avanceRenta, CartaResponsivaRepository cartaRepositorio,
-                           AvisoOperacionService avisos) {
+                           AvisoOperacionService avisos, EvidenciaRecoleccionService evidencia) {
         this.repositorio = repositorio;
         this.personalRepositorio = personalRepositorio;
         this.avanceRenta = avanceRenta;
         this.cartaRepositorio = cartaRepositorio;
         this.avisos = avisos;
+        this.evidencia = evidencia;
     }
 
     /**
@@ -287,6 +290,14 @@ public class TrasladoService {
         if (traslado.getTipo() == TipoTraslado.ENTREGA && !cartaFirmada(traslado)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Obligatoria: sin la carta firmada no se puede registrar la entrega.");
+        }
+
+        // OHU13: si la recolección no se confirmó en la app, igual pide la evidencia fotográfica
+        if (traslado.getTipo() == TipoTraslado.RECOLECCION && traslado.getEstado() == EstadoTraslado.PROGRAMADO) {
+            String faltanFotos = evidencia.motivo(traslado);
+            if (faltanFotos != null) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, faltanFotos);
+            }
         }
 
         traslado.completar();

@@ -1,6 +1,7 @@
 package mx.montacargasobregon.backend.movil.traslados;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -14,15 +15,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import mx.montacargasobregon.backend.avisos.servicio.AvisoOperacionService;
 import mx.montacargasobregon.backend.cartas.modelo.CartaResponsiva;
 import mx.montacargasobregon.backend.cartas.modelo.EstadoCarta;
 import mx.montacargasobregon.backend.cartas.modelo.TipoFirma;
 import mx.montacargasobregon.backend.cartas.repositorio.CartaResponsivaRepository;
 import mx.montacargasobregon.backend.cartas.servicio.CartaResponsivaService;
 import mx.montacargasobregon.backend.cartas.servicio.CartaResponsivaService.ArchivoCarta;
-import mx.montacargasobregon.backend.avisos.servicio.AvisoOperacionService;
 import mx.montacargasobregon.backend.movil.sesion.PersonalActual;
 import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
+import mx.montacargasobregon.backend.rentas.modelo.EquipoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.FaseEquipoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
@@ -33,8 +35,11 @@ import mx.montacargasobregon.backend.traslados.repositorio.TrasladoRepository;
 
 /**
  * Las tareas del operador de traslado en la app móvil: ver las suyas, abrir el detalle,
- * iniciar el traslado y marcarlo como realizado. Una entrega solo se marca realizada
- * con la carta responsiva firmada; si el cliente la firma al recibir, el operador la adjunta ahí.
+ * iniciar el traslado y marcarlo como realizado.
+ * Entrega: iniciar es salir con los equipos; realizarla pide la carta responsiva firmada,
+ * y si el cliente la firma al recibir, el operador la adjunta ahí (OHU10 y OHU11).
+ * Recolección: iniciar es confirmar la recolección, con las fotos de evidencia completas;
+ * realizarla es recibir los equipos en la oficina (OHU13, OHU14 y OHU15).
  */
 @Service
 public class TareasTrasladoService {
@@ -47,28 +52,35 @@ public class TareasTrasladoService {
     private final CartaResponsivaService cartaServicio;
     private final AvanceRentaService avanceRenta;
     private final AvisoOperacionService avisos;
+    private final EvidenciaRecoleccionService evidencia;
 
     public TareasTrasladoService(TrasladoRepository trasladoRepositorio,
                                  CartaResponsivaRepository cartaRepositorio,
                                  CartaResponsivaService cartaServicio,
                                  AvanceRentaService avanceRenta,
-                                 AvisoOperacionService avisos) {
+                                 AvisoOperacionService avisos,
+                                 EvidenciaRecoleccionService evidencia) {
         this.trasladoRepositorio = trasladoRepositorio;
         this.cartaRepositorio = cartaRepositorio;
         this.cartaServicio = cartaServicio;
         this.avanceRenta = avanceRenta;
         this.avisos = avisos;
+        this.evidencia = evidencia;
     }
 
     /**
      * Las tareas pendientes y en camino del operador, del tipo que pida (entregas o recolecciones).
-     * Las ya realizadas salen de la lista.
+     * Las realizadas salen de la lista, salvo las recolecciones recibidas hoy en la oficina,
+     * que se quedan con la etiqueta "Recibida" (OHU09).
      */
     @Transactional(readOnly = true)
     public List<TareaResponse> misTareas(PersonalActual personal, TipoTraslado tipo) {
+        LocalDate hoy = LocalDate.now();
         List<Traslado> tareas = trasladoRepositorio.buscarPorOperador(personal.id()).stream()
                 .filter(t -> t.getTipo() == tipo)
-                .filter(t -> t.getEstado() == EstadoTraslado.PROGRAMADO || t.getEstado() == EstadoTraslado.EN_CURSO)
+                .filter(t -> t.getEstado() == EstadoTraslado.PROGRAMADO
+                        || t.getEstado() == EstadoTraslado.EN_CURSO
+                        || recibidaHoy(t, hoy))
                 .toList();
 
         Map<Long, CartaResponsiva> cartas = cartasDe(tareas);
@@ -99,6 +111,12 @@ public class TareasTrasladoService {
         String bloqueo = motivoBloqueo(traslado);
         if (bloqueo != null) {
             throw conflicto(bloqueo);
+        }
+        if (traslado.getTipo() == TipoTraslado.RECOLECCION) {
+            String faltanFotos = evidencia.motivo(traslado);
+            if (faltanFotos != null) {
+                throw conflicto(faltanFotos);
+            }
         }
 
         traslado.iniciar();
@@ -158,6 +176,39 @@ public class TareasTrasladoService {
         return detalleDe(traslado);
     }
 
+    /** OHU13: las fotos de evidencia de la recolección, por equipo. */
+    @Transactional(readOnly = true)
+    public EvidenciaResponse evidencia(Long id, PersonalActual personal) {
+        return evidencia.de(recoleccionMia(id, personal));
+    }
+
+    /**
+     * OHU13: sube o cambia una de las cuatro fotos de un equipo. Solo antes de confirmar
+     * la recolección y con los equipos todavía en sitio.
+     */
+    @Transactional
+    public EvidenciaResponse subirEvidencia(Long id, Long equipoId, String vista, MultipartFile archivo,
+                                            PersonalActual personal) {
+        Traslado traslado = recoleccionMia(id, personal);
+
+        if (traslado.getEstado() != EstadoTraslado.PROGRAMADO) {
+            throw conflicto("Las fotografías ya no se pueden cambiar: la recolección ya se confirmó.");
+        }
+        if (traslado.getRenta().getEstado() != EstadoRenta.EN_CURSO) {
+            throw conflicto("La renta " + traslado.getRenta().getFolio() + " todavía no está en curso.");
+        }
+        if (vista == null || !EvidenciaRecoleccionService.VISTAS.contains(vista)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elige una de las cuatro vistas del equipo.");
+        }
+        EquipoRenta equipo = EvidenciaRecoleccionService.equiposDe(traslado).stream()
+                .filter(er -> er.getId().equals(equipoId))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Ese equipo no es de esta recolección."));
+
+        return evidencia.subir(traslado, equipo, vista, archivo, personal);
+    }
+
     /** La carta firmada de la renta de la tarea, para que el operador la vea. */
     @Transactional(readOnly = true)
     public ArchivoCarta cartaFirmada(Long id, PersonalActual personal) {
@@ -178,17 +229,39 @@ public class TareasTrasladoService {
         return traslado;
     }
 
+    private Traslado recoleccionMia(Long id, PersonalActual personal) {
+        Traslado traslado = buscarMia(id, personal);
+        if (traslado.getTipo() != TipoTraslado.RECOLECCION) {
+            throw conflicto("La evidencia fotográfica se registra en las recolecciones.");
+        }
+        return traslado;
+    }
+
     private DetalleTareaResponse detalleDe(Traslado traslado) {
-        String bloqueo = motivoBloqueo(traslado);
         boolean programado = traslado.getEstado() == EstadoTraslado.PROGRAMADO;
         boolean entrega = traslado.getTipo() == TipoTraslado.ENTREGA;
-        CartaResponsiva carta = cartaDe(traslado);
+        CartaResponsiva carta = entrega ? cartaDe(traslado) : null;
+
+        String bloqueo = motivoBloqueo(traslado);
+        EvidenciaResponse fotos = entrega ? null : evidencia.de(traslado);
+        if (bloqueo == null && fotos != null && programado && fotos.tomadas() < fotos.requeridas()) {
+            bloqueo = evidencia.motivo(traslado);
+        }
 
         return DetalleTareaResponse.de(traslado, firmaEnSitio(traslado, carta), faseRequerida(traslado.getTipo()),
                 entrega ? estadoCarta(carta) : null,
+                fotos == null ? null : fotos.tomadas(),
+                fotos == null ? null : fotos.requeridas(),
                 programado && bloqueo == null,
                 traslado.getEstado() == EstadoTraslado.EN_CURSO && (!entrega || estaFirmada(carta)),
                 programado ? bloqueo : null);
+    }
+
+    private static boolean recibidaHoy(Traslado traslado, LocalDate hoy) {
+        return traslado.getTipo() == TipoTraslado.RECOLECCION
+                && traslado.getEstado() == EstadoTraslado.COMPLETADO
+                && traslado.getFechaFinReal() != null
+                && traslado.getFechaFinReal().toLocalDate().equals(hoy);
     }
 
     private CartaResponsiva cartaDe(Traslado traslado) {
