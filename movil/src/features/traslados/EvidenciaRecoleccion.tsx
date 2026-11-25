@@ -61,7 +61,12 @@ export default function EvidenciaRecoleccion() {
           {faltan > 0 && evidencia.editable && (
             <Aviso tipo="advertencia" titulo={`Faltan ${faltan} fotografías para poder confirmar la recolección`} />
           )}
-          <Boton icono="check" bloqueado={faltan > 0 && evidencia.editable} onClick={() => navigate(atras)}>
+          <Boton
+            icono={evidencia.editable ? "check" : "arrow_back"}
+            variante={evidencia.editable ? undefined : "secundario"}
+            bloqueado={faltan > 0 && evidencia.editable}
+            onClick={() => navigate(atras)}
+          >
             {evidencia.editable ? "Finalizar evidencia" : "Volver a la recolección"}
           </Boton>
         </BarraAccion>

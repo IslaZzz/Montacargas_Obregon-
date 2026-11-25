@@ -49,3 +49,8 @@
   width: 100%;
   text-align: left;
 }
+
+/* Enlaces con forma de botón ("Registrar evidencia"): sin subrayado */
+a.boton {
+  text-decoration: none;
+}
