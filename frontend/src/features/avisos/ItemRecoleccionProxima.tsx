@@ -47,7 +47,7 @@ export default function ItemRecoleccionProxima({ recoleccion: r, nuevo, onIr }: 
             : ", sin horario de recolección"}
         </p>
         <Link
-          to={programada ? "/traslados" : `/rentas/recoleccion?renta=${r.rentaId}`}
+          to={programada ? "/traslados" : `/rentas/${r.rentaId}`}
           className="panel-aviso-accion"
           onClick={onIr}
         >
