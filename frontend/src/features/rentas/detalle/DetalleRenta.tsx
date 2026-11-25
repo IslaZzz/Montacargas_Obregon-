@@ -102,6 +102,9 @@ export default function DetalleRenta() {
   // En curso con la carta generada sin firmar: la firma todavía se puede registrar
   const cartaPorFirmar = detalle.estado === "EN_CURSO" && carta !== null && carta.puedeFirmar && !firmada;
 
+  // Ya firmada: se ve quién firmó, quién la registró y la carta firmada, en cualquier estado de la renta
+  const mostrarCarta = carta !== null && (cartaPorFirmar || firmada);
+
   return (
     <div className="detalle-renta">
       <div className="pagina">
@@ -128,7 +131,7 @@ export default function DetalleRenta() {
         <div className="detalle-renta-contenido">
           {bloque}
 
-          {cartaPorFirmar && <CartaResponsiva carta={carta} onActualizada={cartaActualizada} />}
+          {mostrarCarta && <CartaResponsiva carta={carta} onActualizada={cartaActualizada} />}
 
           {/* Equipos, carta y fecha clave: solo informativos */}
           <div className="detalle-renta-franja">
