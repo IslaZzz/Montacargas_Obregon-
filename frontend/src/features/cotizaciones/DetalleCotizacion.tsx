@@ -12,7 +12,6 @@ import {
   formatoDireccion,
   formatoTelefono,
 } from "../../utils/formato";
-import { ESTADOS_CONTRATO } from "../contratos/contratosUtils";
 import BotonVerPdf from "./BotonVerPdf";
 import { cambiarEstadoCotizacion, obtenerCotizacion } from "./cotizacionesApi";
 import type { Cotizacion } from "./cotizacionesTypes";
@@ -116,15 +115,7 @@ export default function DetalleCotizacion() {
     setGuardando(true);
     setError("");
     try {
-      const actualizada = await cambiarEstadoCotizacion(cotizacion.id, respuesta);
-      // Al aceptarla se genera el contrato y se abre su detalle con el aviso (HU-23)
-      if (actualizada.contrato) {
-        navigate(`/contratos/${actualizada.contrato.id}`, {
-          state: { generado: true },
-        });
-        return;
-      }
-      setCotizacion(actualizada);
+      setCotizacion(await cambiarEstadoCotizacion(cotizacion.id, respuesta));
       setRecienMarcada(true);
     } catch {
       setError(
@@ -210,14 +201,6 @@ export default function DetalleCotizacion() {
       <Dato etiqueta="Contacto en la obra">
         {c.contactoObra} · {formatoTelefono(c.telefonoContacto)}
       </Dato>
-      {c.contrato && (
-        <Dato etiqueta="Contrato">
-          <Link to={`/contratos/${c.contrato.id}`} className="dato-enlace">
-            {c.contrato.folio}
-          </Link>{" "}
-          · {ESTADOS_CONTRATO[c.contrato.estado].etiqueta}
-        </Dato>
-      )}
       {c.renta && (
         <Dato etiqueta="Renta">
           {c.renta.folio} · {ESTADOS_RENTA[c.renta.estado]}
@@ -240,15 +223,6 @@ export default function DetalleCotizacion() {
             <span>
               {textoDias(c.dias)} × {formatoMoneda(p.tarifaDia)} ={" "}
               {formatoMoneda(p.importe)}
-            </span>
-          )}
-          {/* Sigue disponible: el otro contrato todavía no paga el anticipo (HU-23) */}
-          {p.enOtraCotizacionAceptada && (
-            <span className="equipo-aviso">
-              <span className="material-symbols-rounded" aria-hidden="true">
-                info
-              </span>
-              Este equipo está en otra cotización aceptada
             </span>
           )}
         </div>
@@ -342,6 +316,8 @@ export default function DetalleCotizacion() {
           <span className="material-symbols-rounded">check_circle</span>
           <div>
             <strong>Cotización aceptada</strong>
+            {/* Al aceptarla nace su renta para Operativo (HU-37) */}
+            {c.renta && <p>Renta {c.renta.folio} creada.</p>}
           </div>
         </div>
       )}
@@ -689,8 +665,7 @@ export default function DetalleCotizacion() {
             <span className="material-symbols-rounded" aria-hidden="true">
               check
             </span>
-            Se genera el contrato en «Apartado» hasta que se registre el
-            anticipo del 30%.
+            Se crea la renta para que Operativo prepare la entrega.
           </p>
         )}
         <p className="confirmacion-punto">

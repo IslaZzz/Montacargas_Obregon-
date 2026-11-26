@@ -59,25 +59,12 @@ Hay dos roles: Gerencia (`GERENTE`) y Auxiliar (`AUXILIAR`). Gerencia ve todo lo
 
 ## Rentas que salen de la cotización (HU-37)
 
-Toda renta sale de una cotización aceptada. Desde HU-23, al aceptar ya no nace la renta sino el contrato (ver «Contrato»); la renta nacerá al registrar el anticipo (HU-24). Si tu base ya tenía rentas, haz esto una sola vez:
+Toda renta nace al aceptar una cotización. Si tu base ya tenía rentas, haz esto una sola vez:
 
 1. Arranca el backend. Avisará que no pudo crear la llave de `rentas.cotizacion_id`; es normal.
 2. Corre `backend/datos-prueba/quitar-rentas-sin-cotizacion.sql`. Borra las rentas sin cotización y lo que cuelga de ellas.
 3. Vuelve a correr los scripts que crean rentas: `revisiones.sql`, `traslados.sql`, `apartados-proximos.sql` y `rentas.sql`. Cada renta de prueba trae su cotización aceptada (COT-R2061 es la de R-2061).
 4. Reinicia el backend.
-
-## Contrato (HU-23)
-
-Al marcar una cotización como «Aceptada» se genera su contrato (CON-0001…) y se abre su detalle con el aviso «Contrato {folio} generado». Ya no se crea la renta.
-
-- Nace en «Apartado» (`APARTADO`), con anticipo del 30% del total con IVA y fecha límite = día de la aceptación + 3 días. El anticipo se puede pagar hasta ese mismo día (aceptada el 9, se paga a más tardar el 12).
-- Si termina el día de la fecha límite sin anticipo, el backend lo pasa solo a «Apartado vencido» (`APARTADO_VENCIDO`) y el detalle dice «El apartado venció el 12/10». Revisa al arrancar y cada minuto con la fecha de Sonora (`VencimientoApartadosService`; la regla está en `Contrato.plazoDeAnticipoTerminado`).
-- Mientras está «Apartado», sus equipos siguen disponibles. Las cotizaciones que todavía se pueden aceptar (Borrador, En autorización y Enviada) y llevan esos equipos en fechas que se empalman muestran «Este equipo está en otra cotización aceptada». Los equipos se bloquean al pagar el anticipo (SCRUM-113).
-- Cliente, razón social, equipos, fechas, lugar y precio se leen de la cotización aceptada, que ya no cambia. El PDF usa la misma hoja que la cotización (`CotizacionPdfService.hoja`) y agrega el anticipo y la política de cancelación.
-
-Para probarlo, arranca el backend una vez (crea la tabla `contratos`) y vuelve a correr `backend/datos-prueba/cotizaciones.sql`: COT-0002 tiene un contrato cuya fecha límite fue ayer (pasa solo a vencido) y COT-0008 uno en Apartado con fecha límite hoy y MC-07, que se repite en COT-0003, COT-0005 y COT-0006.
-
-- **API:** `GET /api/contratos/{id}` y `GET /api/contratos/{id}/pdf` (con `?descargar=true` se descarga). El detalle de la cotización trae `contrato` y, en cada partida, `enOtraCotizacionAceptada`.
 
 ## Modelos de equipo (HU-36)
 

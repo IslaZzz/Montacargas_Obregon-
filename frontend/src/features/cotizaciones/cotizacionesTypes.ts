@@ -1,6 +1,5 @@
 import type { DatosDireccion } from "../../types/comun";
 import type { Cliente, RazonSocial } from "../clientes/clientesTypes";
-import type { EstadoContrato } from "../contratos/contratosTypes";
 import type { EstadoRenta } from "../rentas/detalle/detalleTypes";
 
 // Estados de una cotización. Rechazada es cuando gerencia niega el descuento; Vencida es cuando pasa su vigencia
@@ -39,20 +38,12 @@ export interface PartidaCotizacion {
   modelo: string;
   tarifaDia: number;
   importe: number;
-  enOtraCotizacionAceptada: boolean; // Está en el contrato Apartado de otra cotización, en las mismas fechas (HU-23)
 }
 
-// Equivale a RentaDeCotizacionResponse: la renta que salió de la cotización
+// Equivale a RentaDeCotizacionResponse: la renta que nació al aceptar la cotización
 export interface RentaDeCotizacion {
   folio: string;
   estado: EstadoRenta;
-}
-
-// Equivale a ContratoDeCotizacionResponse: el contrato que se generó al aceptarla (HU-23)
-export interface ContratoDeCotizacion {
-  id: number;
-  folio: string;
-  estado: EstadoContrato;
 }
 
 // Equivale a AutorizacionDescuentoResponse: la solicitud de autorización del descuento y su respuesta
@@ -110,7 +101,6 @@ export interface Cotizacion {
   diasVigencia: number;
   autorizacion: AutorizacionDescuento | null; // null si la cotización nunca pidió autorización
   renta: RentaDeCotizacion | null;
-  contrato: ContratoDeCotizacion | null;
 }
 
 // Cuerpo de PATCH /cotizaciones/{id}/traslado

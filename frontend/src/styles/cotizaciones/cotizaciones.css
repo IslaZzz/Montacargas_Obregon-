@@ -342,31 +342,6 @@
   color: var(--text-foreground);
 }
 
-/* El equipo está en el contrato Apartado de otra cotización (HU-23): sigue disponible */
-.equipo-cotizado .equipo-aviso {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 2px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--outline-reminder-yellow);
-}
-/* .equipo-cotizado span le pondría la letra Inter al ícono */
-.equipo-cotizado .equipo-aviso .material-symbols-rounded {
-  font-family: "Material Symbols Rounded";
-  font-size: 20px;
-  font-weight: 400;
-  color: inherit;
-  font-variation-settings: "FILL" 1;
-}
-
-/* El folio del contrato abre su detalle (HU-23) */
-.dato-enlace {
-  color: var(--secondary-mint);
-  font-weight: 600;
-}
-
 /* Respuesta del cliente */
 .detalle-respuesta .btn {
   width: 100%;
