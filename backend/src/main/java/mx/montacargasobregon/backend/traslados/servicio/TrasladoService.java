@@ -312,9 +312,12 @@ public class TrasladoService {
         if (traslado.getTipo() == TipoTraslado.ENTREGA && !cartaFirmada(traslado)) {
             return "Obligatoria: sin la carta firmada no se puede registrar la entrega.";
         }
-        // OHU13: si la recolección no se confirmó en la app, igual pide la evidencia fotográfica
-        if (traslado.getTipo() == TipoTraslado.RECOLECCION && traslado.getEstado() == EstadoTraslado.PROGRAMADO) {
-            return evidencia.motivo(traslado);
+        // OHU13: si la recolección no se confirmó en la app, igual pide la evidencia fotográfica.
+        // La oficina no toma fotos: el mensaje dice quién las registra
+        if (traslado.getTipo() == TipoTraslado.RECOLECCION && traslado.getEstado() == EstadoTraslado.PROGRAMADO
+                && evidencia.motivo(traslado) != null) {
+            return "Faltan fotografías de evidencia. El operador debe tomar las 4 de cada equipo en la app "
+                    + "y confirmar la recolección.";
         }
         return null;
     }
