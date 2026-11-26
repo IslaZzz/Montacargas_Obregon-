@@ -242,6 +242,14 @@
     background-color: var(--warning-red-outline);
 }
 
+/* Contrato Apartado: amarillo, espera el anticipo (HU-23). Apartado vencido usa el gris de Vencida */
+.chip-contrato-apartado {
+    background-color: var(--reminder-yellow);
+}
+.chip-contrato-apartado::before {
+    background-color: var(--outline-reminder-yellow);
+}
+
 /* Vencida: gris, pasó la vigencia de la cotización */
 .chip-cotizacion-vencida {
     background-color: var(--light-gray);

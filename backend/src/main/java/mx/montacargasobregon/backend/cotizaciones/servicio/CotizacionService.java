@@ -5,12 +5,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import mx.montacargasobregon.backend.contratos.modelo.Contrato;
+import mx.montacargasobregon.backend.contratos.servicio.ContratoService;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Descuento;
 import mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion;
@@ -28,12 +31,14 @@ public class CotizacionService {
 
     private final CotizacionRepository repositorio;
     private final RentaDeCotizacionService rentas;
+    private final ContratoService contratos;
     private final UsuarioRepository usuarios;
 
     public CotizacionService(CotizacionRepository repositorio, RentaDeCotizacionService rentas,
-            UsuarioRepository usuarios) {
+            ContratoService contratos, UsuarioRepository usuarios) {
         this.repositorio = repositorio;
         this.rentas = rentas;
+        this.contratos = contratos;
         this.usuarios = usuarios;
     }
 
@@ -90,10 +95,10 @@ public class CotizacionService {
 
         cotizacion.cambiarEstado(nuevoEstado, LocalDateTime.now(Cotizacion.ZONA_HORARIA));
 
-        // Al aceptarla nace su renta, en la misma transacción: si falla, tampoco queda
-        // aceptada
+        // Al aceptarla se genera su contrato en Apartado (HU-23), en la misma transacción: si falla,
+        // tampoco queda aceptada. La renta ya no nace aquí: nace al registrar el anticipo (HU-24)
         if (nuevoEstado == EstadoCotizacion.ACEPTADA) {
-            rentas.crear(cotizacion);
+            contratos.generar(cotizacion);
         }
         return cotizacion; // Dentro de la transacción, JPA guarda el cambio solo
     }
@@ -152,10 +157,22 @@ public class CotizacionService {
         return c;
     }
 
-    /** La renta que salió de la cotización al aceptarla, si ya tiene. */
+    /** La renta que salió de la cotización, si ya tiene. */
     @Transactional(readOnly = true)
     public Optional<Renta> renta(Long cotizacionId) {
         return rentas.buscar(cotizacionId);
+    }
+
+    /** El contrato que se generó al aceptar la cotización, si ya tiene (HU-23). */
+    @Transactional(readOnly = true)
+    public Optional<Contrato> contrato(Long cotizacionId) {
+        return contratos.buscarDeCotizacion(cotizacionId);
+    }
+
+    /** Sus equipos que están en el contrato Apartado de otra cotización aceptada, en las mismas fechas (HU-23). */
+    @Transactional(readOnly = true)
+    public Set<Long> equiposEnOtraCotizacionAceptada(Cotizacion cotizacion) {
+        return contratos.equiposEnOtraCotizacionAceptada(cotizacion);
     }
 
     /**

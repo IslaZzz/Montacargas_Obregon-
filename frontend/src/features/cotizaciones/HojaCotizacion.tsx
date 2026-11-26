@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   aFecha,
   formatoFecha,
@@ -27,16 +28,23 @@ const fechaSinDia = (texto: string) =>
     year: "numeric",
   });
 
-// Vista previa del PDF. Muestra lo mismo que genera el backend (CotizacionPdfService).
+interface HojaCotizacionProps {
+  cotizacion: Cotizacion;
+  // El contrato (HU-23) usa la misma hoja con su título, folio y fecha, y su propio cierre en children
+  documento?: { titulo: string; folio: string; fecha: string };
+  children?: ReactNode;
+}
+
+// Vista previa del PDF. Muestra lo mismo que genera el backend (CotizacionPdfService.hoja).
 export default function HojaCotizacion({
   cotizacion: c,
-}: {
-  cotizacion: Cotizacion;
-}) {
+  documento = { titulo: "COTIZACIÓN", folio: c.folio, fecha: c.fechaCreacion },
+  children,
+}: HojaCotizacionProps) {
   return (
     <article
       className="hoja-pdf"
-      aria-label={`Vista previa del PDF de ${c.folio}`}
+      aria-label={`Vista previa del PDF de ${documento.folio}`}
     >
       <header className="hoja-encabezado">
         <div>
@@ -46,9 +54,9 @@ export default function HojaCotizacion({
           </p>
         </div>
         <div className="hoja-folio">
-          <p className="hoja-titulo">COTIZACIÓN</p>
-          <p className="hoja-numero">Folio {c.folio}</p>
-          <p className="hoja-pequena">Fecha: {formatoFecha(c.fechaCreacion)}</p>
+          <p className="hoja-titulo">{documento.titulo}</p>
+          <p className="hoja-numero">Folio {documento.folio}</p>
+          <p className="hoja-pequena">Fecha: {formatoFecha(documento.fecha)}</p>
         </div>
       </header>
 
@@ -146,29 +154,31 @@ export default function HojaCotizacion({
         </div>
       </dl>
 
-      <section className="hoja-condiciones">
-        <h3>CONDICIONES</h3>
-        <p>
-          <strong>Vigencia:</strong> Esta cotización es válida por{" "}
-          {c.diasVigencia} días, hasta el {fechaSinDia(c.validaHasta)}.
-        </p>
-        <p>
-          <strong>Anticipo:</strong> Para confirmar la renta se requiere un
-          anticipo del 30%:{" "}
-          {formatoMoneda(Math.round(c.total * ANTICIPO * 100) / 100)}.
-        </p>
-        <p>
-          <strong>Cancelación:</strong> {textoCancelacion(c.fechaEntrega)}
-        </p>
-        <p>
-          <strong>Entrega:</strong> El equipo se entrega y se recoge en el
-          lugar, fecha y hora indicados. El cliente debe garantizar el acceso y
-          un espacio seguro para la maniobra.
-        </p>
-        <p>
-          <strong>Carta responsiva:</strong> {TEXTO_CARTA_RESPONSIVA}
-        </p>
-      </section>
+      {children ?? (
+        <section className="hoja-condiciones">
+          <h3>CONDICIONES</h3>
+          <p>
+            <strong>Vigencia:</strong> Esta cotización es válida por{" "}
+            {c.diasVigencia} días, hasta el {fechaSinDia(c.validaHasta)}.
+          </p>
+          <p>
+            <strong>Anticipo:</strong> Para confirmar la renta se requiere un
+            anticipo del 30%:{" "}
+            {formatoMoneda(Math.round(c.total * ANTICIPO * 100) / 100)}.
+          </p>
+          <p>
+            <strong>Cancelación:</strong> {textoCancelacion(c.fechaEntrega)}
+          </p>
+          <p>
+            <strong>Entrega:</strong> El equipo se entrega y se recoge en el
+            lugar, fecha y hora indicados. El cliente debe garantizar el acceso y
+            un espacio seguro para la maniobra.
+          </p>
+          <p>
+            <strong>Carta responsiva:</strong> {TEXTO_CARTA_RESPONSIVA}
+          </p>
+        </section>
+      )}
     </article>
   );
 }

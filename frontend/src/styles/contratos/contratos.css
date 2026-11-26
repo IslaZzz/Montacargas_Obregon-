@@ -1,0 +1,55 @@
+/* Contrato (HU-23). El detalle reutiliza las clases del detalle de la cotización */
+
+/* Aviso gris con título: el apartado venció */
+.detalle-contrato .aviso-info {
+  align-items: flex-start;
+}
+.detalle-contrato .aviso-info strong {
+  display: block;
+  font:
+    600 20px/1.35 "Inter",
+    sans-serif;
+  color: var(--primary-teal);
+}
+.detalle-contrato .aviso-info p {
+  margin: 2px 0 0;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.detalle-contrato .detalle-titulo-texto a {
+  color: var(--secondary-mint);
+  font-weight: 600;
+}
+
+/* Nota debajo de los equipos */
+.contrato-nota {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text-foreground);
+}
+
+/* Hoja del PDF: el anticipo en un recuadro y la política con viñetas */
+.hoja-pdf .hoja-anticipo {
+  padding: 10px 14px;
+  background: var(--selection-gray);
+  font-weight: 700;
+}
+.hoja-politica {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-foreground);
+}
+
+@media (max-width: 700px) {
+  .hoja-politica {
+    font-size: 10px;
+  }
+  .hoja-pdf .hoja-anticipo {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+}
