@@ -161,7 +161,7 @@ export default function DetalleContrato() {
               <Dato etiqueta="Estado del apartado">
                 {vencido
                   ? `Apartado vencido el ${fechaLimite}: no se registró el anticipo`
-                  : `Apartado: si el anticipo no se registra antes del ${fechaLimite}, el apartado vence solo`}
+                  : `Apartado: si el anticipo no se registra a más tardar el ${fechaLimite}, el apartado vence solo`}
               </Dato>
               <Dato etiqueta="Lugar de entrega">
                 {formatoDireccion(c.direccionObra)}
