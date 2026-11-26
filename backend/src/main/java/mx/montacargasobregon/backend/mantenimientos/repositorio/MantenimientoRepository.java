@@ -46,4 +46,7 @@ public interface MantenimientoRepository extends JpaRepository<Mantenimiento, Lo
         group by m.mecanico.id
         """)
     List<CargaPorMecanico> contarPorMecanico(@Param("estados") Collection<EstadoMantenimiento> estados);
+
+    // Cuántos mantenimientos de un mecánico están en esos estados (para no darlo de baja con pendientes)
+    long countByMecanicoIdAndEstadoIn(Long mecanicoId, Collection<EstadoMantenimiento> estados);
 }
