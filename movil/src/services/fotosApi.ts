@@ -15,7 +15,7 @@ export interface Foto {
 const LADO_MAXIMO = 1600;
 
 /** Reduce la foto a JPEG antes de subirla. Si no se puede, sube la original. */
-async function reducir(archivo: File): Promise<Blob> {
+export async function reducir(archivo: File): Promise<Blob> {
   try {
     const imagen = await createImageBitmap(archivo);
     const escala = Math.min(1, LADO_MAXIMO / Math.max(imagen.width, imagen.height));

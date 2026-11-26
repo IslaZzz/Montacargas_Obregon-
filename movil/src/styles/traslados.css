@@ -43,3 +43,14 @@
   color: var(--teal);
   font: 700 22px/1.2 var(--fuente-titulo);
 }
+
+/* ===== Entrega registrada: los equipos entregados ===== */
+.resultado .lista {
+  width: 100%;
+  text-align: left;
+}
+
+/* Enlaces con forma de botón ("Registrar evidencia"): sin subrayado */
+a.boton {
+  text-decoration: none;
+}

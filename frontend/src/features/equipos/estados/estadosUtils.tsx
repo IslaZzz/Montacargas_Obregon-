@@ -6,6 +6,7 @@ export const ESTADOS: EstadoConsultaEquipo[] = [
   "EN_RENTA",
   "DISPONIBLE",
   "EN_PREPARACION",
+  "EN_TRASLADO",
   "EN_REVISION_ENTRADA",
   "EN_MANTENIMIENTO",
   "FUERA_SERVICIO",
@@ -15,16 +16,18 @@ export const ESTADOS: EstadoConsultaEquipo[] = [
 export const NOMBRE_ESTADO: Record<EstadoConsultaEquipo, string> = {
   DISPONIBLE: "Disponibles",
   EN_PREPARACION: "En preparación",
+  EN_TRASLADO: "En traslado",
   EN_RENTA: "En renta",
   EN_REVISION_ENTRADA: "En revisión de entrada",
   EN_MANTENIMIENTO: "En mantenimiento",
   FUERA_SERVICIO: "Fuera de servicio",
 };
 
-// Colores de cada estado; "En renta" usa los de la renta en curso
+// Colores de cada estado; "En renta" usa los de la renta en curso y "En traslado" los de los traslados
 export const CLASE_ESTADO: Record<EstadoConsultaEquipo, string> = {
   DISPONIBLE: claseDeChip("equipo", "disponible"),
   EN_PREPARACION: claseDeChip("equipo", "preparacion"),
+  EN_TRASLADO: claseDeChip("traslado", "translado"),
   EN_RENTA: claseDeChip("renta", "en-curso"),
   EN_REVISION_ENTRADA: claseDeChip("equipo", "preparacion"),
   EN_MANTENIMIENTO: claseDeChip("equipo", "mantenimiento"),
@@ -37,6 +40,8 @@ export function ChipEstadoEquipo({ estado }: { estado: EstadoConsultaEquipo }) {
       return <Chip category="equipo" status="disponible" />;
     case "EN_PREPARACION":
       return <Chip category="equipo" status="preparacion">En preparación</Chip>;
+    case "EN_TRASLADO":
+      return <Chip category="traslado" status="translado">En traslado</Chip>;
     case "EN_RENTA":
       return <Chip category="renta" status="en-curso">En renta</Chip>;
     case "EN_REVISION_ENTRADA":

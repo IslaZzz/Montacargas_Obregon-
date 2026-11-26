@@ -194,6 +194,20 @@ class ConsultaEquiposServiceTest {
     }
 
     @Test
+    void consultar_elEquipoEnCaminoSaleEnTraslado() {
+        Equipo equipo = equipo(30L, "MC-030");
+        Renta renta = renta(20L, "R-2091", INICIO);
+        when(repositorio.enRentasVigentes(any(), any()))
+                .thenReturn(List.of(enRenta(renta, equipo, FaseEquipoRenta.EN_TRASLADO)));
+        when(equipoRepositorio.findAll()).thenReturn(List.of(equipo));
+
+        EquipoEstadoResponse resultado = servicio.consultar(null, null).get(0);
+
+        assertEquals(EstadoConsultaEquipo.EN_TRASLADO, resultado.estado());
+        assertEquals("R-2091", resultado.rentaFolio());
+    }
+
+    @Test
     void consultar_rechaza_cuandoSoloViene_unaFecha() {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> servicio.consultar(INICIO, null));

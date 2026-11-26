@@ -11,12 +11,15 @@ import { diaDe, diaLargo, diaMes, horaDe, hoyTexto } from "./detalleUtils";
 
 type Vista = "cancelada" | "programada" | "falta" | "confirmada" | "iniciada" | "realizada";
 
+// Confirmada = ya existe su traslado. La hora que la renta trae de la cotización es solo la prevista,
+// igual que en el dashboard y el recordatorio de recolecciones (HU 25)
 function vistaDe(d: DetalleRenta): Vista {
   if (d.estado === "CANCELADA") return "cancelada";
   if (d.estado === "PROGRAMADA") return "programada";
   if (!d.recoleccionDesde) return "falta";
   if (d.estado === "CERRADA" || d.trasladoRecoleccion?.estado === "COMPLETADO") return "realizada";
-  if (d.trasladoRecoleccion?.yaInicio) return "iniciada";
+  if (d.trasladoRecoleccion === null) return "falta";
+  if (d.trasladoRecoleccion.yaInicio) return "iniciada";
   return "confirmada";
 }
 
@@ -82,6 +85,11 @@ export default function RecoleccionRenta({ detalle, onActualizada }: Props) {
           Falta confirmar la recolección
         </h2>
         <p className="recoleccion-texto">Termina el {diaLargo(detalle.fechaFin).toLowerCase()}.</p>
+        {detalle.recoleccionDesde && (
+          <p className="recoleccion-ayuda">
+            Hora prevista en la cotización: {formatoHora(detalle.recoleccionDesde)}.
+          </p>
+        )}
         <p className="recoleccion-ayuda">Acuerda con el cliente cuándo pasar por los equipos.</p>
         <Button type="button" variant="primary" className="recoleccion-boton" onClick={() => setModalAbierto(true)}>
           <span className="material-symbols-rounded" aria-hidden="true">event_available</span>
@@ -160,15 +168,24 @@ interface ModalProps {
 
 // Fecha y rango de horas de la recolección
 function ModalRecoleccion({ detalle, onCerrar, onGuardada }: ModalProps) {
-  const modificar = detalle.recoleccionDesde !== null;
+
+  // Se modifica solo si ya hay traslado; si no, se propone la hora prevista de la cotización
+  const modificar = detalle.trasladoRecoleccion !== null;
   const hoy = hoyTexto();
   const responsable = detalle.trasladoRecoleccion?.responsable ?? null;
+  const prevista = detalle.recoleccionDesde;
+  const finPrevisto = detalle.recoleccionHasta;
 
-  const [dia, setDia] = useState(
-    modificar ? diaDe(detalle.recoleccionDesde!) : detalle.fechaFin >= hoy ? detalle.fechaFin : hoy,
-  );
-  const [desde, setDesde] = useState(modificar ? horaDe(detalle.recoleccionDesde!) : "08:00");
-  const [hasta, setHasta] = useState(modificar ? horaDe(detalle.recoleccionHasta!) : "10:00");
+  const [dia, setDia] = useState(() => {
+    const propuesto = prevista ? diaDe(prevista) : detalle.fechaFin;
+    return modificar || propuesto >= hoy ? propuesto : hoy;
+  });
+  const [desde, setDesde] = useState(prevista ? horaDe(prevista) : "08:00");
+  const [hasta, setHasta] = useState(() => {
+    if (prevista && finPrevisto && horaDe(finPrevisto) > horaDe(prevista)) return horaDe(finPrevisto);
+    return prevista ? dosHorasDespues(horaDe(prevista)) : "10:00";
+  });
+
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
 
@@ -264,4 +281,11 @@ function ModalRecoleccion({ detalle, onCerrar, onGuardada }: ModalProps) {
       </div>
     </Modal>
   );
+}
+
+// "16:00" a "18:00"; no pasa de las 23:59
+function dosHorasDespues(hora: string) {
+  const [h, m] = hora.split(":").map(Number);
+  if (h >= 22) return "23:59";
+  return `${String(h + 2).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
