@@ -11,6 +11,7 @@ import { listarPersonal } from "./personalApi";
 import type { Personal } from "./personalTypes";
 import { ICONO_TIPO, NOMBRE_TIPO, nombreCompleto } from "./personalTypes";
 import "../../styles/personal/personal.css";
+import "../../styles/operacion.css";
 
 // Quita los acentos, para que "ramirez" encuentre "Ramírez"
 const sinAcentos = (texto: string) => texto.normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -130,7 +131,7 @@ export default function ConsultarPersonal() {
   ];
 
   return (
-    <div className="pagina lista-personal">
+    <div className="pagina lista-personal operacion">
       <div className="titulo-acciones">
         <div className="titulo-acciones-texto">
           <h1>Personal</h1>
