@@ -20,7 +20,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 16px 32px;
+  gap: 16px 24px;
 }
 .operacion-filtro {
   display: flex;
@@ -68,17 +68,18 @@
   font-size: 16px;
 }
 
-/* Fechas: "Desde" y "Hasta" a un lado del campo, para que la fila quede alineada */
+/* Fechas: "Fecha: [desde] — [hasta]" en una línea. "Desde" y "Hasta" se ocultan a la vista,
+   pero el lector de pantalla los sigue leyendo */
 .operacion .date-range-container {
   gap: 12px;
 }
-.operacion .date-range-field {
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-}
 .operacion .date-range-field label {
-  font-size: 16px;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 .operacion .date-range-separator {
   margin-top: 0;
@@ -86,7 +87,7 @@
 }
 .operacion .filter-date {
   height: 48px;
-  min-width: 160px;
+  min-width: 150px;
   padding: 0 12px;
   box-sizing: border-box;
   border: 1.5px solid var(--primary-teal);
@@ -95,6 +96,19 @@
 }
 
 /* ===== Tabla ===== */
+.operacion .table-container {
+  border-width: 2px;
+  border-radius: 10px;
+}
+.operacion .data-table th:first-child,
+.operacion .data-table td:first-child {
+  padding-left: 24px;
+}
+.operacion .data-table th:last-child,
+.operacion .data-table td:last-child {
+  padding-right: 24px;
+}
+
 .operacion .data-table th {
   font-size: 16px;
 }

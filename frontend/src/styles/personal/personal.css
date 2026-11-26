@@ -47,7 +47,7 @@
 }
 .personal-codigo {
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
-  font-size: 15px;
+  font-size: 16px;
   letter-spacing: 0.02em;
 }
 .personal-puesto {
@@ -66,8 +66,8 @@
   gap: 8px;
 }
 /* De baja: se ve más apagado */
-.personal-de-baja .personal-nombre,
-.personal-de-baja .personal-puesto {
+.lista-personal .personal-de-baja .celda-principal,
+.lista-personal .personal-de-baja .personal-puesto {
   color: var(--tertiary-mineral-blue);
 }
 

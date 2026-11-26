@@ -114,7 +114,6 @@ export default function EditarPersonal() {
           Ya no aparecerá para asignarle tareas y, si tiene la app abierta, su sesión se cerrará. Sus registros
           anteriores se conservan.
         </p>
-        <p>Si tiene traslados, revisiones o mantenimientos pendientes no se podrá: primero hay que reasignarlos.</p>
         {errorBaja && (
           <Aviso tipo="error" titulo="No se pudo dar de baja">
             {errorBaja}
