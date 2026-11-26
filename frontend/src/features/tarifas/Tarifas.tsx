@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Button } from '../../components/buttons'
 import DataTable, { type TableColumn } from '../../components/table'
 import Aviso from '../../components/Aviso'
@@ -124,12 +123,6 @@ export default function Tarifas() {
           cotizaciones nuevas.
         </Aviso>
       )}
-
-      {/* Regresa a «Modelos» */}
-      <Link to="/modelos" className="enlace-volver">
-        <span className="material-symbols-rounded">arrow_back</span>
-        Volver a modelos
-      </Link>
 
       {/* Título */}
       <div className="titulo-acciones">
