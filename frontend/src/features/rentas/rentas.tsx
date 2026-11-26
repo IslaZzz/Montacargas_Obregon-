@@ -165,10 +165,10 @@ export default function Rentas() {
     },
     {
       id: "cliente",
-      label: "Cliente",
+      label: "Cliente o folio",
       type: "text",
-      placeholder: "Buscar cliente...",
-      getValue: renta => renta.clienteNombre,
+      placeholder: "Buscar por cliente o folio...",
+      getValue: renta => `${renta.clienteNombre} ${renta.folio}`,
     },
     {
       id: "periodo",
