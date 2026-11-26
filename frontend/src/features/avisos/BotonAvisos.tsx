@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { ApartadoProximo, AvisoDescuento } from "./avisosTypes";
 import {
@@ -108,6 +109,11 @@ function ItemAvisoDescuento({ aviso, onIr }: ItemAvisoDescuentoProps) {
   );
 }
 
+// Los avisos sin leer van arriba; dentro de cada grupo se respeta el orden por tipo
+function sinLeerPrimero(items: { nuevo: boolean; elemento: ReactNode }[]) {
+  return [...items.filter((i) => i.nuevo), ...items.filter((i) => !i.nuevo)].map((i) => i.elemento);
+}
+
 // Botón "Avisos" del encabezado con la lista desplegable
 export default function BotonAvisos() {
   const { apartados, error, noLeidos, marcarComoLeidos } =
@@ -200,42 +206,56 @@ export default function BotonAvisos() {
             </p>
           ) : (
             <ul className="panel-avisos-lista">
-              {recolecciones.recolecciones.map((r) => (
-                <ItemRecoleccionProxima
-                  key={`recoleccion-${r.rentaId}`}
-                  recoleccion={r}
-                  nuevo={recolecciones.nuevas.has(claveRecoleccion(r))}
-                  onIr={() => setAbierto(false)}
-                />
-              ))}
-              {operacion.avisos.map((a) => (
-                <ItemAvisoOperacion
-                  key={`operacion-${a.id}`}
-                  aviso={a}
-                  onIr={() => {
-                    operacion.marcarLeido(a.id);
-                    setAbierto(false);
-                  }}
-                />
-              ))}
-              {descuentos.avisos.map((a) => (
-                <ItemAvisoDescuento
-                  key={`descuento-${a.id}`}
-                  aviso={a}
-                  onIr={() => {
-                    descuentos.marcarLeido(a.id);
-                    setAbierto(false);
-                  }}
-                />
-              ))}
-              {apartados.map((a) => (
-                <ItemAviso
-                  key={a.rentaId}
-                  aviso={a}
-                  nuevo={nuevos.has(claveAviso(a))}
-                  onIr={() => setAbierto(false)}
-                />
-              ))}
+              {sinLeerPrimero([
+                ...recolecciones.recolecciones.map((r) => ({
+                  nuevo: recolecciones.nuevas.has(claveRecoleccion(r)),
+                  elemento: (
+                    <ItemRecoleccionProxima
+                      key={`recoleccion-${r.rentaId}`}
+                      recoleccion={r}
+                      nuevo={recolecciones.nuevas.has(claveRecoleccion(r))}
+                      onIr={() => setAbierto(false)}
+                    />
+                  ),
+                })),
+                ...operacion.avisos.map((a) => ({
+                  nuevo: !a.leido,
+                  elemento: (
+                    <ItemAvisoOperacion
+                      key={`operacion-${a.id}`}
+                      aviso={a}
+                      onIr={() => {
+                        operacion.marcarLeido(a.id);
+                        setAbierto(false);
+                      }}
+                    />
+                  ),
+                })),
+                ...descuentos.avisos.map((a) => ({
+                  nuevo: !a.leido,
+                  elemento: (
+                    <ItemAvisoDescuento
+                      key={`descuento-${a.id}`}
+                      aviso={a}
+                      onIr={() => {
+                        descuentos.marcarLeido(a.id);
+                        setAbierto(false);
+                      }}
+                    />
+                  ),
+                })),
+                ...apartados.map((a) => ({
+                  nuevo: nuevos.has(claveAviso(a)),
+                  elemento: (
+                    <ItemAviso
+                      key={a.rentaId}
+                      aviso={a}
+                      nuevo={nuevos.has(claveAviso(a))}
+                      onIr={() => setAbierto(false)}
+                    />
+                  ),
+                })),
+              ])}
             </ul>
           )}
 

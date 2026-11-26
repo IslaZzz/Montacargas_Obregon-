@@ -10,9 +10,9 @@ const INTERVALO_MS = 60_000;
 const CLAVE_LEIDOS = "avisos.recolecciones.leidos";
 const MAXIMO_LEIDOS = 200;
 
-// Si el recordatorio cambia (se programó la recolección o ya venció), se vuelve a avisar
+// Se vuelve a avisar solo si la recolección se vence; programarla no lo marca como nuevo
 export const claveRecoleccion = (r: RecoleccionProxima) =>
-  `${r.rentaId}-${r.vencida ? "vencida" : "proxima"}-${r.trasladoFolio ?? "sin-horario"}`;
+  `${r.rentaId}-${r.vencida ? "vencida" : "proxima"}`;
 
 function leerLeidos(): string[] {
   try {
