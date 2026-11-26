@@ -23,7 +23,7 @@ import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 /**
  * Contrato que se genera solo al aceptar una cotización (HU-23).
  * Nace Apartado: sus equipos siguen disponibles para otras cotizaciones y todavía no hay renta.
- * Si el anticipo no se paga antes de la fecha límite, el apartado vence solo.
+ * El anticipo se puede pagar hasta el día de la fecha límite; si no, al terminar ese día el apartado vence solo.
  */
 @Entity
 @Table(name = "contratos")
@@ -57,7 +57,7 @@ public class Contrato {
     @Column(name = "fecha_generacion", nullable = false)
     private LocalDateTime fechaHoraGeneracion;
 
-    // El día de la aceptación + DIAS_PARA_ANTICIPO. Ese día, si no se pagó, el apartado vence
+    // El día de la aceptación + DIAS_PARA_ANTICIPO: último día para pagar el anticipo (cuenta completo)
     @Column(name = "fecha_limite_anticipo", nullable = false)
     private LocalDate fechaLimiteAnticipo;
 
@@ -76,11 +76,11 @@ public class Contrato {
     }
 
     /**
-     * True si ya llegó la fecha límite: aceptada el 9, el anticipo se paga antes del 12 y el 12 vence
-     * («a los 3 días sin anticipo»).
+     * True si ya terminó el día de la fecha límite: aceptada el 9, se puede pagar hasta el 12 y vence al
+     * terminar el 12 («El apartado venció el 12/10»). hoy es la fecha de Sonora (Cotizacion.ZONA_HORARIA).
      */
     public boolean plazoDeAnticipoTerminado(LocalDate hoy) {
-        return !hoy.isBefore(fechaLimiteAnticipo);
+        return hoy.isAfter(fechaLimiteAnticipo);
     }
 
     /** No se pagó el anticipo a tiempo. Quien llama revisa que siga Apartado. */

@@ -4,13 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -76,14 +74,17 @@ class ContratoServiceTest {
         verify(repositorio, never()).save(any());
     }
 
+    // Con la fecha de hoy en Sonora: el que tuvo su fecha límite ayer vence; el de hoy todavía se puede pagar
     @Test
-    void vencerApartadosLosPasaAApartadoVencido() {
-        Contrato contrato = new Contrato("CON-0087", cotizacion, LocalDateTime.of(2026, 10, 9, 11, 30));
-        when(repositorio.findByEstadoAndFechaLimiteAnticipoLessThanEqual(eq(EstadoContrato.APARTADO),
-                any(LocalDate.class))).thenReturn(List.of(contrato));
+    void venceAlTerminarElDiaDeLaFechaLimite() {
+        LocalDateTime ahora = LocalDateTime.now(Cotizacion.ZONA_HORARIA);
+        Contrato limiteAyer = new Contrato("CON-0086", cotizacion, ahora.minusDays(4));
+        Contrato limiteHoy = new Contrato("CON-0087", cotizacion, ahora.minusDays(3));
+        when(repositorio.findByEstado(EstadoContrato.APARTADO)).thenReturn(List.of(limiteAyer, limiteHoy));
 
         assertEquals(1, servicio.vencerApartados());
-        assertEquals(EstadoContrato.APARTADO_VENCIDO, contrato.getEstado());
+        assertEquals(EstadoContrato.APARTADO_VENCIDO, limiteAyer.getEstado());
+        assertEquals(EstadoContrato.APARTADO, limiteHoy.getEstado());
     }
 
     // Busca por días completos: del 12 de octubre a las 00:00 al 17 a las 00:00

@@ -47,11 +47,10 @@ public class ContratoPdfService {
                 CotizacionPdfService.lista(TITULO_POLITICA, POLITICA));
     }
 
-    // "Anticipo 30%: $2,834.46, a pagar antes del 12/10/2026. Con el anticipo, el contrato pasa a Contratado."
-    // Dice «antes del» porque ese día el apartado ya vence
+    // "Anticipo 30%: $2,834.46. Fecha límite para pagarlo: 12/10/2026. Con el anticipo, el contrato pasa a Contratado."
     static String textoAnticipo(Contrato k) {
         return "Anticipo 30%: " + CotizacionPdfService.moneda(k.getAnticipo())
-                + ", a pagar antes del " + k.getFechaLimiteAnticipo().format(FECHA)
+                + ". Fecha límite para pagarlo: " + k.getFechaLimiteAnticipo().format(FECHA)
                 + ". Con el anticipo, el contrato pasa a Contratado.";
     }
 }

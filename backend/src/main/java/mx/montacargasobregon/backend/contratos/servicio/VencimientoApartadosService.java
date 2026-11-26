@@ -8,9 +8,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Pasa a Apartado vencido los contratos que llegaron a su fecha límite sin anticipo (HU-23).
+ * Pasa a Apartado vencido los contratos que terminaron el día de su fecha límite sin anticipo (HU-23).
  * Revisa al arrancar el backend y después al inicio de cada minuto, con la hora de Sonora,
- * igual que el vencimiento de las cotizaciones.
+ * igual que el vencimiento de las cotizaciones: el primer minuto del día siguiente ya los vence.
  */
 @Component
 public class VencimientoApartadosService {

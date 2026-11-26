@@ -88,8 +88,8 @@ export default function DetalleContrato() {
             <p>
               La cotización {c.folio} se aceptó. El contrato queda en Apartado
               hasta que se registre el anticipo del 30% (
-              {formatoMoneda(k.anticipo)}), antes del {fechaLimite}. Los equipos
-              se bloquean al pagar el anticipo.
+              {formatoMoneda(k.anticipo)}), a más tardar el {fechaLimite}. Los
+              equipos se bloquean al pagar el anticipo.
             </p>
           </div>
         </div>

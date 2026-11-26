@@ -9,7 +9,7 @@ export interface Contrato {
   folio: string;
   estado: EstadoContrato;
   fechaGeneracion: string;
-  fechaLimiteAnticipo: string; // "2026-10-12": si no se paga antes, ese día vence el apartado
+  fechaLimiteAnticipo: string; // "2026-10-12": último día para pagar; si no se paga, vence al terminar ese día
   anticipo: number; // 30% del total con IVA
   cotizacion: Cotizacion;
 }

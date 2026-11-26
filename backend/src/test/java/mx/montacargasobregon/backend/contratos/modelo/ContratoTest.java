@@ -30,10 +30,12 @@ class ContratoTest {
         assertEquals(LocalDate.of(2026, 10, 12), contrato.getFechaLimiteAnticipo());
     }
 
+    // Inclusivo: el 12 todavía se puede pagar; vence al terminar ese día
     @Test
-    void venceElDiaDeLaFechaLimite() {
+    void sePuedePagarHastaElDiaDeLaFechaLimite() {
         assertFalse(contrato.plazoDeAnticipoTerminado(LocalDate.of(2026, 10, 11)));
-        assertTrue(contrato.plazoDeAnticipoTerminado(LocalDate.of(2026, 10, 12)));
+        assertFalse(contrato.plazoDeAnticipoTerminado(LocalDate.of(2026, 10, 12)));
+        assertTrue(contrato.plazoDeAnticipoTerminado(LocalDate.of(2026, 10, 13)));
     }
 
     @Test

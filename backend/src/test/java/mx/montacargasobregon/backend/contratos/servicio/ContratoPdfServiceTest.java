@@ -46,7 +46,7 @@ class ContratoPdfServiceTest {
     void pdfTraeElAnticipoYLaPolitica() throws Exception {
         String texto = textoDelPdf().replaceAll("\\s+", " ");
 
-        assertContiene(texto, "Anticipo 30%: $2,834.46, a pagar antes del 12/10/2026.");
+        assertContiene(texto, "Anticipo 30%: $2,834.46. Fecha límite para pagarlo: 12/10/2026.");
         assertContiene(texto, "POLÍTICA DE CANCELACIÓN Y PENALIZACIONES");
         assertContiene(texto, "Cancelación con 3 días o más antes de la entrega: se devuelve el anticipo completo.");
         assertContiene(texto, "Cancelación con menos de 3 días: se pierde el anticipo como penalización.");
@@ -55,7 +55,7 @@ class ContratoPdfServiceTest {
 
     @Test
     void textoDelAnticipo() {
-        assertEquals("Anticipo 30%: $2,834.46, a pagar antes del 12/10/2026. "
+        assertEquals("Anticipo 30%: $2,834.46. Fecha límite para pagarlo: 12/10/2026. "
                 + "Con el anticipo, el contrato pasa a Contratado.", ContratoPdfService.textoAnticipo(contrato));
     }
 

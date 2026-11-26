@@ -16,7 +16,7 @@ public record ContratoResponse(
         String folio,
         String estado,
         LocalDateTime fechaGeneracion,
-        LocalDate fechaLimiteAnticipo, // Si no se paga antes, ese día vence el apartado
+        LocalDate fechaLimiteAnticipo, // Último día para pagar; si no se paga, vence al terminar ese día
         BigDecimal anticipo, // 30 % del total con IVA
         CotizacionResponse cotizacion) {
 

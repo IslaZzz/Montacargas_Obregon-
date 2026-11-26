@@ -154,7 +154,7 @@ VALUES ('COT-0002', @carlos, @rs_carlos,
         LAST_INSERT_ID(), 'Carlos Ramírez', '6445551234', 0.00, 0.00,
         150.00, 24.00, 174.00, 1, 'ACEPTADA',
         TIMESTAMP(CURDATE() - INTERVAL 5 DAY, '12:00:00'), TIMESTAMP(CURDATE() - INTERVAL 5 DAY, '12:30:00'),
-        CURDATE() - INTERVAL 3 DAY);
+        CURDATE() - INTERVAL 4 DAY);
 INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@pt03, 150.00, 150.00, LAST_INSERT_ID());
 
@@ -229,16 +229,18 @@ VALUES ('COT-0007', @maria, @rs_mayo,
         TIMESTAMP(CURDATE(), '10:10:00'), NULL, NULL);
 
 -- ===== Contratos (HU-23): al aceptar una cotización se genera su contrato en Apartado =====
--- Anticipo = 30% del total con IVA. Fecha límite = día de la aceptación + 3; ese día, si no se pagó, el apartado vence.
+-- Anticipo = 30% del total con IVA. Fecha límite = día de la aceptación + 3: se puede pagar hasta ese día
+-- y el apartado vence al terminar ese día.
 
--- COT-0002 se aceptó hace 3 días: su fecha límite es hoy. Se carga en Apartado y el backend la pasa sola
+-- COT-0002 se aceptó hace 4 días: su fecha límite fue ayer. Se carga en Apartado y el backend la pasa sola
 -- a «Apartado vencido» al arrancar o en el siguiente minuto.
 INSERT INTO contratos (folio, cotizacion_id, estado, fecha_generacion, fecha_limite_anticipo, anticipo)
-SELECT 'CON-0001', id, 'APARTADO', TIMESTAMP(CURDATE() - INTERVAL 3 DAY, '12:45:00'), CURDATE(), 52.20
+SELECT 'CON-0001', id, 'APARTADO', TIMESTAMP(CURDATE() - INTERVAL 4 DAY, '12:45:00'), CURDATE() - INTERVAL 1 DAY, 52.20
 FROM cotizaciones WHERE folio = 'COT-0002';
 
--- Aceptada ayer, en Apartado hasta pasado mañana: MC-07 3 días. COT-0003, COT-0005 y COT-0006 también llevan
--- MC-07 en fechas que se empalman y muestran «Este equipo está en otra cotización aceptada».
+-- Aceptada hace 3 días: su fecha límite es hoy, así que sigue en Apartado hasta que termine el día. MC-07 3 días.
+-- COT-0003, COT-0005 y COT-0006 también llevan MC-07 en fechas que se empalman y muestran
+-- «Este equipo está en otra cotización aceptada».
 INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
 VALUES ('Carretera Internacional', 'km 4.5', 'Parque Industrial', 'Cd. Obregón', 'Sonora', '85065');
 INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
@@ -249,9 +251,9 @@ VALUES ('COT-0008', @maria, @rs_maquinaria,
         LAST_INSERT_ID(), 'Arq. Laura Medina', '6441112233', 0.00, 0.00,
         1500.00, 240.00, 1740.00, 1, 'ACEPTADA',
         TIMESTAMP(CURDATE() - INTERVAL 4 DAY, '10:00:00'), TIMESTAMP(CURDATE() - INTERVAL 3 DAY, '09:30:00'),
-        CURDATE() - INTERVAL 1 DAY);
+        CURDATE() - INTERVAL 3 DAY);
 SET @c = LAST_INSERT_ID();
 INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@mc07, 500.00, 1500.00, @c);
 INSERT INTO contratos (folio, cotizacion_id, estado, fecha_generacion, fecha_limite_anticipo, anticipo)
-VALUES ('CON-0002', @c, 'APARTADO', TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '17:10:00'), CURDATE() + INTERVAL 2 DAY, 522.00);
+VALUES ('CON-0002', @c, 'APARTADO', TIMESTAMP(CURDATE() - INTERVAL 3 DAY, '17:10:00'), CURDATE(), 522.00);

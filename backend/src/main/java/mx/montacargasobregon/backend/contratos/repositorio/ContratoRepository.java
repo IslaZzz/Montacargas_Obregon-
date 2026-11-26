@@ -1,6 +1,5 @@
 package mx.montacargasobregon.backend.contratos.repositorio;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -22,8 +21,8 @@ public interface ContratoRepository extends JpaRepository<Contrato, Long> {
     @Query("select max(cast(substring(c.folio, 5) as Integer)) from Contrato c")
     Integer ultimoNumeroFolio();
 
-    // Los apartados cuya fecha límite de anticipo ya llegó
-    List<Contrato> findByEstadoAndFechaLimiteAnticipoLessThanEqual(EstadoContrato estado, LocalDate hoy);
+    // Los contratos en ese estado (para revisar qué apartados vencieron)
+    List<Contrato> findByEstado(EstadoContrato estado);
 
     /**
      * De esos equipos, los que están en el contrato de otra cotización con ese estado y en fechas que se

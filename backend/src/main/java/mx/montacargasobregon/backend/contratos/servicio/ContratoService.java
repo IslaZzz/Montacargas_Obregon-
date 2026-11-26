@@ -56,11 +56,17 @@ public class ContratoService {
         return repositorio.findByCotizacionId(cotizacionId);
     }
 
-    /** Pasa a Apartado vencido los apartados cuya fecha límite de anticipo ya llegó. Devuelve cuántos cambiaron. */
+    /**
+     * Pasa a Apartado vencido los apartados que ya terminaron el día de su fecha límite sin anticipo.
+     * La regla es Contrato.plazoDeAnticipoTerminado; hoy se toma con la hora de Sonora, aunque el servidor
+     * esté en otra zona. Devuelve cuántos cambiaron.
+     */
     @Transactional
     public int vencerApartados() {
-        List<Contrato> vencidos = repositorio.findByEstadoAndFechaLimiteAnticipoLessThanEqual(
-                EstadoContrato.APARTADO, LocalDate.now(Cotizacion.ZONA_HORARIA));
+        LocalDate hoy = LocalDate.now(Cotizacion.ZONA_HORARIA);
+        List<Contrato> vencidos = repositorio.findByEstado(EstadoContrato.APARTADO).stream()
+                .filter(k -> k.plazoDeAnticipoTerminado(hoy))
+                .toList();
         vencidos.forEach(Contrato::vencerApartado);
         return vencidos.size(); // Dentro de la transacción, JPA guarda los cambios solo
     }

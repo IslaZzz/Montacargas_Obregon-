@@ -75,9 +75,9 @@ export default function PdfContrato() {
             documento={{ titulo: "CONTRATO", folio: k.folio, fecha: k.fechaGeneracion }}
           >
             <p className="hoja-anticipo">
-              Anticipo 30%: {formatoMoneda(k.anticipo)}, a pagar antes del{" "}
-              {formatoFecha(k.fechaLimiteAnticipo)}. Con el anticipo, el
-              contrato pasa a Contratado.
+              Anticipo 30%: {formatoMoneda(k.anticipo)}. Fecha límite para
+              pagarlo: {formatoFecha(k.fechaLimiteAnticipo)}. Con el anticipo,
+              el contrato pasa a Contratado.
             </p>
             <section className="hoja-condiciones">
               <h3>{TITULO_POLITICA}</h3>
