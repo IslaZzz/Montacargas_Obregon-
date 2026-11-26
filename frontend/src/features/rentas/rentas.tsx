@@ -1,30 +1,37 @@
 import { useEffect, useMemo, useState } from "react";
-import { listarRentas } from "./rentasApi";
-import type { Renta } from "./estadosRentaTypes";
-import FilterFactory from "../../components/filters/filterFactory";
-import type { FilterDefinition } from "../../components/filters/filterTypes";
+import { useNavigate } from "react-router-dom";
+import Aviso from "../../components/Aviso";
+import { Button } from "../../components/buttons";
+import Chip, { claseDeChip } from "../../components/chips";
+import DateRangePicker from "../../components/filters/dateRangePicker";
+import FilterRow from "../../components/filters/filterRow";
+import type { DateRangeValue } from "../../components/filters/filterTypes";
 import DataTable from "../../components/table";
 import type { TableColumn } from "../../components/table";
-import Chip from "../../components/chips";
-import { Button } from "../../components/buttons";
-import "../../styles/rentas/rentas.css";
-import "../../styles/global.css";
-
-import { useNavigate } from "react-router-dom";
-
+import { useTitulo } from "../../hooks/useTitulo";
+import { formatoDiaCorto } from "../../utils/fechas";
+import type { Renta } from "./estadosRentaTypes";
+import { listarRentas } from "./rentasApi";
+import "../../styles/operacion.css";
+// El resumen de la derecha usa las mismas clases que el de Equipos, para que las dos consultas se vean iguales
+import "../../styles/equipos/consultar-equipos.css";
 
 interface RentaVista extends Renta {
   clienteNombre: string;
   equiposResumen: string;
-  categoriaFiltro: string;
+  categoriaFiltro: Categoria;
 }
 
-type EstadoFiltro =
-  | "APARTADOS_PROXIMOS"
-  | "POR_VENCER"
-  | "PENDIENTES_RECOLECCION";
+type Categoria = "APARTADOS_PROXIMOS" | "POR_VENCER" | "PENDIENTES_RECOLECCION" | "TODAS";
 
 const DIAS_AVISO = 7;
+
+// Chips de "Filtrar por", con el color de su punto
+const CATEGORIAS: { valor: Exclude<Categoria, "TODAS">; nombre: string; punto: string }[] = [
+  { valor: "APARTADOS_PROXIMOS", nombre: "Apartados próximos", punto: claseDeChip("renta", "programado") },
+  { valor: "POR_VENCER", nombre: "Por vencer", punto: claseDeChip("renta", "en-curso") },
+  { valor: "PENDIENTES_RECOLECCION", nombre: "Pendientes de recolección", punto: claseDeChip("traslado", "recoleccion") },
+];
 
 function fechaLocal(fecha: Date): string {
   const year = fecha.getFullYear();
@@ -36,15 +43,11 @@ function fechaLocal(fecha: Date): string {
 function diasEntre(fecha: string): number {
   const hoy = new Date(`${fechaLocal(new Date())}T00:00:00`);
   const objetivo = new Date(`${fecha}T00:00:00`);
-
-  return Math.round(
-    (objetivo.getTime() - hoy.getTime()) / 86400000
-  );
+  return Math.round((objetivo.getTime() - hoy.getTime()) / 86400000);
 }
 
 function formatearFecha(fecha: string): string {
   if (!fecha) return "Sin fecha";
-
   return new Date(`${fecha}T00:00:00`).toLocaleDateString("es-MX", {
     day: "numeric",
     month: "long",
@@ -53,47 +56,25 @@ function formatearFecha(fecha: string): string {
 
 function obtenerNombreCliente(renta: Renta): string {
   const cliente = renta.cliente;
-
   return (
     cliente.empresa ||
-    [
-      cliente.nombre,
-      cliente.apellidoPaterno,
-      cliente.apellidoMaterno,
-    ]
-      .filter(Boolean)
-      .join(" ")
+    [cliente.nombre, cliente.apellidoPaterno, cliente.apellidoMaterno].filter(Boolean).join(" ")
   );
 }
 
-function obtenerCategoria(renta: Renta): EstadoFiltro | "TODAS" {
+const pendienteDeRecoleccion = (renta: Renta) =>
+  renta.equipos.some((equipo) => ["EN_OPERACION", "EN_REVISION_ENTRADA"].includes(equipo.fase));
+
+const porVencer = (renta: Renta) => {
+  const dias = diasEntre(renta.fechaFin);
+  return renta.estado === "EN_CURSO" && dias >= 0 && dias <= DIAS_AVISO;
+};
+
+function obtenerCategoria(renta: Renta): Categoria {
   const diasInicio = diasEntre(renta.fechaInicio);
-  const diasFin = diasEntre(renta.fechaFin);
-
-  const pendienteRecoleccion = renta.equipos.some((equipo) =>
-    ["EN_OPERACION", "EN_REVISION_ENTRADA"].includes(equipo.fase)
-  );
-
-  if (pendienteRecoleccion) {
-    return "PENDIENTES_RECOLECCION";
-  }
-
-  if (
-    renta.estado === "EN_CURSO" &&
-    diasFin >= 0 &&
-    diasFin <= DIAS_AVISO
-  ) {
-    return "POR_VENCER";
-  }
-
-  if (
-    renta.estado === "PROGRAMADA" &&
-    diasInicio >= 0 &&
-    diasInicio <= DIAS_AVISO
-  ) {
-    return "APARTADOS_PROXIMOS";
-  }
-
+  if (pendienteDeRecoleccion(renta)) return "PENDIENTES_RECOLECCION";
+  if (porVencer(renta)) return "POR_VENCER";
+  if (renta.estado === "PROGRAMADA" && diasInicio >= 0 && diasInicio <= DIAS_AVISO) return "APARTADOS_PROXIMOS";
   return "TODAS";
 }
 
@@ -104,210 +85,215 @@ function obtenerEstadoChip(estado: Renta["estado"]) {
     CERRADA: "finalizado",
     CANCELADA: "cancelado",
   } as const;
-
   return estados[estado];
 }
 
+// Sin acentos y en minúsculas, para que "agricola" encuentre "Agrícola"
+const normalizar = (texto: string) =>
+  texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+// Conteos del panel de la derecha
+const RESUMEN: { nombre: string; punto: string; contar: (rentas: Renta[]) => number }[] = [
+  {
+    nombre: "Rentas programadas",
+    punto: claseDeChip("renta", "programado"),
+    contar: (rentas) => rentas.filter((r) => r.estado === "PROGRAMADA").length,
+  },
+  {
+    nombre: "Recolecciones pendientes",
+    punto: claseDeChip("traslado", "recoleccion"),
+    contar: (rentas) => rentas.filter(pendienteDeRecoleccion).length,
+  },
+  {
+    nombre: "Por vencer",
+    punto: claseDeChip("renta", "en-curso"),
+    contar: (rentas) => rentas.filter(porVencer).length,
+  },
+];
+
+/** Consultar rentas: lista con buscador, fechas y filtros, y el resumen a la derecha. */
 export default function Rentas() {
+  useTitulo("Rentas");
   const navigate = useNavigate();
+
   const [rentas, setRentas] = useState<Renta[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
+
+  // Filtros: texto (cliente o folio), periodo y chip de categoría ("all" = todas)
+  const [texto, setTexto] = useState("");
+  const [fechas, setFechas] = useState<DateRangeValue>({ from: "", to: "" });
+  const [categoria, setCategoria] = useState("all");
 
   useEffect(() => {
-    async function cargarRentas() {
-      try {
-        setLoading(true);
-        const data = await listarRentas();
-        setRentas(data);
-      } catch (err) {
-        console.error("Error al cargar rentas:", err);
-        setError("No fue posible cargar las rentas.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    cargarRentas();
+    listarRentas()
+      .then(setRentas)
+      .catch(() => setError("No fue posible cargar las rentas."))
+      .finally(() => setCargando(false));
   }, []);
 
-  const rentasVista = useMemo<RentaVista[]>(() => {
-    return rentas.map((renta) => ({
-      ...renta,
-      clienteNombre: obtenerNombreCliente(renta),
-      equiposResumen: renta.equipos
-        .map((equipo) => equipo.numeroUnidad)
-        .join(", "),
-      categoriaFiltro: obtenerCategoria(renta),
-    }));
-  }, [rentas]);
+  const vistas = useMemo<RentaVista[]>(
+    () =>
+      rentas.map((renta) => ({
+        ...renta,
+        clienteNombre: obtenerNombreCliente(renta),
+        equiposResumen: renta.equipos.map((equipo) => equipo.numeroUnidad).join(", "),
+        categoriaFiltro: obtenerCategoria(renta),
+      })),
+    [rentas],
+  );
 
-  const filters = useMemo<FilterDefinition<RentaVista>[]>(() => [
-    {
-      id: "categoria",
-      label: "Filtrar por",
-      type: "row",
-      options: [
-        {
-          label: "Apartados próximos",
-          value: "APARTADOS_PROXIMOS",
-        },
-        {
-          label: "Por vencer",
-          value: "POR_VENCER",
-        },
-        {
-          label: "Pendientes de recolección",
-          value: "PENDIENTES_RECOLECCION",
-        },
-      ],
-      getValue: renta => renta.categoriaFiltro,
-    },
-    {
-      id: "cliente",
-      label: "Cliente o folio",
-      type: "text",
-      placeholder: "Buscar por cliente o folio...",
-      getValue: renta => `${renta.clienteNombre} ${renta.folio}`,
-    },
-    {
-      id: "periodo",
-      label: "Periodo",
-      type: "date-range",
-      getValue: renta => renta.fechaInicio,
-    },
-  ], []);
+  // Rentas que están vigentes en algún día del periodo elegido
+  const enPeriodo = vistas.filter(
+    (r) => (!fechas.from || r.fechaFin >= fechas.from) && (!fechas.to || r.fechaInicio <= fechas.to),
+  );
 
-  const columns = useMemo<TableColumn<RentaVista>[]>(() => [
+  const buscado = normalizar(texto.trim());
+  const encontradas = enPeriodo.filter((r) => !buscado || normalizar(`${r.clienteNombre} ${r.folio}`).includes(buscado));
+  const visibles = categoria === "all" ? encontradas : encontradas.filter((r) => r.categoriaFiltro === categoria);
+
+  const filtrosCategoria = CATEGORIAS.map((c) => ({
+    label: c.nombre,
+    value: c.valor,
+    count: encontradas.filter((r) => r.categoriaFiltro === c.valor).length,
+    dotClassName: c.punto,
+  }));
+
+  const textoFechas =
+    fechas.from && fechas.to
+      ? `${formatoDiaCorto(fechas.from)} – ${formatoDiaCorto(fechas.to)}`
+      : fechas.from
+        ? `Desde ${formatoDiaCorto(fechas.from)}`
+        : fechas.to
+          ? `Hasta ${formatoDiaCorto(fechas.to)}`
+          : "Todas";
+
+  const columnas: TableColumn<RentaVista>[] = [
     {
       header: "Renta",
-      accessor: renta => (
-        <div className="renta-cell-primary">
-          <strong>{renta.clienteNombre}</strong>
-          <small>{renta.folio}</small>
-        </div>
+      accessor: (r) => (
+        <>
+          <span className="celda-principal">{r.clienteNombre}</span>
+          <span className="celda-secundaria">{r.folio}</span>
+        </>
       ),
     },
     {
       header: "Equipos",
-      accessor: renta => (
-        <div>
-          <strong>{renta.equipos.length} equipos</strong>
-          <br />
-          <small>{renta.equiposResumen || "Sin equipos"}</small>
-        </div>
+      accessor: (r) => (
+        <>
+          <span className="celda-principal">
+            {r.equipos.length} {r.equipos.length === 1 ? "equipo" : "equipos"}
+          </span>
+          <span className="celda-secundaria">{r.equiposResumen || "Sin equipos"}</span>
+        </>
       ),
     },
     {
-      header: "Información general",
-      accessor: renta => (
-        <div className="renta-cell-info">
-          <span>
-            <strong>Inicia:</strong> {formatearFecha(renta.fechaInicio)}
-          </span>
-          <br />
-          <span>
-            <strong>Termina:</strong> {formatearFecha(renta.fechaFin)}
-          </span>
-        </div>
+      header: "Periodo",
+      accessor: (r) => (
+        <>
+          <span className="celda-principal">Inicia {formatearFecha(r.fechaInicio)}</span>
+          <span className="celda-secundaria">Termina {formatearFecha(r.fechaFin)}</span>
+        </>
       ),
     },
     {
       header: "Estado",
-      accessor: renta => (
-        <Chip
-          category="renta"
-          status={obtenerEstadoChip(renta.estado)}
-        />
-      ),
+      accessor: (r) => <Chip category="renta" status={obtenerEstadoChip(r.estado)} />,
     },
     {
       header: "Acciones",
-      accessor: renta => (
-        <Button
-          variant="secondary"
-          onClick={() => navigate(`/rentas/${renta.id}`)}
-        >
-          Ver renta
-          <span className="material-symbols-rounded">
-            arrow_forward
-          </span>
-        </Button>
+      className: "celda-accion",
+      accessor: (r) => (
+        <span className="acciones">
+          <Button type="button" variant="primary" className="btn-chico" onClick={() => navigate(`/rentas/${r.id}`)}>
+            Ver renta
+            <span className="material-symbols-rounded" aria-hidden="true">
+              arrow_forward
+            </span>
+          </Button>
+        </span>
       ),
-      className: "cell-actions",
     },
-  ], []);
-
-  const programadas = rentas.filter(
-    renta => renta.estado === "PROGRAMADA"
-  ).length;
-
-  const pendientesRecoleccion = rentas.filter(renta =>
-    renta.equipos.some(equipo =>
-      ["EN_OPERACION", "EN_REVISION_ENTRADA"].includes(equipo.fase)
-    )
-  ).length;
-
-  const porVencer = rentas.filter(renta => {
-    const dias = diasEntre(renta.fechaFin);
-
-    return (
-      renta.estado === "EN_CURSO" &&
-      dias >= 0 &&
-      dias <= DIAS_AVISO
-    );
-  }).length;
-
-  if (loading) return <p>Cargando rentas...</p>;
-  if (error) return <p>{error}</p>;
+  ];
 
   return (
-    <div className="rentas-layout">
+    <div className="equipos-estados">
+      <div className="pagina operacion">
+        {/* Título */}
+        <div className="operacion-titulo">
+          <h1>Rentas</h1>
+          <p>Consulta las rentas y encuentra las que están por empezar, por vencer o pendientes de recoger.</p>
+        </div>
 
-      <main className="rentas-page">
-        <section className="rentas-content">
+        {error && <Aviso tipo="error" titulo={error} />}
 
-          <header className="rentas-header">
-            <h1 className="title-heading">Consultar rentas actuales</h1>
-          </header>
+        {/* Buscador y fechas */}
+        <div className="operacion-filtros-izquierda">
+          <label className="operacion-filtro">
+            <span className="operacion-filtro-etiqueta">Buscar:</span>
+            <input
+              type="search"
+              className="campo-input equipos-buscador"
+              placeholder="Cliente o folio"
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+            />
+          </label>
+          <div className="operacion-filtro">
+            <span className="operacion-filtro-etiqueta">Fecha:</span>
+            <DateRangePicker
+              value={fechas}
+              onChange={(campo, valor) => setFechas((prev) => ({ ...prev, [campo]: valor }))}
+            />
+          </div>
+        </div>
 
-          <FilterFactory
-            data={rentasVista}
-            filters={filters}
+        {/* Categoría */}
+        <div className="operacion-filtro">
+          <span className="operacion-filtro-etiqueta">Filtrar por:</span>
+          <FilterRow
+            options={filtrosCategoria}
+            selectedValue={categoria}
             allLabel="Todas"
-          >
-            {(filteredRentas) => (
-              <DataTable
-                columns={columns}
-                data={filteredRentas}
-                getRowKey={renta => renta.id}
-              />
-            )}
-          </FilterFactory>
-
-        </section>
-      </main>
-
-      <aside className="rentas-summary">
-        <h2 className="title-heading">Resumen</h2>
-        <p>◷ Fechas: Todas</p>
-
-        <div className="summary-item">
-          <strong>{programadas}</strong>
-          <span>Rentas<br />programadas</span>
+            allCount={encontradas.length}
+            onChange={setCategoria}
+          />
         </div>
 
-        <div className="summary-item">
-          <strong>{pendientesRecoleccion}</strong>
-          <span>Recolecciones<br />pendientes</span>
-        </div>
+        <DataTable
+          columns={columnas}
+          data={visibles}
+          getRowKey={(r) => r.id}
+          emptyMessage={cargando ? "Cargando rentas…" : "No hay rentas con estos filtros."}
+        />
+      </div>
 
-        <div className="summary-item">
-          <strong>{porVencer}</strong>
-          <span>Por vencer</span>
+      {/* Resumen: mismo panel que en Equipos */}
+      <aside className="equipos-resumen" aria-labelledby="titulo-resumen-rentas">
+        <div className="equipos-resumen-encabezado">
+          <h2 id="titulo-resumen-rentas">Resumen</h2>
         </div>
+        <div className="equipos-resumen-fechas">
+          <span className="material-symbols-rounded" aria-hidden="true">
+            schedule
+          </span>
+          Fechas: {textoFechas}
+        </div>
+        {RESUMEN.map((item) => (
+          <div key={item.nombre} className="equipos-conteo">
+            <span className="equipos-conteo-numero">{cargando ? "–" : item.contar(enPeriodo)}</span>
+            <span className="equipos-conteo-texto">
+              <span className={`equipos-punto ${item.punto}`} aria-hidden="true" />
+              {item.nombre}
+            </span>
+          </div>
+        ))}
       </aside>
-
     </div>
   );
 }
