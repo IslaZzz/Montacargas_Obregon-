@@ -46,6 +46,8 @@ import mx.montacargasobregon.backend.traslados.modelo.EstadoTraslado;
 import mx.montacargasobregon.backend.traslados.modelo.TipoTraslado;
 import mx.montacargasobregon.backend.traslados.modelo.Traslado;
 import mx.montacargasobregon.backend.traslados.repositorio.TrasladoRepository;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import mx.montacargasobregon.backend.traslados.dto.RealizableResponse;
 
 @ExtendWith(MockitoExtension.class)
 class TrasladoServiceTest {
@@ -338,6 +340,33 @@ class TrasladoServiceTest {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> servicio.completar(999L));
 
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+    }
+
+    // La oficina sabe por qué no se puede antes de preguntar "¿Ya se entregó?", sin cambiar nada
+    @Test
+    void realizable_diceElMotivo_sinMarcarNada() {
+        trasladoEntrega.asignarResponsable(operadorLuis);
+        when(repositorio.findById(200L)).thenReturn(Optional.of(trasladoEntrega));
+        when(cartaRepositorio.findByRentaId(10L)).thenReturn(Optional.empty());
+
+        RealizableResponse respuesta = servicio.realizable(200L);
+
+        assertFalse(respuesta.realizable());
+        assertTrue(respuesta.motivo().contains("carta firmada"));
+        assertEquals(EstadoTraslado.PROGRAMADO, trasladoEntrega.getEstado());
+        verifyNoInteractions(avanceRenta);
+    }
+
+    @Test
+    void realizable_sinMotivo_cuandoSePuede() {
+        trasladoEntrega.asignarResponsable(operadorLuis);
+        when(repositorio.findById(200L)).thenReturn(Optional.of(trasladoEntrega));
+        when(cartaRepositorio.findByRentaId(10L)).thenReturn(Optional.of(cartaFirmada()));
+
+        RealizableResponse respuesta = servicio.realizable(200L);
+
+        assertTrue(respuesta.realizable());
+        assertNull(respuesta.motivo());
     }
 
     private CartaResponsiva cartaFirmada() {

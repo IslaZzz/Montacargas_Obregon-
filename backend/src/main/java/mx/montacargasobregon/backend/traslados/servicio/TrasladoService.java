@@ -19,6 +19,7 @@ import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.personal.repositorio.PersonalRepository;
 import mx.montacargasobregon.backend.traslados.dto.AsignarTrasladoRequest;
 import mx.montacargasobregon.backend.traslados.dto.OperadorDisponibilidadResponse;
+import mx.montacargasobregon.backend.traslados.dto.RealizableResponse;
 import mx.montacargasobregon.backend.traslados.dto.TrasladoResponse;
 import mx.montacargasobregon.backend.traslados.modelo.EstadoTraslado;
 import mx.montacargasobregon.backend.traslados.modelo.TipoTraslado;
@@ -273,36 +274,49 @@ public class TrasladoService {
         Traslado traslado = repositorio.findById(trasladoId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Traslado no encontrado"));
 
-        if (traslado.getResponsable() == null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Primero asigna un operador al traslado " + traslado.getFolio());
-        }
-        if (traslado.getEstado() != EstadoTraslado.PROGRAMADO && traslado.getEstado() != EstadoTraslado.EN_CURSO) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "El traslado " + traslado.getFolio() + " ya está realizado o cancelado");
-        }
-        if (traslado.getTipo() == TipoTraslado.RECOLECCION
-                && traslado.getRenta().getEstado() != EstadoRenta.EN_CURSO) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Primero marca como realizada la entrega de la renta " + traslado.getRenta().getFolio());
-        }
-        // OHU11: la misma regla que en la app; desde la oficina tampoco se entrega sin la carta firmada
-        if (traslado.getTipo() == TipoTraslado.ENTREGA && !cartaFirmada(traslado)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Obligatoria: sin la carta firmada no se puede registrar la entrega.");
-        }
-
-        // OHU13: si la recolección no se confirmó en la app, igual pide la evidencia fotográfica
-        if (traslado.getTipo() == TipoTraslado.RECOLECCION && traslado.getEstado() == EstadoTraslado.PROGRAMADO) {
-            String faltanFotos = evidencia.motivo(traslado);
-            if (faltanFotos != null) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, faltanFotos);
-            }
+        String motivo = motivoNoRealizable(traslado);
+        if (motivo != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, motivo);
         }
 
         traslado.completar();
         avanceRenta.trasladoRealizado(traslado);
         return TrasladoResponse.from(traslado);
+    }
+
+    /**
+     * Antes de preguntar "¿Ya se entregó?" en la oficina: si el traslado se puede marcar realizado y, si no, por qué.
+     * No cambia nada.
+     */
+    @Transactional(readOnly = true)
+    public RealizableResponse realizable(Long trasladoId) {
+        Traslado traslado = repositorio.findById(trasladoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Traslado no encontrado"));
+        String motivo = motivoNoRealizable(traslado);
+        return new RealizableResponse(motivo == null, motivo);
+    }
+
+    // Lo que impide marcarlo realizado, o null si se puede. Lo usan completar y realizable para que digan lo mismo
+    private String motivoNoRealizable(Traslado traslado) {
+        if (traslado.getResponsable() == null) {
+            return "Primero asigna un operador al traslado " + traslado.getFolio();
+        }
+        if (traslado.getEstado() != EstadoTraslado.PROGRAMADO && traslado.getEstado() != EstadoTraslado.EN_CURSO) {
+            return "El traslado " + traslado.getFolio() + " ya está realizado o cancelado";
+        }
+        if (traslado.getTipo() == TipoTraslado.RECOLECCION
+                && traslado.getRenta().getEstado() != EstadoRenta.EN_CURSO) {
+            return "Primero marca como realizada la entrega de la renta " + traslado.getRenta().getFolio();
+        }
+        // OHU11: la misma regla que en la app; desde la oficina tampoco se entrega sin la carta firmada
+        if (traslado.getTipo() == TipoTraslado.ENTREGA && !cartaFirmada(traslado)) {
+            return "Obligatoria: sin la carta firmada no se puede registrar la entrega.";
+        }
+        // OHU13: si la recolección no se confirmó en la app, igual pide la evidencia fotográfica
+        if (traslado.getTipo() == TipoTraslado.RECOLECCION && traslado.getEstado() == EstadoTraslado.PROGRAMADO) {
+            return evidencia.motivo(traslado);
+        }
+        return null;
     }
 
     private boolean cartaFirmada(Traslado traslado) {
