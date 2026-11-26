@@ -180,8 +180,9 @@ public class InicioService {
         return rentas.stream()
                 .filter(r -> r.getEstado() == EstadoRenta.EN_CURSO
                         && r.getTraslados().stream().noneMatch(t -> t.getTipo() == TipoTraslado.RECOLECCION
-                                && t.getEstado() != EstadoTraslado.CANCELADO)
+                        && t.getEstado() != EstadoTraslado.CANCELADO)
                         && !r.getFechaFin().isAfter(hoy.plusDays(DIAS_AVISO_RECOLECCION)))
+                .sorted(Comparator.comparing(Renta::getFechaFin))
                 .map(r -> new Aviso(TipoAviso.FALTA_RECOLECCION,
                         "Falta confirmar la recolección - Renta " + r.getFolio(),
                         (r.getFechaFin().isBefore(hoy)
