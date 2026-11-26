@@ -57,7 +57,13 @@ async function pedir<T>(metodo: string, ruta: string, cuerpo?: unknown, comoArch
     } catch {
       // La respuesta no trae JSON
     }
-    const mensaje = datos.mensaje ?? `No fue posible completar la operación (error ${respuesta.status}).`;
+    // 502, 503 o 504 sin mensaje del backend: el servidor no contestó (apagado o sin red)
+    const sinServidor = [502, 503, 504].includes(respuesta.status);
+    const mensaje =
+      datos.mensaje ??
+      (sinServidor
+        ? "No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo."
+        : `No fue posible completar la operación (error ${respuesta.status}).`);
 
     if (respuesta.status === 401 && token !== null && !esEntrar(metodo, ruta)) {
       alSesionInvalida?.(mensaje, token);
