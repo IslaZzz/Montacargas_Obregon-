@@ -150,14 +150,15 @@ export default function Dashboard() {
         )}
 
         {avisos.length > 0 && (
-          <section className="inicio-seccion" aria-labelledby="titulo-atencion">
+          <section className="inicio-seccion inicio-seccion-atencion" aria-labelledby="titulo-atencion">
             <h2 id="titulo-atencion" className="inicio-titulo inicio-titulo-alerta">
               <span className="material-symbols-rounded" aria-hidden="true">
                 emergency_home
               </span>
-              Requiere atención
+              Requiere atención ({avisos.length})
             </h2>
-            <div className="inicio-alertas">
+            {/* Con más de 2 avisos, la lista tiene altura fija y scroll, para que "Pendientes hoy" no se mueva */}
+            <div className={`inicio-alertas${avisos.length > 2 ? " inicio-alertas-scroll" : ""}`}>
               {avisos.map((a, i) => (
                 <TarjetaAviso key={`${a.tipo}-${i}`} aviso={a} onIr={navigate} />
               ))}

@@ -65,6 +65,73 @@
   gap: 12px;
   max-width: 900px;
 }
+/* Muchos avisos: scroll con un difuminado abajo.
+   El espacio de abajo deja que el último aviso suba por encima del difuminado */
+.inicio-alertas-scroll {
+  max-height: 264px;
+  overflow-y: auto;
+  padding: 0 8px 32px 0;
+  scrollbar-gutter: stable;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 32px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 32px), transparent);
+}
+
+/* Escritorio: la columna mide lo que queda de pantalla bajo el encabezado, igual que el panel.
+   "Requiere atención" toma el espacio que sobra y hace scroll; "Pendientes hoy" siempre se ve completo.
+   Márgenes y avisos más compactos para que quepan más avisos a la vista */
+@media (min-width: 1101px) {
+  .inicio-principal {
+    height: calc(100dvh / var(--zoom) - 130px);
+    box-sizing: border-box;
+    padding-top: 32px;
+    padding-bottom: 24px;
+  }
+  .inicio-seccion,
+  .inicio-fecha + .inicio-seccion {
+    margin-top: 20px;
+  }
+  .inicio-titulo {
+    margin-bottom: 14px;
+  }
+  .inicio-titulo-alerta {
+    margin-bottom: 10px;
+  }
+
+  .inicio-seccion-atencion {
+    display: flex;
+    flex-direction: column;
+    min-height: 160px; /* Aunque la pantalla sea baja, se ve al menos un aviso */
+  }
+  .inicio-seccion-atencion .inicio-titulo {
+    flex-shrink: 0;
+  }
+  .inicio-seccion-atencion .inicio-alertas {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    gap: 10px;
+  }
+  .inicio-alertas-scroll {
+    max-height: none;
+  }
+
+  /* Avisos más bajitos */
+  .inicio-alerta {
+    padding: 12px 20px;
+  }
+  .inicio-alerta h3 {
+    font-size: 18px;
+  }
+  .inicio-alerta p {
+    margin-top: 2px;
+    font-size: 15px;
+  }
+
+  /* Cuadros de pendientes un poco más bajos */
+  .inicio-pendiente-cuerpo {
+    height: 150px;
+  }
+}
 .inicio-alerta {
   display: flex;
   align-items: center;
