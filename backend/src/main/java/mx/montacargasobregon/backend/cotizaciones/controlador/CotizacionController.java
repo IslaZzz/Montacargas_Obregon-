@@ -120,12 +120,8 @@ public class CotizacionController {
         return respuesta(servicio.definirPrecio(id));
     }
 
-    // El detalle lleva la renta (HU-37) y el contrato (HU-23) que salieron de la cotización, si ya tiene,
-    // y marca sus equipos que están en otra cotización aceptada
+    // El detalle lleva la renta que salió de la cotización, si ya tiene (HU-37)
     private CotizacionResponse respuesta(Cotizacion c) {
-        return CotizacionResponse.toCotizacionResponse(c,
-                servicio.renta(c.getId()).orElse(null),
-                servicio.contrato(c.getId()).orElse(null),
-                servicio.equiposEnOtraCotizacionAceptada(c));
+        return CotizacionResponse.toCotizacionResponse(c, servicio.renta(c.getId()).orElse(null));
     }
 }

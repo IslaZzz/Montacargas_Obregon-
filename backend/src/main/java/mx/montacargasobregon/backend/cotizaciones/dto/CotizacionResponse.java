@@ -4,12 +4,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 import mx.montacargasobregon.backend.clientes.dto.ClienteResponse;
 import mx.montacargasobregon.backend.clientes.dto.RazonSocialResponse;
 import mx.montacargasobregon.backend.comun.dto.DatosDireccionResponse;
-import mx.montacargasobregon.backend.contratos.modelo.Contrato;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Descuento;
 import mx.montacargasobregon.backend.cotizaciones.modelo.TipoDescuento;
@@ -47,21 +45,15 @@ public record CotizacionResponse(
         BigDecimal total,
         // Solicitud de autorización del descuento y la respuesta de gerencia; null si no hay descuento
         AutorizacionDescuentoResponse autorizacion,
-        RentaDeCotizacionResponse renta,
-        // El contrato que se generó al aceptarla (HU-23); null si no tiene
-        ContratoDeCotizacionResponse contrato) {
+        RentaDeCotizacionResponse renta) {
 
-    // Sin renta, sin contrato y sin avisos en sus equipos: una cotización recién creada, o la de un contrato
+    // Una cotización recién creada todavía no tiene renta
     public static CotizacionResponse toCotizacionResponse(Cotizacion c) {
-        return toCotizacionResponse(c, null, null, Set.of());
+        return toCotizacionResponse(c, null);
     }
 
-    /**
-     * Con la renta y el contrato que salieron de la cotización (null si no tiene) y los ids de sus equipos
-     * que están en otra cotización aceptada.
-     */
-    public static CotizacionResponse toCotizacionResponse(Cotizacion c, Renta renta, Contrato contrato,
-            Set<Long> equiposEnOtraCotizacionAceptada) {
+    /** Con la renta que salió de la cotización al aceptarla, o null si no tiene. */
+    public static CotizacionResponse toCotizacionResponse(Cotizacion c, Renta renta) {
         Descuento d = c.getDescuento();
         return new CotizacionResponse(
                 c.getId(),
@@ -80,10 +72,7 @@ public record CotizacionResponse(
                 DatosDireccionResponse.toDatosDireccionResponse(c.getDireccionObra()),
                 c.getContactoObra().getNombre(),
                 c.getContactoObra().getTelefono(),
-                c.getEquipos().stream()
-                        .map(p -> PartidaCotizacionResponse.toPartidaCotizacionResponse(p,
-                                equiposEnOtraCotizacionAceptada.contains(p.getEquipo().getId())))
-                        .toList(),
+                c.getEquipos().stream().map(PartidaCotizacionResponse::toPartidaCotizacionResponse).toList(),
                 c.getTrasladoEntrega(),
                 c.getTrasladoRecoleccion(),
                 c.isPrecioDefinido(),
@@ -95,7 +84,6 @@ public record CotizacionResponse(
                 c.getIva(),
                 c.getTotal(),
                 AutorizacionDescuentoResponse.toAutorizacionDescuentoResponse(c.getAutorizacion()),
-                renta == null ? null : RentaDeCotizacionResponse.toRentaDeCotizacionResponse(renta),
-                contrato == null ? null : ContratoDeCotizacionResponse.toContratoDeCotizacionResponse(contrato));
+                renta == null ? null : RentaDeCotizacionResponse.toRentaDeCotizacionResponse(renta));
     }
 }
