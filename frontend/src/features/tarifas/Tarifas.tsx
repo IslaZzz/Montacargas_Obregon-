@@ -12,7 +12,7 @@ import "../../styles/tarifas/tarifas.css";
 // Valor del filtro cuando no se elige categoría
 const TODAS = 'todas'
 
-// Pantalla «Tarifas» (HU-04). Es una subpantalla de «Modelos».
+// Pantalla «Tarifas» (HU-04)
 export default function Tarifas() {
   useTitulo('Tarifas')
 
