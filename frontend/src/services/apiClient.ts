@@ -27,7 +27,7 @@ export async function getApi<T>(
 
 // Envía datos al backend y convierte sus errores en ErrorApi
 async function enviarApi<T>(
-  metodo: "POST" | "PUT" | "PATCH",
+  metodo: "POST" | "PUT" | "PATCH" | "DELETE",
   ruta: string,
   cuerpo: unknown,
 ): Promise<T> {
@@ -69,6 +69,11 @@ export function putApi<T>(ruta: string, cuerpo: unknown): Promise<T> {
 // Modifica parte de un registro, por ejemplo asignar o cambiar un estado
 export function patchApi<T>(ruta: string, cuerpo: unknown): Promise<T> {
   return enviarApi<T>("PATCH", ruta, cuerpo);
+}
+
+// Da de baja o elimina un registro
+export function deleteApi<T>(ruta: string): Promise<T> {
+  return enviarApi<T>("DELETE", ruta, undefined);
 }
 
 // Error que trae el mensaje y los errores por campo que envía el backend
