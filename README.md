@@ -10,6 +10,11 @@ El backend toma la conexión a MySQL (y el correo de la carta responsiva) de `ba
 
 No cambies `application.properties` para poner tus datos.
 
+## Integración continua (SCRUM-130)
+
+Cada PR hacia `main` corre el workflow «CI» de GitHub Actions (`.github/workflows/ci.yml`); se ve en la pestaña «Checks» del PR. **Backend** corre `./mvnw test` con Java 21 contra un MySQL temporal y **Frontend** corre `npm ci`, `npm run lint` y `npm run build`.
+El PR solo se puede unir con los dos checks en verde y la aprobación de alguien distinto al autor. Antes de abrirlo, corre lo mismo en tu máquina.
+
 ## Datos iniciales
 
 Usuarios de Comercial, categorías, modelos con su tarifa por día y equipos de ejemplo (T-02).

@@ -1,0 +1,74 @@
+# Integración continua (SCRUM-130): revisa cada PR hacia main antes de unirlo.
+# «Backend» y «Frontend» son los checks obligatorios del ruleset de main.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+# Si se sube otro commit al mismo PR, se cancela la revisión que iba a medias
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # MySQL desechable para BackendApplicationTests, que levanta toda la aplicación.
+    # Solo vive mientras corre el trabajo, por eso root va sin contraseña
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      # La zona del sistema (Cotizacion.ZONA_HORARIA): así «hoy» es el mismo día que en la oficina
+      TZ: America/Hermosillo
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Pruebas (mvnw test)
+        # Sin backend/.env: el usuario y la contraseña (vacía) del MySQL de arriba
+        run: |
+          export DB_USER=root DB_PASSWORD=
+          ./mvnw -B test
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "26"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Dependencias (npm ci)
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
