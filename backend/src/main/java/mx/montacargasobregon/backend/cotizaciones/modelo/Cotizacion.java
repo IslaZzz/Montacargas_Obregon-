@@ -23,6 +23,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -114,10 +115,17 @@ public class Cotizacion {
     @JoinColumn(name = "razon_social_id", nullable = false)
     private RazonSocial razonSocial;
 
-    // Los equipos se guardan junto con la cotización
-    @OneToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    // Los equipos se guardan junto con la cotización. orphanRemoval borra los que se
+    // quitan al corregirla (HU-32)
+    @OneToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, orphanRemoval = true)
     @JoinColumn(name = "cotizacion_id", nullable = false)
     private List<EquipoCotizacion> equipos = new ArrayList<>();
+
+    // Cada vez que se corrigió después de un rechazo de gerencia, la más antigua primero (HU-32)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "cotizacion_id", nullable = false)
+    @OrderBy("fechaCorreccion")
+    private List<CorreccionCotizacion> correcciones = new ArrayList<>();
 
     // Se guardan para que la lista, el detalle y el PDF muestren siempre el mismo
     // precio.
@@ -211,6 +219,35 @@ public class Cotizacion {
     public void rechazarDescuento(Usuario gerente, String comentario) {
         autorizacion.rechazar(gerente, comentario, LocalDateTime.now(ZONA_HORARIA));
         this.estado = EstadoCotizacion.RECHAZADA;
+    }
+
+    /**
+     * Corrige una cotización que gerencia rechazó (HU-32): fechas, obra, contacto y
+     * equipos (pasos 2 a 4 de HU-12) y el descuento. Guarda el rechazo en el historial.
+     * Con descuento vuelve a En autorización; sin descuento queda en Borrador.
+     * El cliente, la razón social, el folio y los traslados no cambian.
+     * Quien llama revisa antes que esté Rechazada y que los datos y el descuento sean válidos.
+     */
+    public void corregir(LocalDateTime entrega, LocalDateTime recoleccion, DatosDireccion obra,
+            DatosContactoSitio contacto, List<EquipoCotizacion> nuevosEquipos, Descuento nuevoDescuento,
+            Usuario auxiliar) {
+        correcciones.add(new CorreccionCotizacion(autorizacion, auxiliar, LocalDateTime.now(ZONA_HORARIA),
+                nuevoDescuento != null));
+
+        this.fechaHoraEntrega = entrega;
+        this.fechaHoraRecoleccion = recoleccion;
+        this.direccionObra.cambiarPor(obra);
+        this.contactoObra = contacto;
+        // Se vacía la misma lista: si se cambia por otra, Hibernate no sabe qué equipos borrar
+        equipos.clear();
+        equipos.addAll(nuevosEquipos);
+
+        aplicarDescuento(nuevoDescuento); // Recalcula el precio y quita la solicitud rechazada
+        if (nuevoDescuento == null) {
+            this.estado = EstadoCotizacion.BORRADOR;
+        } else {
+            enviarAAutorizacion(auxiliar);
+        }
     }
 
     /**

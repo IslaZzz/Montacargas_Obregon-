@@ -40,9 +40,13 @@ class EstadoCotizacionTest {
     }
 
     @Test
-    void rechazadaYVencidaTodaviaNoCambian() {
-        // Corregir una rechazada llega con HU-32
-        assertSoloPuedePasarA(RECHAZADA, Set.of());
+    void rechazadaSeCorrigeConOSinDescuento() {
+        // Al corregirla: con descuento vuelve a autorización, sin descuento a Borrador (HU-32)
+        assertSoloPuedePasarA(RECHAZADA, Set.of(EN_AUTORIZACION, BORRADOR));
+    }
+
+    @Test
+    void vencidaEsFinal() {
         assertSoloPuedePasarA(VENCIDA, Set.of());
     }
 

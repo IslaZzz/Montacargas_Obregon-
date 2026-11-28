@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import mx.montacargasobregon.backend.cotizaciones.modelo.AutorizacionDescuento;
 import mx.montacargasobregon.backend.cotizaciones.modelo.Cotizacion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.ResultadoAutorizacion;
 import mx.montacargasobregon.backend.usuarios.Usuario;
@@ -45,15 +46,27 @@ public class AvisoDescuento {
     @Column(nullable = false)
     private boolean leido;
 
+    // Quién respondió y su comentario, copiados de la respuesta: al corregir una cotización rechazada
+    // (HU-32) la solicitud se reemplaza y el aviso tiene que seguir diciendo lo de entonces.
+    // Vacíos en los avisos creados antes de HU-32
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "respondida_por_id")
+    private Usuario respondidaPor;
+
+    @Column(length = 500)
+    private String comentario;
+
     protected AvisoDescuento() {
     }
 
-    public AvisoDescuento(Usuario destinatario, Cotizacion cotizacion, ResultadoAutorizacion resultado,
-            LocalDateTime fecha) {
+    /** Aviso de la respuesta que gerencia acaba de dar a la solicitud de autorización. */
+    public AvisoDescuento(Usuario destinatario, Cotizacion cotizacion, AutorizacionDescuento respuesta) {
         this.destinatario = destinatario;
         this.cotizacion = cotizacion;
-        this.resultado = resultado;
-        this.fecha = fecha;
+        this.resultado = respuesta.getResultado();
+        this.fecha = respuesta.getFechaRespuesta();
+        this.respondidaPor = respuesta.getRespondidaPor();
+        this.comentario = respuesta.getComentario();
     }
 
     public Long getId() {
@@ -78,5 +91,13 @@ public class AvisoDescuento {
 
     public boolean isLeido() {
         return leido;
+    }
+
+    public Usuario getRespondidaPor() {
+        return respondidaPor;
+    }
+
+    public String getComentario() {
+        return comentario;
     }
 }

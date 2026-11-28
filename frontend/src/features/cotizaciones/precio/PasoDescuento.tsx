@@ -1,5 +1,5 @@
 import { formatoMoneda } from "../../../utils/formato";
-import type { Cotizacion, TipoDescuento } from "../cotizacionesTypes";
+import type { PartidaCotizacion, TipoDescuento } from "../cotizacionesTypes";
 import { textoDias } from "../cotizacionesUtils";
 import { limpiarMonto, limpiarPorcentaje } from "./precioCalculo";
 
@@ -8,7 +8,9 @@ export type CampoDescuento = "valor" | "motivo";
 export const MAX_MOTIVO = 200;
 
 interface Props {
-  cotizacion: Cotizacion;
+  // Los equipos con su importe y los días de renta. Al corregir una cotización (HU-32) salen de lo que se está editando
+  partidas: Pick<PartidaCotizacion, "id" | "unidad" | "modelo" | "tarifaDia" | "importe">[];
+  dias: number;
   tipo: TipoDescuento;
   valores: Record<CampoDescuento, string>;
   errores: Partial<Record<CampoDescuento, string>>;
@@ -36,7 +38,8 @@ const OPCIONES: { tipo: TipoDescuento; titulo: string; texto: string }[] = [
 
 // Paso 3 del precio: Descuento (HU-15)
 export default function PasoDescuento({
-  cotizacion: c,
+  partidas,
+  dias,
   tipo,
   valores,
   errores,
@@ -179,14 +182,14 @@ export default function PasoDescuento({
           </span>
         </div>
         <ul className="descuento-conceptos">
-          {c.partidas.map((p) => (
+          {partidas.map((p) => (
             <li key={p.id}>
               <span>
                 <strong>
                   {p.unidad} · {p.modelo}
                 </strong>
                 <small>
-                  {textoDias(c.dias)} × {formatoMoneda(p.tarifaDia)} · tarifa del catálogo
+                  {textoDias(dias)} × {formatoMoneda(p.tarifaDia)} · tarifa del catálogo
                 </small>
               </span>
               <strong>{formatoMoneda(p.importe)}</strong>

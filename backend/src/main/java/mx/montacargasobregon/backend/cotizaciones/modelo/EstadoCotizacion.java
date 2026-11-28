@@ -18,7 +18,9 @@ public enum EstadoCotizacion {
             case BORRADOR -> destino == ENVIADA || destino == EN_AUTORIZACION;
             case ENVIADA -> destino == ACEPTADA || destino == NO_ACEPTADA;
             case EN_AUTORIZACION -> destino == BORRADOR || destino == RECHAZADA;
-            case ACEPTADA, NO_ACEPTADA, RECHAZADA, VENCIDA -> false; // Son finales, ya no cambian
+            // Al corregirla (HU-32): con descuento vuelve a autorización, sin descuento a Borrador
+            case RECHAZADA -> destino == EN_AUTORIZACION || destino == BORRADOR;
+            case ACEPTADA, NO_ACEPTADA, VENCIDA -> false; // Son finales, ya no cambian
         };
     }
 }

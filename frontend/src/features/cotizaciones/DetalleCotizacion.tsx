@@ -15,7 +15,7 @@ import {
 import { ESTADOS_CONTRATO } from "../contratos/contratosUtils";
 import BotonVerPdf from "./BotonVerPdf";
 import { cambiarEstadoCotizacion, obtenerCotizacion } from "./cotizacionesApi";
-import type { Cotizacion } from "./cotizacionesTypes";
+import type { Cotizacion, EventoHistorial } from "./cotizacionesTypes";
 import {
   chipDeEstado,
   ESTADOS_RENTA,
@@ -68,6 +68,30 @@ const momento = (texto: string) =>
 const momentoEnTexto = (texto: string) =>
   `${esHoy(texto) ? "hoy" : `el ${formatoFecha(texto)}`} a las ${hora(texto)}`;
 
+const ICONO_EVENTO: Record<EventoHistorial["tipo"], string> = {
+  RECHAZADA: "cancel",
+  REENVIADA: "send",
+  CORREGIDA: "edit",
+  AUTORIZADA: "check_circle",
+};
+
+// "Rechazada el 07/10/2026: El descuento excede el máximo", "Reenviada el 08/10/2026" (HU-32)
+function textoEvento(e: EventoHistorial) {
+  const fecha = formatoFecha(e.fecha);
+  const conComentario = (texto: string) =>
+    e.comentario ? `${texto}: ${e.comentario}` : texto;
+  switch (e.tipo) {
+    case "RECHAZADA":
+      return conComentario(`Rechazada el ${fecha}`);
+    case "REENVIADA":
+      return `Reenviada el ${fecha}`;
+    case "CORREGIDA":
+      return `Corregida el ${fecha}, sin descuento`;
+    case "AUTORIZADA":
+      return conComentario(`Autorizada el ${fecha}`);
+  }
+}
+
 const textoDescuento = (c: Cotizacion) =>
   c.descuentoTipo === "PORCENTAJE"
     ? `del ${c.descuentoValor}%`
@@ -78,13 +102,16 @@ export default function DetalleCotizacion() {
   const navigate = useNavigate();
   // Lo que manda la pantalla de la que venimos:
   // - creada: el folio de la cotización recién creada en "Nueva cotización" (HU-12)
-  // - precioGuardado: se acaba de guardar en "Precio de la cotización" (HU-13 a HU-17)
+  // - precioGuardado: se acaba de guardar en "Precio de la cotización" (HU-13 a HU-17) o en "Corregir cotización"
+  // - corregida: lo que se guardó fue la corrección de una cotización rechazada (HU-32)
   const estadoNavegacion = useLocation().state as {
     creada?: string;
     precioGuardado?: boolean;
+    corregida?: boolean;
   } | null;
   const folioCreado = estadoNavegacion?.creada;
   const recienGuardada = Boolean(estadoNavegacion?.precioGuardado);
+  const recienCorregida = Boolean(estadoNavegacion?.corregida);
 
   const [cotizacion, setCotizacion] = useState<Cotizacion | null>(null);
   const [error, setError] = useState("");
@@ -168,6 +195,10 @@ export default function DetalleCotizacion() {
   const autorizada = esBorrador && autorizacion?.resultado === "AUTORIZADA";
   const respuestaGerencia =
     autorizacion && (autorizada || rechazada) ? autorizacion : null;
+  // Se corrigió al menos una vez después de un rechazo: el detalle muestra el historial (HU-32)
+  const huboCorreccion = c.historial.some(
+    (e) => e.tipo === "REENVIADA" || e.tipo === "CORREGIDA",
+  );
 
   // Borrador al que todavía le falta el precio: se sigue con "Continuar con el precio"
   const faltaPrecio = esBorrador && !c.precioDefinido;
@@ -274,16 +305,18 @@ export default function DetalleCotizacion() {
         </div>
       )}
 
-      {/* Aviso al terminar "Precio de la cotización" (HU-15 y HU-17) */}
+      {/* Aviso al terminar "Precio de la cotización" (HU-15 y HU-17) o "Corregir cotización" (HU-32) */}
       {recienGuardada && (enAutorizacion || precioListo) && (
         <div className="aviso-exito" role="status">
           <span className="material-symbols-rounded">check_circle</span>
           <div>
-            <strong>Cotización {c.folio} guardada</strong>
+            <strong>
+              Cotización {c.folio} {recienCorregida ? "corregida" : "guardada"}
+            </strong>
             <p>
               {enAutorizacion
-                ? `Lleva un descuento ${textoDescuento(c)}, así que pasó a «En autorización». Gerencia ya recibió la solicitud y te avisaremos en Avisos cuando responda.`
-                : "Ya puedes generar el PDF y enviarla al cliente."}
+                ? `${recienCorregida ? "Sigue con" : "Lleva"} un descuento ${textoDescuento(c)}, así que ${recienCorregida ? "volvió" : "pasó"} a «En autorización». Gerencia ya recibió la solicitud y te avisaremos en Avisos cuando responda.`
+                : `${recienCorregida ? "Ya no lleva descuento, así que quedó en Borrador. " : ""}Ya puedes generar el PDF y enviarla al cliente.`}
             </p>
           </div>
         </div>
@@ -328,9 +361,11 @@ export default function DetalleCotizacion() {
           <div>
             <strong>Rechazada: {autorizacion.comentario}</strong>
             <p>
+              {/* La hora ya termina en «p. m.», por eso sigue «;» y no otro punto */}
               {autorizacion.respondidaPor} rechazó el descuento{" "}
-              {momentoEnTexto(autorizacion.fechaRespuesta)}. Esta cotización ya
-              no se puede enviar al cliente.
+              {momentoEnTexto(autorizacion.fechaRespuesta)}; así no se puede
+              enviar al cliente. Corrígela para mandarla otra vez a
+              autorización o quitarle el descuento.
             </p>
           </div>
         </div>
@@ -435,6 +470,19 @@ export default function DetalleCotizacion() {
                 </>
               )}
 
+              {/* Gerencia rechazó el descuento: se corrige y se vuelve a mandar (HU-32) */}
+              {rechazada && (
+                <Link
+                  to={`/cotizaciones/${c.id}/corregir`}
+                  className="btn btn-primary btn-grande"
+                >
+                  <span className="material-symbols-rounded" aria-hidden="true">
+                    edit
+                  </span>
+                  Corregir cotización
+                </Link>
+              )}
+
               {/* En Enviada, en celular el botón va debajo de "¿Qué respondió el cliente?" */}
               {mostrarPdf && (
                 <BotonVerPdf
@@ -524,6 +572,26 @@ export default function DetalleCotizacion() {
                   <Dato etiqueta="Comentario">{respuestaGerencia.comentario}</Dato>
                 )}
               </dl>
+            </section>
+          )}
+
+          {/* Rechazos y correcciones (HU-32) */}
+          {huboCorreccion && (
+            <section className="tarjeta">
+              <h2>Historial</h2>
+              <ol className="historial">
+                {c.historial.map((e, i) => (
+                  <li key={`${e.tipo}-${i}`} className={`historial-${e.tipo.toLowerCase()}`}>
+                    <span className="material-symbols-rounded" aria-hidden="true">
+                      {ICONO_EVENTO[e.tipo]}
+                    </span>
+                    <div>
+                      <strong>{textoEvento(e)}</strong>
+                      <span className="historial-usuario">{e.usuario}</span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </section>
           )}
 

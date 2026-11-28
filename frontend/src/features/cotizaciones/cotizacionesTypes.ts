@@ -1,4 +1,4 @@
-import type { DatosDireccion } from "../../types/comun";
+import type { DatosDireccion, DatosDireccionRequest } from "../../types/comun";
 import type { Cliente, RazonSocial } from "../clientes/clientesTypes";
 import type { EstadoContrato } from "../contratos/contratosTypes";
 import type { EstadoRenta } from "../rentas/detalle/detalleTypes";
@@ -35,6 +35,7 @@ export interface CotizacionResumen {
 // Equivale a PartidaCotizacionResponse
 export interface PartidaCotizacion {
   id: number;
+  equipoId: number;
   unidad: string;
   modelo: string;
   tarifaDia: number;
@@ -109,8 +110,32 @@ export interface Cotizacion {
   validaHasta: string; // "2026-10-15": último día para que el cliente la acepte
   diasVigencia: number;
   autorizacion: AutorizacionDescuento | null; // null si la cotización nunca pidió autorización
+  historial: EventoHistorial[]; // Rechazos, correcciones y la última respuesta de gerencia (HU-32)
   renta: RentaDeCotizacion | null;
   contrato: ContratoDeCotizacion | null;
+}
+
+// Equivale a EventoHistorialResponse: un paso del historial del descuento (HU-32).
+// REENVIADA: se corrigió y volvió a autorización; CORREGIDA: se corrigió sin descuento y quedó en Borrador
+export interface EventoHistorial {
+  tipo: "RECHAZADA" | "REENVIADA" | "CORREGIDA" | "AUTORIZADA";
+  fecha: string;
+  usuario: string; // Quién rechazó, corrigió o autorizó
+  comentario: string | null; // El de gerencia; null en las correcciones
+}
+
+// Cuerpo de PUT /cotizaciones/{id}/correccion (HU-32): los pasos 2 a 4 de «Nueva cotización» y el descuento.
+// Con NINGUNO, descuentoValor y descuentoMotivo van en null
+export interface CorregirCotizacionRequest {
+  fechaEntrega: string;
+  fechaRecoleccion: string;
+  direccionObra: DatosDireccionRequest;
+  contactoObra: string;
+  telefonoContacto: string;
+  equipoIds: number[];
+  descuentoTipo: TipoDescuento;
+  descuentoValor: number | null;
+  descuentoMotivo: string | null;
 }
 
 // Cuerpo de PATCH /cotizaciones/{id}/traslado

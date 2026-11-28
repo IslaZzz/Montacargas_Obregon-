@@ -1,5 +1,6 @@
-import { getApi, patchApi } from "../../services/apiClient";
+import { getApi, patchApi, putApi } from "../../services/apiClient";
 import type {
+  CorregirCotizacionRequest,
   Cotizacion,
   CotizacionResumen,
   DescuentoRequest,
@@ -41,6 +42,12 @@ export const guardarTraslado = (
 // Con descuento la cotización pasa a En autorización. Responde 400 si no es válido y 409 si ya no es Borrador
 export const guardarDescuento = (id: number, descuento: DescuentoRequest) =>
   patchApi<Cotizacion>(`/cotizaciones/${id}/descuento`, descuento);
+
+// PUT /api/cotizaciones/5/correccion: guarda una cotización rechazada ya corregida (HU-32).
+// Con descuento vuelve a En autorización; sin descuento queda en Borrador.
+// Responde 409 si ya no está Rechazada y 400 si algún dato o el descuento no son válidos
+export const corregirCotizacion = (id: number, datos: CorregirCotizacionRequest) =>
+  putApi<Cotizacion>(`/cotizaciones/${id}/correccion`, datos);
 
 // Marca el precio como definido al terminar el último paso
 export const definirPrecioCotizacion = (id: number) =>

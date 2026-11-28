@@ -37,7 +37,7 @@ public class AvisoDescuentoService {
         if (destinatario.getId().equals(a.getRespondidaPor().getId())) {
             return;
         }
-        avisos.save(new AvisoDescuento(destinatario, cotizacion, a.getResultado(), a.getFechaRespuesta()));
+        avisos.save(new AvisoDescuento(destinatario, cotizacion, a));
     }
 
     @Transactional(readOnly = true)
