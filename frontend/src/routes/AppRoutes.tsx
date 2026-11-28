@@ -7,6 +7,7 @@ import VerCotizaciones from "../features/cotizaciones/VerCotizaciones";
 import DetalleCotizacion from "../features/cotizaciones/DetalleCotizacion";
 import NuevaCotizacion from "../features/cotizaciones/nueva/NuevaCotizacion";
 import PrecioCotizacion from "../features/cotizaciones/precio/PrecioCotizacion";
+import CorregirCotizacion from "../features/cotizaciones/corregir/CorregirCotizacion";
 import PdfCotizacion from "../features/cotizaciones/PdfCotizacion";
 import DetalleContrato from "../features/contratos/DetalleContrato";
 import PdfContrato from "../features/contratos/PdfContrato";
@@ -69,6 +70,7 @@ export default function AppRoutes() {
         <Route path="/cotizaciones/:id" element={<DetalleCotizacion />} />
         <Route path="/cotizaciones/:id/pdf" element={<PdfCotizacion />} />
         <Route path="/cotizaciones/:id/precio" element={<PrecioCotizacion />} />
+        <Route path="/cotizaciones/:id/corregir" element={<CorregirCotizacion />} />
 
         {/* Contrato que se genera al aceptar la cotización (HU-23) */}
         <Route path="/contratos/:id" element={<DetalleContrato />} />

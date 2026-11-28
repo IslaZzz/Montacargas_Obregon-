@@ -47,6 +47,8 @@ public record CotizacionResponse(
         BigDecimal total,
         // Solicitud de autorización del descuento y la respuesta de gerencia; null si no hay descuento
         AutorizacionDescuentoResponse autorizacion,
+        // Rechazos, correcciones y la última respuesta de gerencia, la más antigua primero (HU-32)
+        List<EventoHistorialResponse> historial,
         RentaDeCotizacionResponse renta,
         // El contrato que se generó al aceptarla (HU-23); null si no tiene
         ContratoDeCotizacionResponse contrato) {
@@ -95,6 +97,7 @@ public record CotizacionResponse(
                 c.getIva(),
                 c.getTotal(),
                 AutorizacionDescuentoResponse.toAutorizacionDescuentoResponse(c.getAutorizacion()),
+                EventoHistorialResponse.historialDe(c),
                 renta == null ? null : RentaDeCotizacionResponse.toRentaDeCotizacionResponse(renta),
                 contrato == null ? null : ContratoDeCotizacionResponse.toContratoDeCotizacionResponse(contrato));
     }

@@ -379,7 +379,8 @@ export default function PrecioCotizacion() {
             )}
             {paso === PASO_DESCUENTO && (
               <PasoDescuento
-                cotizacion={c}
+                partidas={c.partidas}
+                dias={c.dias}
                 tipo={tipoDescuento}
                 valores={descuento}
                 errores={erroresDescuentoVisibles}

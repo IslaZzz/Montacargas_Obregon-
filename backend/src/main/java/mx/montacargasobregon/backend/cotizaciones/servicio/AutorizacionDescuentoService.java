@@ -53,7 +53,7 @@ public class AutorizacionDescuentoService {
     @Transactional
     public Cotizacion autorizar(Long cotizacionId, String correoGerente, String comentario) {
         Cotizacion c = cotizacionService.obtener(cotizacionId);
-        exigirQuePuedaCambiarA(c, EstadoCotizacion.BORRADOR);
+        exigirQueEspereAutorizacion(c);
 
         String nota = comentario == null || comentario.isBlank() ? null : comentario.trim();
         c.autorizarDescuento(gerente(correoGerente), nota);
@@ -68,16 +68,17 @@ public class AutorizacionDescuentoService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Escribe el motivo del rechazo");
         }
         Cotizacion c = cotizacionService.obtener(cotizacionId);
-        exigirQuePuedaCambiarA(c, EstadoCotizacion.RECHAZADA);
+        exigirQueEspereAutorizacion(c);
 
         c.rechazarDescuento(gerente(correoGerente), comentario.trim());
         avisos.crear(c); // Avisa a quien pidió el descuento que gerencia respondió
         return c;
     }
 
-    // Si la cotización ya no espera respuesta de gerencia, responde 409
-    private void exigirQuePuedaCambiarA(Cotizacion c, EstadoCotizacion destino) {
-        if (!c.getEstado().puedeCambiarA(destino)) {
+    // Si la cotización ya no espera respuesta de gerencia, responde 409. Se revisa el estado y no
+    // puedeCambiarA: una Rechazada también puede pasar a Borrador, pero solo al corregirla (HU-32)
+    private void exigirQueEspereAutorizacion(Cotizacion c) {
+        if (c.getEstado() != EstadoCotizacion.EN_AUTORIZACION) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "La cotización ya no está esperando autorización");
         }
     }

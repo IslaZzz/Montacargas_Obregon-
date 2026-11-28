@@ -1,4 +1,4 @@
--- Datos de prueba para Cotizaciones (HU-12, HU-18, HU-20, HU-37 y HU-23).
+-- Datos de prueba para Cotizaciones (HU-12, HU-18, HU-20, HU-23, HU-32 y HU-37).
 -- Clientes y equipos de la hoja «Datos de prueba» de los casos de Delivery S1.
 -- Ejecutar después de iniciar el backend una vez, para que existan las tablas.
 -- Se puede correr varias veces: no duplica catálogos ni clientes y reinicia las cotizaciones de Comercial,
@@ -120,6 +120,7 @@ DROP TEMPORARY TABLE rentas_a_borrar;
 DELETE k FROM contratos k JOIN cotizaciones q ON q.id = k.cotizacion_id WHERE q.folio NOT LIKE 'COT-R%';
 DELETE ad FROM avisos_descuento ad JOIN cotizaciones q ON q.id = ad.cotizacion_id WHERE q.folio NOT LIKE 'COT-R%';
 DELETE ec FROM equipos_cotizacion ec JOIN cotizaciones q ON q.id = ec.cotizacion_id WHERE q.folio NOT LIKE 'COT-R%';
+DELETE cc FROM correcciones_cotizacion cc JOIN cotizaciones q ON q.id = cc.cotizacion_id WHERE q.folio NOT LIKE 'COT-R%';
 DELETE FROM cotizaciones WHERE folio NOT LIKE 'COT-R%';
 DELETE desc_t FROM descuentos desc_t LEFT JOIN cotizaciones q ON q.descuento_id = desc_t.id WHERE q.id IS NULL;
 DELETE aut FROM autorizaciones_descuento aut LEFT JOIN cotizaciones q ON q.autorizacion_id = aut.id WHERE q.id IS NULL;
@@ -257,3 +258,34 @@ INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) V
   (@mc07, 500.00, 1500.00, @c);
 INSERT INTO contratos (folio, cotizacion_id, estado, fecha_generacion, fecha_limite_anticipo, anticipo)
 VALUES ('CON-0002', @c, 'APARTADO', TIMESTAMP(CURDATE() - INTERVAL 3 DAY, '17:10:00'), CURDATE(), 522.00);
+
+-- COT-0009, rechazada por gerencia, para corregirla (HU-32): MC-07 y PT-03 5 días, traslados $900, 10 % de descuento.
+-- Equipos $3,250 + traslados $900 = $4,150; −10 % = $3,735; IVA $597.60; total $4,332.60.
+-- La pidió Daniela Félix y la rechazó Patricia Romero ayer; el aviso le llega a Daniela.
+SET @daniela  = (SELECT id FROM usuarios WHERE correo = 'daniela.felix@montacargasobregon.mx');
+SET @patricia = (SELECT id FROM usuarios WHERE correo = 'patricia.romero@montacargasobregon.mx');
+INSERT INTO descuentos (tipo, valor, motivo)
+VALUES ('PORCENTAJE', 10.00, 'Cliente frecuente; pidió igualar el precio de la competencia');
+SET @descuento = LAST_INSERT_ID();
+INSERT INTO autorizaciones_descuento (resultado, solicitada_por_id, fecha_solicitud, respondida_por_id, fecha_respuesta, comentario)
+VALUES ('RECHAZADA', @daniela, TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '10:00:00'),
+        @patricia, TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '16:30:00'),
+        'El 10% excede el máximo autorizado (8%). Ajusta el descuento y vuelve a enviarla.');
+SET @autorizacion = LAST_INSERT_ID();
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+VALUES ('Blvd. Rodolfo Elías Calles', '845', 'Centro', 'Cd. Obregón', 'Sonora', '85000');
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, precio_definido, estado,
+                          fecha_creacion, fecha_envio, fecha_respuesta, descuento_id, autorizacion_id)
+VALUES ('COT-0009', @maria, @rs_mayo,
+        TIMESTAMP(CURDATE() + INTERVAL 8 DAY, '08:00:00'), TIMESTAMP(CURDATE() + INTERVAL 12 DAY, '18:00:00'),
+        LAST_INSERT_ID(), 'Arq. Laura Medina', '6441112233', 450.00, 450.00,
+        4150.00, 597.60, 4332.60, 1, 'RECHAZADA',
+        TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '09:45:00'), NULL, NULL, @descuento, @autorizacion);
+SET @c = LAST_INSERT_ID();
+INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
+  (@mc07, 500.00, 2500.00, @c),
+  (@pt03, 150.00, 750.00, @c);
+INSERT INTO avisos_descuento (destinatario_id, cotizacion_id, resultado, fecha, leido, respondida_por_id, comentario)
+VALUES (@daniela, @c, 'RECHAZADA', TIMESTAMP(CURDATE() - INTERVAL 1 DAY, '16:30:00'), 0, @patricia,
+        'El 10% excede el máximo autorizado (8%). Ajusta el descuento y vuelve a enviarla.');

@@ -632,3 +632,43 @@
     font-size: 22px;
   }
 }
+
+/* Historial del descuento: rechazos de gerencia y correcciones (HU-32) */
+.historial {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.historial li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(15, 61, 76, 0.15);
+  color: var(--primary-teal);
+}
+.historial li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.historial .material-symbols-rounded {
+  flex-shrink: 0;
+  font-size: 22px;
+}
+.historial .historial-rechazada .material-symbols-rounded {
+  color: var(--warning-red-outline);
+}
+.historial .historial-autorizada .material-symbols-rounded {
+  color: var(--ok-green-outline);
+}
+.historial strong {
+  display: block;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.historial-usuario {
+  font-size: 15px;
+  color: var(--text-foreground);
+}

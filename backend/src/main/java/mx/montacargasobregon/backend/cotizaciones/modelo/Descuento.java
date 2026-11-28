@@ -46,4 +46,16 @@ public class Descuento {
         this.valor = valor;
         this.motivo = motivo;
     }
+
+    /**
+     * Porcentaje: mayor a 0 y menor a 100. Monto: mayor a 0 y menor al subtotal
+     * (equipos + traslados).
+     */
+    public static boolean valorValido(TipoDescuento tipo, BigDecimal valor, BigDecimal subtotal) {
+        if (valor == null || valor.signum() <= 0) {
+            return false;
+        }
+        BigDecimal limite = tipo == TipoDescuento.PORCENTAJE ? new BigDecimal("100") : subtotal;
+        return valor.compareTo(limite) < 0;
+    }
 }

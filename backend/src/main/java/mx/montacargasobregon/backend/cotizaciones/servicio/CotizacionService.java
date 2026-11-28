@@ -197,7 +197,7 @@ public class CotizacionService {
             return c;
         }
 
-        if (!descuentoValido(tipo, valor, c.getSubtotal())) {
+        if (!Descuento.valorValido(tipo, valor, c.getSubtotal())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Descuento inválido");
         }
         if (motivo == null || motivo.isBlank()) {
@@ -211,16 +211,5 @@ public class CotizacionService {
         c.aplicarDescuento(new Descuento(tipo, valor, motivo.trim()));
         c.enviarAAutorizacion(solicitante);
         return c;
-    }
-
-    /**
-     * Porcentaje: mayor a 0 y menor a 100. Monto: mayor a 0 y menor al subtotal.
-     */
-    private boolean descuentoValido(TipoDescuento tipo, BigDecimal valor, BigDecimal subtotal) {
-        if (valor == null || valor.signum() <= 0) {
-            return false;
-        }
-        BigDecimal limite = tipo == TipoDescuento.PORCENTAJE ? new BigDecimal("100") : subtotal;
-        return valor.compareTo(limite) < 0;
     }
 }

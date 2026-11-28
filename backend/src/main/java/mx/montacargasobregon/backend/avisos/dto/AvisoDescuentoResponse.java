@@ -22,15 +22,26 @@ public record AvisoDescuentoResponse(
 
     public static AvisoDescuentoResponse de(AvisoDescuento aviso) {
         Cotizacion c = aviso.getCotizacion();
-        AutorizacionDescuento a = c.getAutorizacion();
+        Usuario respondidaPor = aviso.getRespondidaPor();
+        String comentario = aviso.getComentario();
+
+        // Avisos de antes de HU-32: no guardaban la respuesta, se lee de la cotización si sigue ahí.
+        // Si ya se corrigió, esa solicitud cambió y el aviso sale sin comentario
+        if (respondidaPor == null) {
+            AutorizacionDescuento a = c.getAutorizacion();
+            boolean esLaMisma = a != null && a.getResultado() == aviso.getResultado() && a.getRespondidaPor() != null;
+            respondidaPor = esLaMisma ? a.getRespondidaPor() : null;
+            comentario = esLaMisma ? a.getComentario() : null;
+        }
+
         return new AvisoDescuentoResponse(
                 aviso.getId(),
                 c.getId(),
                 c.getFolio(),
                 ApartadoProximoResponse.nombreCliente(c.getCliente()),
                 aviso.getResultado(),
-                a.getComentario(),
-                nombre(a.getRespondidaPor()),
+                comentario,
+                respondidaPor == null ? "Gerencia" : nombre(respondidaPor),
                 aviso.getFecha(),
                 aviso.isLeido());
     }

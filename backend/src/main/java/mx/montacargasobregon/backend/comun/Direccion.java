@@ -54,6 +54,17 @@ public abstract class Direccion {
         this.codigoPostal = codigoPostal;
     }
 
+    /** Cambia todos los datos y conserva el mismo registro. */
+    protected void cambiarDatos(String calle, String numero, String colonia, String ciudad, String estado,
+                                String codigoPostal) {
+        this.calle = calle;
+        this.numero = numero;
+        this.colonia = colonia;
+        this.ciudad = ciudad;
+        this.estado = estado;
+        this.codigoPostal = codigoPostal;
+    }
+
     /** → "Calle 200 1500, Col. Centro, Cd. Obregón, Sonora, C.P. 85000"; si no hay estado, no lo pone. */
     public String enUnRenglon() {
         String ciudadYEstado = estado == null ? ciudad : ciudad + ", " + estado;

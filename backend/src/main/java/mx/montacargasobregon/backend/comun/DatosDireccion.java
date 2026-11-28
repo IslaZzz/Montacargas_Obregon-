@@ -20,4 +20,10 @@ public class DatosDireccion extends Direccion {
                           String codigoPostal) {
         super(calle, numero, colonia, ciudad, estado, codigoPostal);
     }
+
+    /** Toma los datos de otra dirección sin crear un registro nuevo (al corregir una cotización, HU-32). */
+    public void cambiarPor(DatosDireccion otra) {
+        cambiarDatos(otra.getCalle(), otra.getNumero(), otra.getColonia(), otra.getCiudad(), otra.getEstado(),
+                otra.getCodigoPostal());
+    }
 }

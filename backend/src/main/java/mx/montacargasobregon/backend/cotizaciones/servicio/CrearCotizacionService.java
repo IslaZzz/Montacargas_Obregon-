@@ -44,13 +44,8 @@ public class CrearCotizacionService {
     public Cotizacion crear(CrearCotizacionRequest datos) {
         Cliente cliente = clienteService.obtener(datos.clienteId());
         RazonSocial razonSocial = razonSocialDelCliente(cliente, datos.razonSocialId());
-        int dias = diasDeRenta(datos.fechaEntrega(), datos.fechaRecoleccion());
-        validarSinRepetidos(datos.equipoIds());
-
-        List<EquipoCotizacion> equipos = datos.equipoIds().stream()
-                .map(this::equipoRentable)
-                .map(equipo -> equipoCotizado(equipo, dias))
-                .toList();
+        List<EquipoCotizacion> equipos = cotizarEquipos(datos.fechaEntrega(), datos.fechaRecoleccion(),
+                datos.equipoIds());
         BigDecimal subtotal = CalculoPrecio.calcularSubtotal(equipos.stream().map(EquipoCotizacion::getImporte).toList());
         BigDecimal iva = CalculoPrecio.calcularIva(subtotal);
 
@@ -64,8 +59,21 @@ public class CrearCotizacionService {
         return repositorio.save(cotizacion);
     }
 
+    /**
+     * Revisa las fechas y los equipos y cotiza cada uno con la tarifa vigente.
+     * También lo usa la corrección de una cotización rechazada (HU-32).
+     */
+    List<EquipoCotizacion> cotizarEquipos(LocalDateTime entrega, LocalDateTime recoleccion, List<Long> equipoIds) {
+        int dias = diasDeRenta(entrega, recoleccion);
+        validarSinRepetidos(equipoIds);
+        return equipoIds.stream()
+                .map(this::equipoRentable)
+                .map(equipo -> equipoCotizado(equipo, dias))
+                .toList();
+    }
+
     // Sin espacios de más
-    private static DatosDireccion direccionObra(DatosDireccionRequest d) {
+    static DatosDireccion direccionObra(DatosDireccionRequest d) {
         return new DatosDireccion(d.calle().trim(), d.numero().trim(), d.colonia().trim(), d.ciudad().trim(),
                 d.estado().trim(), d.codigoPostal());
     }
