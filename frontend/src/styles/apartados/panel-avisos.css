@@ -95,10 +95,11 @@
   gap: 14px;
   padding: 16px;
   border-bottom: 1px solid var(--table-divider);
-}
-/* Los que todavía no se marcan como leídos */
-.panel-aviso-nuevo {
   background: var(--beige-background);
+}
+/* Los que todavía no se marcan como leídos: resaltan en blanco sobre los ya leídos */
+.panel-aviso-nuevo {
+  background: var(--off-white-background);
 }
 
 .panel-aviso-icono {

@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.never;
 import mx.montacargasobregon.backend.operacion.servicio.AvanceRentaService;
 
 import java.time.LocalDate;
@@ -26,11 +27,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import mx.montacargasobregon.backend.avisos.servicio.AvisoOperacionService;
+import mx.montacargasobregon.backend.cartas.modelo.CartaResponsiva;
+import mx.montacargasobregon.backend.cartas.modelo.TipoFirma;
+import mx.montacargasobregon.backend.cartas.repositorio.CartaResponsivaRepository;
 import mx.montacargasobregon.backend.clientes.modelo.Cliente;
+import mx.montacargasobregon.backend.movil.traslados.EvidenciaRecoleccionService;
 import mx.montacargasobregon.backend.personal.modelo.Personal;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.personal.repositorio.PersonalRepository;
 import mx.montacargasobregon.backend.rentas.RentaDePrueba;
+import mx.montacargasobregon.backend.rentas.modelo.EstadoRenta;
 import mx.montacargasobregon.backend.rentas.modelo.Renta;
 import mx.montacargasobregon.backend.traslados.dto.AsignarTrasladoRequest;
 import mx.montacargasobregon.backend.traslados.dto.OperadorDisponibilidadResponse;
@@ -39,6 +46,8 @@ import mx.montacargasobregon.backend.traslados.modelo.EstadoTraslado;
 import mx.montacargasobregon.backend.traslados.modelo.TipoTraslado;
 import mx.montacargasobregon.backend.traslados.modelo.Traslado;
 import mx.montacargasobregon.backend.traslados.repositorio.TrasladoRepository;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import mx.montacargasobregon.backend.traslados.dto.RealizableResponse;
 
 @ExtendWith(MockitoExtension.class)
 class TrasladoServiceTest {
@@ -52,6 +61,15 @@ class TrasladoServiceTest {
     @Mock
     private AvanceRentaService avanceRenta;
 
+    @Mock
+    private CartaResponsivaRepository cartaRepositorio;
+
+    @Mock
+    private AvisoOperacionService avisos;
+
+    @Mock
+    private EvidenciaRecoleccionService evidencia;
+
     private TrasladoService servicio;
 
     private Cliente cliente;
@@ -62,7 +80,7 @@ class TrasladoServiceTest {
 
     @BeforeEach
     void setUp() {
-        servicio = new TrasladoService(repositorio, personalRepositorio, avanceRenta);
+        servicio = new TrasladoService(repositorio, personalRepositorio, avanceRenta, cartaRepositorio, avisos, evidencia);
 
         cliente = new Cliente("Ramón", "Gutiérrez", null, "Industrias Cajeme",
                 "6441000001", "compras@industriascajeme.mx", LocalDate.of(2026, 1, 1));
@@ -206,6 +224,7 @@ class TrasladoServiceTest {
     void completar_marcaRealizadoYHaceAvanzarLaRenta() {
         trasladoEntrega.asignarResponsable(operadorLuis);
         when(repositorio.findById(200L)).thenReturn(Optional.of(trasladoEntrega));
+        when(cartaRepositorio.findByRentaId(10L)).thenReturn(Optional.of(cartaFirmada()));
 
         TrasladoResponse respuesta = servicio.completar(200L);
 
@@ -253,6 +272,67 @@ class TrasladoServiceTest {
         verifyNoInteractions(avanceRenta);
     }
 
+    // OHU11: desde la oficina tampoco se entrega sin la carta firmada
+    @Test
+    void completar_rechazaLaEntrega_sinCartaFirmada() {
+        trasladoEntrega.asignarResponsable(operadorLuis);
+        when(repositorio.findById(200L)).thenReturn(Optional.of(trasladoEntrega));
+        when(cartaRepositorio.findByRentaId(10L)).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> servicio.completar(200L));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        assertTrue(ex.getReason().contains("carta firmada"));
+        assertEquals(EstadoTraslado.PROGRAMADO, trasladoEntrega.getEstado());
+        verifyNoInteractions(avanceRenta);
+    }
+
+    // OHU13: desde la oficina tampoco se cierra una recolección sin la evidencia fotográfica
+    @Test
+    void completar_rechazaLaRecoleccion_sinEvidencia() {
+        renta.cambiarEstado(EstadoRenta.EN_CURSO);
+        Traslado recoleccion = new Traslado("TR-0093", renta, TipoTraslado.RECOLECCION,
+                LocalDateTime.of(2026, 10, 20, 14, 0),
+                LocalDateTime.of(2026, 10, 20, 16, 0));
+        recoleccion.asignarResponsable(operadorAna);
+        when(repositorio.findById(201L)).thenReturn(Optional.of(recoleccion));
+        when(evidencia.motivo(recoleccion)).thenReturn("Primero registra las 4 fotografías de evidencia (faltan 4).");
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> servicio.completar(201L));
+
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        assertEquals(EstadoTraslado.PROGRAMADO, recoleccion.getEstado());
+        verifyNoInteractions(avanceRenta);
+    }
+
+    // OHU09: al reasignar, el operador anterior recibe el aviso
+    @Test
+    void asignar_avisaAlOperadorAnterior_cuandoSeReasigna() {
+        trasladoEntrega.asignarResponsable(operadorLuis);
+        when(repositorio.findById(200L)).thenReturn(Optional.of(trasladoEntrega));
+        when(personalRepositorio.findById(101L)).thenReturn(Optional.of(operadorAna));
+        when(repositorio.buscarEmpalmes(eq(101L), any(), any(), eq(200L), eq(EstadoTraslado.CANCELADO)))
+                .thenReturn(List.of());
+        when(repositorio.save(any(Traslado.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        servicio.asignar(200L, new AsignarTrasladoRequest(101L));
+
+        verify(avisos).tareaReasignada(trasladoEntrega, operadorLuis);
+    }
+
+    @Test
+    void asignar_noAvisa_enLaPrimeraAsignacion() {
+        when(repositorio.findById(200L)).thenReturn(Optional.of(trasladoEntrega));
+        when(personalRepositorio.findById(101L)).thenReturn(Optional.of(operadorAna));
+        when(repositorio.buscarEmpalmes(eq(101L), any(), any(), eq(200L), eq(EstadoTraslado.CANCELADO)))
+                .thenReturn(List.of());
+        when(repositorio.save(any(Traslado.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        servicio.asignar(200L, new AsignarTrasladoRequest(101L));
+
+        verify(avisos, never()).tareaReasignada(any(), any());
+    }
+
     @Test
     void completar_responde404_cuandoNoExiste() {
         when(repositorio.findById(999L)).thenReturn(Optional.empty());
@@ -260,5 +340,40 @@ class TrasladoServiceTest {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> servicio.completar(999L));
 
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+    }
+
+    // La oficina sabe por qué no se puede antes de preguntar "¿Ya se entregó?", sin cambiar nada
+    @Test
+    void realizable_diceElMotivo_sinMarcarNada() {
+        trasladoEntrega.asignarResponsable(operadorLuis);
+        when(repositorio.findById(200L)).thenReturn(Optional.of(trasladoEntrega));
+        when(cartaRepositorio.findByRentaId(10L)).thenReturn(Optional.empty());
+
+        RealizableResponse respuesta = servicio.realizable(200L);
+
+        assertFalse(respuesta.realizable());
+        assertTrue(respuesta.motivo().contains("carta firmada"));
+        assertEquals(EstadoTraslado.PROGRAMADO, trasladoEntrega.getEstado());
+        verifyNoInteractions(avanceRenta);
+    }
+
+    @Test
+    void realizable_sinMotivo_cuandoSePuede() {
+        trasladoEntrega.asignarResponsable(operadorLuis);
+        when(repositorio.findById(200L)).thenReturn(Optional.of(trasladoEntrega));
+        when(cartaRepositorio.findByRentaId(10L)).thenReturn(Optional.of(cartaFirmada()));
+
+        RealizableResponse respuesta = servicio.realizable(200L);
+
+        assertTrue(respuesta.realizable());
+        assertNull(respuesta.motivo());
+    }
+
+    private CartaResponsiva cartaFirmada() {
+        CartaResponsiva carta = new CartaResponsiva(renta, "", new byte[] { '%', 'P', 'D', 'F' });
+        carta.registrarFirma(TipoFirma.FISICA, LocalDateTime.of(2026, 10, 7, 8, 0), "Ramón Gutiérrez",
+                "Luis Valenzuela", "Operador de traslado", new byte[] { (byte) 0xFF, (byte) 0xD8, (byte) 0xFF },
+                "image/jpeg");
+        return carta;
     }
 }

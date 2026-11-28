@@ -11,6 +11,7 @@ import { listarPersonal } from "./personalApi";
 import type { Personal } from "./personalTypes";
 import { ICONO_TIPO, NOMBRE_TIPO, nombreCompleto } from "./personalTypes";
 import "../../styles/personal/personal.css";
+import "../../styles/operacion.css";
 
 // Quita los acentos, para que "ramirez" encuentre "Ramírez"
 const sinAcentos = (texto: string) => texto.normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -83,7 +84,7 @@ export default function ConsultarPersonal() {
   const columnas: TableColumn<Personal>[] = [
     {
       header: "Nombre",
-      accessor: (p) => <span className="personal-nombre">{nombreCompleto(p)}</span>,
+      accessor: (p) => <span className="celda-principal">{nombreCompleto(p)}</span>,
     },
     { header: "Código", accessor: (p) => <span className="personal-codigo">{p.codigo}</span> },
     {
@@ -112,25 +113,28 @@ export default function ConsultarPersonal() {
     },
     {
       header: "Acciones",
-      className: "personal-acciones",
+      className: "celda-accion",
       accessor: (p) => (
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => navigate(`/personal/${p.id}`)}
-          aria-label={`Editar a ${nombreCompleto(p)}`}
-        >
-          <span className="material-symbols-rounded" aria-hidden="true">
-            edit
-          </span>
-          Editar
-        </Button>
+        <span className="acciones">
+          <Button
+            type="button"
+            variant="secondary"
+            className="btn-chico"
+            onClick={() => navigate(`/personal/${p.id}`)}
+            aria-label={`Editar a ${nombreCompleto(p)}`}
+          >
+            <span className="material-symbols-rounded" aria-hidden="true">
+              edit
+            </span>
+            Editar
+          </Button>
+        </span>
       ),
     },
   ];
 
   return (
-    <div className="pagina lista-personal">
+    <div className="pagina lista-personal operacion">
       <div className="titulo-acciones">
         <div className="titulo-acciones-texto">
           <h1>Personal</h1>

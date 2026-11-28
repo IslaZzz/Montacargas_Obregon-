@@ -39,8 +39,9 @@ import mx.montacargasobregon.backend.equipos.servicio.EquipoService;
 @ExtendWith(MockitoExtension.class)
 class CrearCotizacionServiceTest {
 
-    private static final LocalDateTime ENTREGA = LocalDateTime.of(2026, 10, 12, 9, 0);
-    private static final LocalDateTime RECOLECCION = LocalDateTime.of(2026, 10, 16, 17, 0);
+    // A partir de hoy: el servicio no acepta fechas que ya pasaron. 5 días, como en la Figma (12 al 16)
+    private static final LocalDateTime ENTREGA = LocalDate.now(Cotizacion.ZONA_HORARIA).plusDays(7).atTime(9, 0);
+    private static final LocalDateTime RECOLECCION = ENTREGA.toLocalDate().plusDays(4).atTime(17, 0);
 
     @Mock
     private CotizacionRepository repositorio;

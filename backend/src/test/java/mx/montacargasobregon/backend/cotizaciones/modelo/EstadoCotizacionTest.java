@@ -17,8 +17,9 @@ import org.junit.jupiter.api.Test;
 class EstadoCotizacionTest {
 
     @Test
-    void borradorSoloPasaAEnviada() {
-        assertSoloPuedePasarA(BORRADOR, Set.of(ENVIADA));
+    void borradorPasaAEnviadaOAAutorizacion() {
+        // Con descuento va primero a gerencia (HU-15 y HU-16)
+        assertSoloPuedePasarA(BORRADOR, Set.of(ENVIADA, EN_AUTORIZACION));
     }
 
     @Test
@@ -33,9 +34,14 @@ class EstadoCotizacionTest {
     }
 
     @Test
-    void enAutorizacionRechazadaYVencidaTodaviaNoCambian() {
-        // Sus cambios llegan con HU-16, HU-32 y HU-17
-        assertSoloPuedePasarA(EN_AUTORIZACION, Set.of());
+    void enAutorizacionPasaABorradorORechazada() {
+        // Gerencia autoriza (vuelve a Borrador) o rechaza (HU-16)
+        assertSoloPuedePasarA(EN_AUTORIZACION, Set.of(BORRADOR, RECHAZADA));
+    }
+
+    @Test
+    void rechazadaYVencidaTodaviaNoCambian() {
+        // Corregir una rechazada llega con HU-32
         assertSoloPuedePasarA(RECHAZADA, Set.of());
         assertSoloPuedePasarA(VENCIDA, Set.of());
     }

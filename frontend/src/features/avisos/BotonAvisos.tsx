@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { ApartadoProximo, AvisoDescuento } from "./avisosTypes";
 import {
@@ -11,6 +12,10 @@ import {
 } from "./avisosUtils";
 import { useApartadosProximos } from "./useApartadosProximos";
 import { useAvisosDescuento } from "./useAvisosDescuento";
+import { useAvisosOperacion } from "./useAvisosOperacion";
+import ItemAvisoOperacion from "./ItemAvisoOperacion";
+import ItemRecoleccionProxima from "./ItemRecoleccionProxima";
+import { claveRecoleccion, useRecoleccionesProximas } from "./useRecoleccionesProximas";
 import "../../styles/apartados/panel-avisos.css";
 
 interface ItemAvisoProps {
@@ -104,11 +109,18 @@ function ItemAvisoDescuento({ aviso, onIr }: ItemAvisoDescuentoProps) {
   );
 }
 
+// Los avisos sin leer van arriba; dentro de cada grupo se respeta el orden por tipo
+function sinLeerPrimero(items: { nuevo: boolean; elemento: ReactNode }[]) {
+  return [...items.filter((i) => i.nuevo), ...items.filter((i) => !i.nuevo)].map((i) => i.elemento);
+}
+
 // Botón "Avisos" del encabezado con la lista desplegable
 export default function BotonAvisos() {
   const { apartados, error, noLeidos, marcarComoLeidos } =
     useApartadosProximos();
   const descuentos = useAvisosDescuento();
+  const operacion = useAvisosOperacion();
+  const recolecciones = useRecoleccionesProximas();
   const [abierto, setAbierto] = useState(false);
   const contenedor = useRef<HTMLDivElement>(null);
 
@@ -130,11 +142,13 @@ export default function BotonAvisos() {
   }, [abierto]);
 
   const nuevos = new Set(noLeidos.map(claveAviso));
-  const cantidad = noLeidos.length + descuentos.noLeidos;
+  const cantidad = noLeidos.length + descuentos.noLeidos + operacion.noLeidos + recolecciones.noLeidos;
 
   const marcarTodos = () => {
     marcarComoLeidos();
     descuentos.marcarComoLeidos();
+    operacion.marcarComoLeidos();
+    recolecciones.marcarComoLeidos();
   };
 
   return (
@@ -180,7 +194,10 @@ export default function BotonAvisos() {
             </p>
           ) : apartados === null ? (
             <p className="panel-avisos-mensaje">Cargando avisos…</p>
-          ) : apartados.length === 0 && descuentos.avisos.length === 0 ? (
+          ) : apartados.length === 0 &&
+            descuentos.avisos.length === 0 &&
+            operacion.avisos.length === 0 &&
+            recolecciones.recolecciones.length === 0 ? (
             <p className="panel-avisos-mensaje">
               <span className="material-symbols-rounded" aria-hidden="true">
                 check_circle
@@ -189,24 +206,56 @@ export default function BotonAvisos() {
             </p>
           ) : (
             <ul className="panel-avisos-lista">
-              {descuentos.avisos.map((a) => (
-                <ItemAvisoDescuento
-                  key={`descuento-${a.id}`}
-                  aviso={a}
-                  onIr={() => {
-                    descuentos.marcarLeido(a.id);
-                    setAbierto(false);
-                  }}
-                />
-              ))}
-              {apartados.map((a) => (
-                <ItemAviso
-                  key={a.rentaId}
-                  aviso={a}
-                  nuevo={nuevos.has(claveAviso(a))}
-                  onIr={() => setAbierto(false)}
-                />
-              ))}
+              {sinLeerPrimero([
+                ...recolecciones.recolecciones.map((r) => ({
+                  nuevo: recolecciones.nuevas.has(claveRecoleccion(r)),
+                  elemento: (
+                    <ItemRecoleccionProxima
+                      key={`recoleccion-${r.rentaId}`}
+                      recoleccion={r}
+                      nuevo={recolecciones.nuevas.has(claveRecoleccion(r))}
+                      onIr={() => setAbierto(false)}
+                    />
+                  ),
+                })),
+                ...operacion.avisos.map((a) => ({
+                  nuevo: !a.leido,
+                  elemento: (
+                    <ItemAvisoOperacion
+                      key={`operacion-${a.id}`}
+                      aviso={a}
+                      onIr={() => {
+                        operacion.marcarLeido(a.id);
+                        setAbierto(false);
+                      }}
+                    />
+                  ),
+                })),
+                ...descuentos.avisos.map((a) => ({
+                  nuevo: !a.leido,
+                  elemento: (
+                    <ItemAvisoDescuento
+                      key={`descuento-${a.id}`}
+                      aviso={a}
+                      onIr={() => {
+                        descuentos.marcarLeido(a.id);
+                        setAbierto(false);
+                      }}
+                    />
+                  ),
+                })),
+                ...apartados.map((a) => ({
+                  nuevo: nuevos.has(claveAviso(a)),
+                  elemento: (
+                    <ItemAviso
+                      key={a.rentaId}
+                      aviso={a}
+                      nuevo={nuevos.has(claveAviso(a))}
+                      onIr={() => setAbierto(false)}
+                    />
+                  ),
+                })),
+              ])}
             </ul>
           )}
 

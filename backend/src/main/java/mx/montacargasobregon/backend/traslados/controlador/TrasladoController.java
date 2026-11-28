@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import mx.montacargasobregon.backend.traslados.dto.AsignarTrasladoRequest;
 import mx.montacargasobregon.backend.traslados.dto.OperadorDisponibilidadResponse;
+import mx.montacargasobregon.backend.traslados.dto.RealizableResponse;
 import mx.montacargasobregon.backend.traslados.dto.TrasladoResponse;
 import mx.montacargasobregon.backend.traslados.servicio.TrasladoService;
 
@@ -86,6 +87,15 @@ public class TrasladoController {
             @Valid @RequestBody AsignarTrasladoRequest request
     ) {
         return servicio.asignar(id, request);
+    }
+
+    /**
+     * GET /api/traslados/{id}/realizable
+     * Antes de confirmar: si el traslado ya se puede marcar realizado y, si no, por qué.
+     */
+    @GetMapping("/{id}/realizable")
+    public RealizableResponse realizable(@PathVariable Long id) {
+        return servicio.realizable(id);
     }
 
     /**

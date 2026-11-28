@@ -50,4 +50,7 @@ public interface RevisionRepository extends JpaRepository<Revision, Long> {
         group by rv.mecanico.id
         """)
     List<CargaPorMecanico> contarPorMecanico(@Param("estados") Collection<EstadoRevision> estados);
+
+    // Cuántas revisiones de un mecánico están en esos estados (para no darlo de baja con pendientes)
+    long countByMecanicoIdAndEstadoIn(Long mecanicoId, Collection<EstadoRevision> estados);
 }

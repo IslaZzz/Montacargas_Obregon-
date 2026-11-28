@@ -10,11 +10,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import mx.montacargasobregon.backend.avisos.servicio.AvisoOperacionService;
+import mx.montacargasobregon.backend.cartas.modelo.EstadoCarta;
+import mx.montacargasobregon.backend.cartas.repositorio.CartaResponsivaRepository;
+import mx.montacargasobregon.backend.movil.traslados.EvidenciaRecoleccionService;
 import mx.montacargasobregon.backend.personal.modelo.Personal;
 import mx.montacargasobregon.backend.personal.modelo.TipoPersonal;
 import mx.montacargasobregon.backend.personal.repositorio.PersonalRepository;
 import mx.montacargasobregon.backend.traslados.dto.AsignarTrasladoRequest;
 import mx.montacargasobregon.backend.traslados.dto.OperadorDisponibilidadResponse;
+import mx.montacargasobregon.backend.traslados.dto.RealizableResponse;
 import mx.montacargasobregon.backend.traslados.dto.TrasladoResponse;
 import mx.montacargasobregon.backend.traslados.modelo.EstadoTraslado;
 import mx.montacargasobregon.backend.traslados.modelo.TipoTraslado;
@@ -29,12 +34,19 @@ public class TrasladoService {
     private final TrasladoRepository repositorio;
     private final PersonalRepository personalRepositorio;
     private final AvanceRentaService avanceRenta;
+    private final CartaResponsivaRepository cartaRepositorio;
+    private final AvisoOperacionService avisos;
+    private final EvidenciaRecoleccionService evidencia;
 
     public TrasladoService(TrasladoRepository repositorio, PersonalRepository personalRepositorio,
-                           AvanceRentaService avanceRenta) {
+                           AvanceRentaService avanceRenta, CartaResponsivaRepository cartaRepositorio,
+                           AvisoOperacionService avisos, EvidenciaRecoleccionService evidencia) {
         this.repositorio = repositorio;
         this.personalRepositorio = personalRepositorio;
         this.avanceRenta = avanceRenta;
+        this.cartaRepositorio = cartaRepositorio;
+        this.avisos = avisos;
+        this.evidencia = evidencia;
     }
 
     /**
@@ -242,8 +254,14 @@ public class TrasladoService {
                             nombreOp, conflicto.getFolio(), horarioConflicto));
         }
 
+        Personal anterior = traslado.getResponsable();
         traslado.asignarResponsable(operador);
         Traslado guardado = repositorio.save(traslado);
+
+        // OHU09: el operador anterior se entera en su app de que la tarea ya no es suya
+        if (anterior != null && !anterior.getId().equals(operador.getId())) {
+            avisos.tareaReasignada(guardado, anterior);
+        }
         return TrasladoResponse.from(guardado);
     }
 
@@ -256,23 +274,58 @@ public class TrasladoService {
         Traslado traslado = repositorio.findById(trasladoId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Traslado no encontrado"));
 
-        if (traslado.getResponsable() == null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Primero asigna un operador al traslado " + traslado.getFolio());
-        }
-        if (traslado.getEstado() != EstadoTraslado.PROGRAMADO && traslado.getEstado() != EstadoTraslado.EN_CURSO) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "El traslado " + traslado.getFolio() + " ya está realizado o cancelado");
-        }
-        if (traslado.getTipo() == TipoTraslado.RECOLECCION
-                && traslado.getRenta().getEstado() != EstadoRenta.EN_CURSO) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Primero marca como realizada la entrega de la renta " + traslado.getRenta().getFolio());
+        String motivo = motivoNoRealizable(traslado);
+        if (motivo != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, motivo);
         }
 
         traslado.completar();
         avanceRenta.trasladoRealizado(traslado);
         return TrasladoResponse.from(traslado);
+    }
+
+    /**
+     * Antes de preguntar "¿Ya se entregó?" en la oficina: si el traslado se puede marcar realizado y, si no, por qué.
+     * No cambia nada.
+     */
+    @Transactional(readOnly = true)
+    public RealizableResponse realizable(Long trasladoId) {
+        Traslado traslado = repositorio.findById(trasladoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Traslado no encontrado"));
+        String motivo = motivoNoRealizable(traslado);
+        return new RealizableResponse(motivo == null, motivo);
+    }
+
+    // Lo que impide marcarlo realizado, o null si se puede. Lo usan completar y realizable para que digan lo mismo
+    private String motivoNoRealizable(Traslado traslado) {
+        if (traslado.getResponsable() == null) {
+            return "Primero asigna un operador al traslado " + traslado.getFolio();
+        }
+        if (traslado.getEstado() != EstadoTraslado.PROGRAMADO && traslado.getEstado() != EstadoTraslado.EN_CURSO) {
+            return "El traslado " + traslado.getFolio() + " ya está realizado o cancelado";
+        }
+        if (traslado.getTipo() == TipoTraslado.RECOLECCION
+                && traslado.getRenta().getEstado() != EstadoRenta.EN_CURSO) {
+            return "Primero marca como realizada la entrega de la renta " + traslado.getRenta().getFolio();
+        }
+        // OHU11: la misma regla que en la app; desde la oficina tampoco se entrega sin la carta firmada
+        if (traslado.getTipo() == TipoTraslado.ENTREGA && !cartaFirmada(traslado)) {
+            return "Obligatoria: sin la carta firmada no se puede registrar la entrega.";
+        }
+        // OHU13: si la recolección no se confirmó en la app, igual pide la evidencia fotográfica.
+        // La oficina no toma fotos: el mensaje dice quién las registra
+        if (traslado.getTipo() == TipoTraslado.RECOLECCION && traslado.getEstado() == EstadoTraslado.PROGRAMADO
+                && evidencia.motivo(traslado) != null) {
+            return "Faltan fotografías de evidencia. El operador debe tomar las 4 de cada equipo en la app "
+                    + "y confirmar la recolección.";
+        }
+        return null;
+    }
+
+    private boolean cartaFirmada(Traslado traslado) {
+        return cartaRepositorio.findByRentaId(traslado.getRenta().getId())
+                .map(c -> c.getEstado() == EstadoCarta.FIRMADA)
+                .orElse(false);
     }
 
     private String obtenerIniciales(String nombreCompleto) {

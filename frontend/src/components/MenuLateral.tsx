@@ -51,6 +51,7 @@ const opciones: Opcion[] = [
     soloGerencia: true,
   },
   { texto: "Modelos", ruta: "/modelos", icono: "sell" },
+  { texto: "Tarifas", ruta: "/tarifas", icono: "payments" },
 ];
 
 export default function MenuLateral({

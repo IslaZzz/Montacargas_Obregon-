@@ -59,3 +59,11 @@ export async function marcarRealizado(trasladoId: number): Promise<Traslado> {
   return patchApi<Traslado>(`/traslados/${trasladoId}/completar`, {});
 }
 
+/**
+ * Antes de confirmar: si el traslado ya se puede marcar realizado y, si no, por qué.
+ */
+export async function revisarRealizable(
+  trasladoId: number
+): Promise<{ realizable: boolean; motivo: string | null }> {
+  return getApi<{ realizable: boolean; motivo: string | null }>(`/traslados/${trasladoId}/realizable`);
+}

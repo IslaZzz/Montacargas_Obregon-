@@ -31,3 +31,35 @@ export interface AvisoDescuento {
   fecha: string;
   leido: boolean;
 }
+
+// GET /api/avisos/operacion: lo que pasa en los traslados
+export type TipoAvisoOperacion =
+  | "TRASLADO_INICIADO"
+  | "ENTREGA_REGISTRADA"
+  | "RECOLECCION_CONFIRMADA"
+  | "EQUIPOS_RECIBIDOS"
+  | "TAREA_REASIGNADA";
+
+export interface AvisoOperacion {
+  id: number;
+  tipo: TipoAvisoOperacion;
+  titulo: string; // "Traslado iniciado: TR-0087"
+  detalle: string;
+  rentaId: number | null;
+  fecha: string;
+  leido: boolean;
+}
+
+// GET /api/avisos/recolecciones-proximas: renta en curso por terminar, sin recolección confirmada (OHU-25)
+export interface RecoleccionProxima {
+  rentaId: number;
+  folio: string;
+  cliente: string;
+  domicilio: string;
+  equipos: string[]; // ["MC-021", "RT-007"]
+  fechaFin: string; // "2026-11-24"
+  diasParaFin: number; // 0 = hoy, 1 = mañana; negativo si ya venció
+  vencida: boolean;
+  recoleccionDesde: string | null; // Vacío si todavía no tiene horario
+  trasladoFolio: string | null;
+}

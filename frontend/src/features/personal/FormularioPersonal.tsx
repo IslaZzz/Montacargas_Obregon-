@@ -16,6 +16,7 @@ interface FormularioPersonalProps {
   textoGuardar: string; // "Registrar personal" o "Guardar cambios"
   inicial?: Personal; // Al editar, los datos actuales
   avisoCodigo?: ReactNode; // Nota junto al código
+  accionExtra?: ReactNode; // Al editar: el botón "Dar de baja"
   onGuardar: (datos: DatosPersonal) => Promise<void>;
 }
 
@@ -51,6 +52,7 @@ export default function FormularioPersonal({
   textoGuardar,
   inicial,
   avisoCodigo,
+  accionExtra,
   onGuardar,
 }: FormularioPersonalProps) {
   const navigate = useNavigate();
@@ -204,7 +206,7 @@ export default function FormularioPersonal({
               maxLength={20}
               autoCapitalize="characters"
               autoComplete="off"
-              placeholder="Ej. OP-014"
+              placeholder="Ej. OPT-14"
               value={datos.codigo}
               error={errores.codigo}
               onChange={(v) => cambiar("codigo", limpiarCodigo(v))}
@@ -219,6 +221,7 @@ export default function FormularioPersonal({
       </div>
 
       <div className="barra-acciones">
+        {accionExtra}
         <p>Los datos se guardan solo al presionar "{textoGuardar}".</p>
         <Button type="button" variant="secondary" onClick={() => navigate("/personal")}>
           Cancelar

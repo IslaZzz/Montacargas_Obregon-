@@ -7,7 +7,8 @@ export type EstadoConsultaEquipo =
   | "EN_RENTA"
   | "EN_REVISION_ENTRADA"
   | "EN_MANTENIMIENTO"
-  | "FUERA_SERVICIO";
+  | "FUERA_SERVICIO"
+  | "EN_TRASLADO";
 
 // Equivale a EquipoEstadoResponse
 export interface EquipoEstado {

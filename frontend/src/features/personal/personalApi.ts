@@ -1,4 +1,4 @@
-import { getApi, postApi, putApi } from "../../services/apiClient";
+import { deleteApi, getApi, postApi, putApi } from "../../services/apiClient";
 import type { DatosPersonal, Personal } from "./personalTypes";
 
 // Todos, activos y de baja (GET /api/personal sin filtros)
@@ -11,3 +11,6 @@ export const registrarPersonal = (datos: DatosPersonal) => postApi<Personal>("/p
 
 export const actualizarPersonal = (id: number, datos: DatosPersonal) =>
   putApi<Personal>(`/personal/${id}`, datos);
+
+// Da de baja (no borra): ya no se le asigna trabajo y su sesión en la app se cierra
+export const darDeBajaPersonal = (id: number) => deleteApi<void>(`/personal/${id}`);

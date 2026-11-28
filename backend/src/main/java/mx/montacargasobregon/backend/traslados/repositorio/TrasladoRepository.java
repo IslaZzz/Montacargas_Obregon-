@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import java.util.Collection;
 
 import mx.montacargasobregon.backend.traslados.modelo.EstadoTraslado;
 import mx.montacargasobregon.backend.traslados.modelo.Traslado;
@@ -79,5 +80,8 @@ public interface TrasladoRepository extends JpaRepository<Traslado, Long> {
     /** Número del último folio: "TR-0086" -> 86. Null si no hay traslados. */
     @Query("select max(cast(substring(t.folio, 4) as Integer)) from Traslado t")
     Integer ultimoNumeroFolio();
+
+    /** Cuántos traslados de un operador están en esos estados (para no darlo de baja con pendientes). */
+    long countByResponsableIdAndEstadoIn(Long responsableId, Collection<EstadoTraslado> estados);
 }
 

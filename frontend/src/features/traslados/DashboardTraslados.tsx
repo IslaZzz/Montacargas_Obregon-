@@ -15,7 +15,7 @@ import { useTitulo } from "../../hooks/useTitulo";
 import { ErrorApi } from "../../services/apiClient";
 import { formatoDiaCorto, formatoHora } from "../../utils/fechas";
 import PanelAsignacion from "./PanelAsignacion";
-import { listarTraslados, marcarRealizado } from "./trasladosApi";
+import { listarTraslados, marcarRealizado, revisarRealizable } from "./trasladosApi";
 import type { FiltroTraslados, Traslado } from "./trasladosTypes";
 import { CHIPS_FILTRO, contarPorFiltro } from "./trasladosUtils";
 import "../../styles/operacion.css";
@@ -40,7 +40,9 @@ export default function DashboardTraslados() {
   // Traslado que se está marcando como realizado; null = cerrado
   const [enRealizar, setEnRealizar] = useState<Traslado | null>(null);
   const [realizando, setRealizando] = useState(false);
-  const [errorRealizar, setErrorRealizar] = useState("");
+
+  // Por qué no se pudo marcar realizado: se muestra arriba, con el enlace a la renta
+  const [bloqueo, setBloqueo] = useState<{ traslado: Traslado; motivo: string } | null>(null);
 
   // Confirmación después de asignar o marcar realizado, y fila que se resalta
   const [exito, setExito] = useState<{ titulo: string; detalle: ReactNode } | null>(null);
@@ -87,6 +89,7 @@ export default function DashboardTraslados() {
 
   function abrirPanel(t: Traslado) {
     setExito(null);
+    setBloqueo(null);
     setTrasladoEnPanel(t);
   }
 
@@ -106,9 +109,26 @@ export default function DashboardTraslados() {
     );
   }
 
-  function abrirRealizar(t: Traslado) {
+  // Cierra la confirmación y muestra arriba por qué no se pudo
+  function mostrarBloqueo(t: Traslado, motivo: string) {
+    setEnRealizar(null);
+    setBloqueo({ traslado: t, motivo });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Antes de preguntar "¿Ya se entregó?", revisa si se puede; si no, dice por qué
+  async function abrirRealizar(t: Traslado) {
     setExito(null);
-    setErrorRealizar("");
+    setBloqueo(null);
+    try {
+      const revision = await revisarRealizable(t.id);
+      if (!revision.realizable) {
+        mostrarBloqueo(t, revision.motivo ?? "Este traslado todavía no se puede marcar realizado.");
+        return;
+      }
+    } catch {
+      // Sin respuesta se abre igual: al confirmar, el servidor vuelve a revisar
+    }
     setEnRealizar(t);
   }
 
@@ -119,7 +139,6 @@ export default function DashboardTraslados() {
   async function confirmarRealizado() {
     if (!enRealizar) return;
     setRealizando(true);
-    setErrorRealizar("");
     try {
       const actualizado = await marcarRealizado(enRealizar.id);
       actualizar(
@@ -136,7 +155,7 @@ export default function DashboardTraslados() {
       );
       setEnRealizar(null);
     } catch (err) {
-      setErrorRealizar(err instanceof ErrorApi ? err.message : "No fue posible guardar. Revisa tu conexión.");
+      mostrarBloqueo(enRealizar, err instanceof ErrorApi ? err.message : "No fue posible guardar. Revisa tu conexión.");
     } finally {
       setRealizando(false);
     }
@@ -238,6 +257,16 @@ export default function DashboardTraslados() {
           {exito.detalle}
         </Aviso>
       )}
+      {bloqueo && (
+        <Aviso
+          tipo="error"
+          titulo={`No se puede marcar realizado ${bloqueo.traslado.folio}`}
+          onCerrar={() => setBloqueo(null)}
+        >
+          {bloqueo.motivo}{" "}
+          <Link to={`/rentas/${bloqueo.traslado.rentaId}`}>Ir a la renta {bloqueo.traslado.rentaFolio}</Link>
+        </Aviso>
+      )}
       {error && (
         <Aviso tipo="error" titulo={error}>
           Revisa tu conexión y vuelve a abrir la pantalla.
@@ -316,11 +345,6 @@ export default function DashboardTraslados() {
                 ? `Los equipos quedarán con el cliente y la renta ${enRealizar.rentaFolio} pasará a en curso.`
                 : `Se crearán las revisiones de entrada de los equipos de la renta ${enRealizar.rentaFolio}.`}
             </p>
-            {errorRealizar && (
-              <p className="campo-error" role="alert">
-                {errorRealizar}
-              </p>
-            )}
           </div>
         )}
       </Modal>

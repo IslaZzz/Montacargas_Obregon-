@@ -76,9 +76,13 @@ public class ConsultaEquiposService {
         if (enRenta == null) {
             return EstadoConsultaEquipo.DISPONIBLE;
         }
-        return enRenta.getFase() == FaseEquipoRenta.EN_OPERACION
-                ? EstadoConsultaEquipo.EN_RENTA
-                : EstadoConsultaEquipo.EN_PREPARACION;
+        if (enRenta.getFase() == FaseEquipoRenta.EN_OPERACION) {
+            return EstadoConsultaEquipo.EN_RENTA;
+        }
+        if (enRenta.getFase() == FaseEquipoRenta.EN_TRASLADO) {
+            return EstadoConsultaEquipo.EN_TRASLADO;
+        }
+        return EstadoConsultaEquipo.EN_PREPARACION;
     }
 
     // Si está en dos rentas, cuenta la que tiene el cliente; si no, la que empieza antes

@@ -1,7 +1,9 @@
-/* Estilos comunes de las pantallas de operación: Revisiones, Mantenimientos y Traslados.
-   Cada pantalla usa la clase "operacion" junto a la suya, y en su propio CSS deja solo lo que es suyo. */
+/* Estilos comunes de las pantallas de Operación: Equipos, Rentas, Traslados, Revisiones, Mantenimientos y Personal.
+   Cada pantalla usa la clase "operacion" junto a la suya, y en su propio CSS deja solo lo que es suyo.
+   Los componentes compartidos (filtros y tabla) vienen chicos; aquí se ajustan a la misma escala que Cotizaciones,
+   sin tocar filters.css ni table.css, para no cambiar las pantallas de Comercial. */
 
-/* Título y filtros */
+/* ===== Título y filtros ===== */
 .operacion-titulo {
   display: flex;
   flex-direction: column;
@@ -18,7 +20,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 16px 32px;
+  gap: 16px 24px;
 }
 .operacion-filtro {
   display: flex;
@@ -27,21 +29,104 @@
   gap: 12px;
 }
 .operacion-filtro-etiqueta {
-  font-weight: 600;
+  font:
+    600 18px/1.35 "Inter",
+    sans-serif;
   color: var(--primary-teal);
+}
+/* Etiqueta de los filtros del componente genérico (Personal) */
+.operacion .filter-label {
+  font-size: 18px;
+}
+
+/* Todos los controles de filtro miden 48 px y usan letra de 16 */
+.operacion .filters-row {
+  gap: 10px;
+}
+.operacion .filter-chip {
+  height: 48px;
+  padding: 0 18px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--primary-teal);
+  border-radius: 24px;
+  font-size: 16px;
+}
+.operacion .operacion-filtro .campo-input,
+.operacion .filter-input {
+  height: 48px;
+  min-height: 48px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--primary-teal);
+  border-radius: 8px;
+  font-size: 16px;
+}
+.operacion .dropdown-trigger {
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+/* Fechas: "Fecha: [desde] — [hasta]" en una línea. "Desde" y "Hasta" se ocultan a la vista,
+   pero el lector de pantalla los sigue leyendo */
+.operacion .date-range-container {
+  gap: 12px;
+}
+.operacion .date-range-field label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.operacion .date-range-separator {
+  margin-top: 0;
+  font-size: 16px;
+}
+.operacion .filter-date {
+  height: 48px;
+  min-width: 150px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--primary-teal);
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+/* ===== Tabla ===== */
+.operacion .table-container {
+  border-width: 2px;
+  border-radius: 10px;
+}
+.operacion .data-table th:first-child,
+.operacion .data-table td:first-child {
+  padding-left: 24px;
+}
+.operacion .data-table th:last-child,
+.operacion .data-table td:last-child {
+  padding-right: 24px;
+}
+
+.operacion .data-table th {
+  font-size: 16px;
+}
+.operacion .data-table td {
+  font-size: 16px;
 }
 
 /* Celdas: dato principal arriba, detalle abajo */
 .operacion .celda-principal {
   display: block;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--primary-teal);
 }
 .operacion .celda-secundaria {
   display: block;
   margin-top: 2px;
-  font-size: 12px;
+  font-size: 16px;
   color: var(--text-foreground);
 }
 
@@ -84,8 +169,9 @@
   gap: 6px;
 }
 .operacion .btn-chico {
-  padding: 8px 14px;
-  font-size: 14px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 16px;
 }
 .operacion .btn-chico .material-symbols-rounded {
   font-size: 20px;
@@ -94,4 +180,11 @@
 /* Filas recién cambiadas */
 .operacion .data-table tbody tr.fila-resaltada {
   background-color: rgba(32, 149, 104, 0.1);
+}
+
+/* Celular: las fechas pueden bajar a otra línea */
+@media (max-width: 700px) {
+  .operacion .date-range-container {
+    flex-wrap: wrap;
+  }
 }
