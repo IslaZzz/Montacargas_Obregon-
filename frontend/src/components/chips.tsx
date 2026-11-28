@@ -8,6 +8,7 @@ export type ChipCategory =
   | 'traslado'
   | 'mantenimiento'
   | 'cotizacion'
+  | 'contrato'
   | 'revision';
 
 export type ChipStatus =
@@ -41,6 +42,8 @@ export type ChipStatus =
   | 'autorizada'
   | 'rechazada'
   | 'vencida'
+  | 'apartado'
+  | 'apartado-vencido'
   ;
 
 interface ChipProps {
@@ -98,6 +101,12 @@ const chipClasses: Record<ChipCategory, Partial<Record<ChipStatus, string>>> = {
     vencida: 'chip-cotizacion chip-cotizacion-vencida',
   },
 
+  // Mismo formato que la cotización (HU-23): Apartado en amarillo, Apartado vencido en gris
+  contrato: {
+    apartado: 'chip-cotizacion chip-contrato-apartado',
+    'apartado-vencido': 'chip-cotizacion chip-cotizacion-vencida',
+  },
+
   // Mismos colores que mantenimientos para los estados; los demás reutilizan clases existentes
   revision: {
     'sin-asignar': 'chip-mantenimiento-sin-asignar',
@@ -144,6 +153,8 @@ const defaultLabels: Record<ChipStatus, string> = {
   autorizada: 'Autorizada',
   rechazada: 'Rechazada',
   vencida: 'Vencida',
+  apartado: 'Apartado',
+  'apartado-vencido': 'Apartado vencido',
 };
 
 // La clase de colores de un chip, para reutilizarla fuera de él (por ejemplo, el punto de un filtro)

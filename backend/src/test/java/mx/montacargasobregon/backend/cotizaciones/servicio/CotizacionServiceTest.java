@@ -25,10 +25,11 @@ import mx.montacargasobregon.backend.cotizaciones.modelo.EquipoCotizacion;
 import mx.montacargasobregon.backend.cotizaciones.modelo.EstadoCotizacion;
 import mx.montacargasobregon.backend.cotizaciones.repositorio.CotizacionRepository;
 import mx.montacargasobregon.backend.equipos.modelo.Equipo;
+import mx.montacargasobregon.backend.contratos.servicio.ContratoService;
 import mx.montacargasobregon.backend.rentas.servicio.RentaDeCotizacionService;
 import mx.montacargasobregon.backend.usuarios.repositorio.UsuarioRepository;
 
-/** Cambios de estado de la cotización y la renta que nace al aceptarla (HU-20 y HU-37). */
+/** Cambios de estado de la cotización y el contrato que se genera al aceptarla (HU-20 y HU-23). */
 @ExtendWith(MockitoExtension.class)
 class CotizacionServiceTest {
 
@@ -39,6 +40,9 @@ class CotizacionServiceTest {
     private RentaDeCotizacionService rentas;
 
     @Mock
+    private ContratoService contratos;
+
+    @Mock
     private UsuarioRepository usuarios;
 
     private CotizacionService servicio;
@@ -46,7 +50,7 @@ class CotizacionServiceTest {
 
     @BeforeEach
     void setUp() {
-        servicio = new CotizacionService(repositorio, rentas, usuarios);
+        servicio = new CotizacionService(repositorio, rentas, contratos, usuarios);
 
         Cliente cliente = new Cliente("Carlos", "Ramírez", "Soto", "Persona física", "6445551234",
                 "carlos.ramirez@correo.com", LocalDate.of(2026, 11, 1));
@@ -61,31 +65,33 @@ class CotizacionServiceTest {
         when(repositorio.findById(3L)).thenReturn(Optional.of(cotizacion));
     }
 
+    // HU-23: al aceptar ya no nace la renta, se genera el contrato. La renta nace con el anticipo (HU-24)
     @Test
-    void aceptarCreaLaRenta() {
+    void aceptarGeneraElContratoYNoLaRenta() {
         cotizacion.cambiarEstado(EstadoCotizacion.ENVIADA, LocalDateTime.of(2026, 11, 12, 10, 0));
 
         servicio.cambiarEstado(3L, EstadoCotizacion.ACEPTADA);
 
         assertEquals(EstadoCotizacion.ACEPTADA, cotizacion.getEstado());
-        verify(rentas).crear(cotizacion);
+        verify(contratos).generar(cotizacion);
+        verifyNoInteractions(rentas);
     }
 
     @Test
-    void noAceptadaNoCreaRenta() {
+    void noAceptadaNoGeneraContratoNiRenta() {
         cotizacion.cambiarEstado(EstadoCotizacion.ENVIADA, LocalDateTime.of(2026, 11, 12, 10, 0));
 
         servicio.cambiarEstado(3L, EstadoCotizacion.NO_ACEPTADA);
 
         assertEquals(EstadoCotizacion.NO_ACEPTADA, cotizacion.getEstado());
-        verifyNoInteractions(rentas);
+        verifyNoInteractions(contratos, rentas);
     }
 
     @Test
-    void enviarNoCreaRenta() {
+    void enviarNoGeneraContratoNiRenta() {
         servicio.cambiarEstado(3L, EstadoCotizacion.ENVIADA);
 
         assertEquals(EstadoCotizacion.ENVIADA, cotizacion.getEstado());
-        verifyNoInteractions(rentas);
+        verifyNoInteractions(contratos, rentas);
     }
 }

@@ -1,8 +1,8 @@
--- Datos de prueba para Cotizaciones (HU-12, HU-18, HU-20 y HU-37).
+-- Datos de prueba para Cotizaciones (HU-12, HU-18, HU-20, HU-37 y HU-23).
 -- Clientes y equipos de la hoja «Datos de prueba» de los casos de Delivery S1.
 -- Ejecutar después de iniciar el backend una vez, para que existan las tablas.
 -- Se puede correr varias veces: no duplica catálogos ni clientes y reinicia las cotizaciones de Comercial,
--- junto con las rentas que nacieron al aceptarlas.
+-- junto con las rentas que nacieron al aceptarlas y los contratos que se generaron (HU-23).
 
 USE montacargas_obregon;
 
@@ -117,6 +117,7 @@ DELETE c FROM cartas_responsivas c JOIN rentas_a_borrar b ON b.id = c.renta_id;
 DELETE er FROM equipos_renta er JOIN rentas_a_borrar b ON b.id = er.renta_id;
 DELETE r FROM rentas r JOIN rentas_a_borrar b ON b.id = r.id;
 DROP TEMPORARY TABLE rentas_a_borrar;
+DELETE k FROM contratos k JOIN cotizaciones q ON q.id = k.cotizacion_id WHERE q.folio NOT LIKE 'COT-R%';
 DELETE ad FROM avisos_descuento ad JOIN cotizaciones q ON q.id = ad.cotizacion_id WHERE q.folio NOT LIKE 'COT-R%';
 DELETE ec FROM equipos_cotizacion ec JOIN cotizaciones q ON q.id = ec.cotizacion_id WHERE q.folio NOT LIKE 'COT-R%';
 DELETE FROM cotizaciones WHERE folio NOT LIKE 'COT-R%';
@@ -153,7 +154,7 @@ VALUES ('COT-0002', @carlos, @rs_carlos,
         LAST_INSERT_ID(), 'Carlos Ramírez', '6445551234', 0.00, 0.00,
         150.00, 24.00, 174.00, 1, 'ACEPTADA',
         TIMESTAMP(CURDATE() - INTERVAL 5 DAY, '12:00:00'), TIMESTAMP(CURDATE() - INTERVAL 5 DAY, '12:30:00'),
-        CURDATE() - INTERVAL 3 DAY);
+        CURDATE() - INTERVAL 4 DAY);
 INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
   (@pt03, 150.00, 150.00, LAST_INSERT_ID());
 
@@ -226,3 +227,33 @@ VALUES ('COT-0007', @maria, @rs_mayo,
         LAST_INSERT_ID(), 'Arq. Laura Medina', '6441112233', 0.00, 0.00,
         0.00, 0.00, 0.00, 0, 'BORRADOR',
         TIMESTAMP(CURDATE(), '10:10:00'), NULL, NULL);
+
+-- ===== Contratos (HU-23): al aceptar una cotización se genera su contrato en Apartado =====
+-- Anticipo = 30% del total con IVA. Fecha límite = día de la aceptación + 3: se puede pagar hasta ese día
+-- y el apartado vence al terminar ese día.
+
+-- COT-0002 se aceptó hace 4 días: su fecha límite fue ayer. Se carga en Apartado y el backend la pasa sola
+-- a «Apartado vencido» al arrancar o en el siguiente minuto.
+INSERT INTO contratos (folio, cotizacion_id, estado, fecha_generacion, fecha_limite_anticipo, anticipo)
+SELECT 'CON-0001', id, 'APARTADO', TIMESTAMP(CURDATE() - INTERVAL 4 DAY, '12:45:00'), CURDATE() - INTERVAL 1 DAY, 52.20
+FROM cotizaciones WHERE folio = 'COT-0002';
+
+-- Aceptada hace 3 días: su fecha límite es hoy, así que sigue en Apartado hasta que termine el día. MC-07 3 días.
+-- COT-0003, COT-0005 y COT-0006 también llevan MC-07 en fechas que se empalman y muestran
+-- «Este equipo está en otra cotización aceptada».
+INSERT INTO direcciones_obra (calle, numero, colonia, ciudad, estado, codigo_postal)
+VALUES ('Carretera Internacional', 'km 4.5', 'Parque Industrial', 'Cd. Obregón', 'Sonora', '85065');
+INSERT INTO cotizaciones (folio, cliente_id, razon_social_id, fecha_entrega, fecha_recoleccion, direccion_obra_id, contacto_obra,
+                          telefono_contacto, traslado_entrega, traslado_recoleccion, subtotal, iva, total, precio_definido, estado,
+                          fecha_creacion, fecha_envio, fecha_respuesta)
+VALUES ('COT-0008', @maria, @rs_maquinaria,
+        TIMESTAMP(CURDATE() + INTERVAL 5 DAY, '09:00:00'), TIMESTAMP(CURDATE() + INTERVAL 7 DAY, '17:00:00'),
+        LAST_INSERT_ID(), 'Arq. Laura Medina', '6441112233', 0.00, 0.00,
+        1500.00, 240.00, 1740.00, 1, 'ACEPTADA',
+        TIMESTAMP(CURDATE() - INTERVAL 4 DAY, '10:00:00'), TIMESTAMP(CURDATE() - INTERVAL 3 DAY, '09:30:00'),
+        CURDATE() - INTERVAL 3 DAY);
+SET @c = LAST_INSERT_ID();
+INSERT INTO equipos_cotizacion (equipo_id, tarifa_dia, importe, cotizacion_id) VALUES
+  (@mc07, 500.00, 1500.00, @c);
+INSERT INTO contratos (folio, cotizacion_id, estado, fecha_generacion, fecha_limite_anticipo, anticipo)
+VALUES ('CON-0002', @c, 'APARTADO', TIMESTAMP(CURDATE() - INTERVAL 3 DAY, '17:10:00'), CURDATE(), 522.00);

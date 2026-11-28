@@ -5,8 +5,10 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 
 import org.springframework.http.HttpStatus;
@@ -38,6 +40,7 @@ import mx.montacargasobregon.backend.cotizaciones.modelo.TipoDescuento;
  * Genera el PDF de una cotización (HU-18 y HU-35): encabezado con folio y fecha, cliente y razón social,
  * entrega y recolección, tabla de equipos, bloque de precios (traslados y descuento solo si aplican)
  * y bloque de condiciones.
+ * El contrato (HU-23) usa la misma hoja con su propio cierre: ver hoja(), recuadro() y lista().
  */
 @Service
 public class CotizacionPdfService {
@@ -93,24 +96,35 @@ public class CotizacionPdfService {
 
     /** Arma el documento de una cotización ya cargada. */
     public byte[] generar(Cotizacion c) {
+        return hoja(c, "COTIZACIÓN", c.getFolio(), c.getFechaHoraCreacion().toLocalDate(), condiciones(c));
+    }
+
+    /**
+     * Hoja carta con el encabezado (título, folio y fecha) y los datos de la cotización: cliente y facturación,
+     * entrega y recolección, equipos y totales. Al final, el cierre de cada documento: las condiciones de la
+     * cotización o el anticipo y la política del contrato (HU-23).
+     */
+    public static byte[] hoja(Cotizacion c, String titulo, String folio, LocalDate fecha, Element... cierre) {
         ByteArrayOutputStream salida = new ByteArrayOutputStream();
         Document documento = new Document(PageSize.LETTER, 50, 50, 45, 45);
         PdfWriter.getInstance(documento, salida);
         documento.open();
 
-        documento.add(encabezado(c));
+        documento.add(encabezado(titulo, folio, fecha));
         documento.add(clienteYFacturacion(c));
         documento.add(entregaYRecoleccion(c));
         documento.add(equipos(c));
         documento.add(totales(c));
-        documento.add(condiciones(c));
+        for (Element bloque : cierre) {
+            documento.add(bloque);
+        }
 
         documento.close();
         return salida.toByteArray();
     }
 
-    // Marca a la izquierda; folio y fecha a la derecha; abajo, una línea azul
-    private PdfPTable encabezado(Cotizacion c) {
+    // Marca a la izquierda; título, folio y fecha a la derecha; abajo, una línea azul
+    private static PdfPTable encabezado(String titulo, String folio, LocalDate fecha) {
         PdfPTable tabla = tabla(2, 100);
 
         PdfPCell marca = celdaEncabezado();
@@ -118,11 +132,11 @@ public class CotizacionPdfService {
         marca.addElement(new Paragraph("Renta de maquinaria · Cd. Obregón, Sonora", PEQUENA));
         tabla.addCell(marca);
 
-        PdfPCell folio = celdaEncabezado();
-        folio.addElement(alineado(new Paragraph("COTIZACIÓN", TITULO), Element.ALIGN_RIGHT));
-        folio.addElement(alineado(new Paragraph("Folio " + c.getFolio(), NEGRITA), Element.ALIGN_RIGHT));
-        folio.addElement(alineado(new Paragraph("Fecha: " + c.getFechaHoraCreacion().format(FECHA), PEQUENA), Element.ALIGN_RIGHT));
-        tabla.addCell(folio);
+        PdfPCell datos = celdaEncabezado();
+        datos.addElement(alineado(new Paragraph(titulo, TITULO), Element.ALIGN_RIGHT));
+        datos.addElement(alineado(new Paragraph("Folio " + folio, NEGRITA), Element.ALIGN_RIGHT));
+        datos.addElement(alineado(new Paragraph("Fecha: " + fecha.format(FECHA), PEQUENA), Element.ALIGN_RIGHT));
+        tabla.addCell(datos);
 
         return tabla;
     }
@@ -136,7 +150,7 @@ public class CotizacionPdfService {
         return celda;
     }
 
-    private PdfPTable clienteYFacturacion(Cotizacion c) {
+    private static PdfPTable clienteYFacturacion(Cotizacion c) {
         Cliente cliente = c.getCliente();
         RazonSocial razon = c.getRazonSocial();
 
@@ -157,7 +171,7 @@ public class CotizacionPdfService {
         return tabla;
     }
 
-    private PdfPTable entregaYRecoleccion(Cotizacion c) {
+    private static PdfPTable entregaYRecoleccion(Cotizacion c) {
         PdfPTable tabla = tabla(1, 100);
         tabla.setSpacingBefore(12);
         DatosDireccion obra = c.getDireccionObra();
@@ -171,7 +185,7 @@ public class CotizacionPdfService {
         return tabla;
     }
 
-    private PdfPTable equipos(Cotizacion c) {
+    private static PdfPTable equipos(Cotizacion c) {
         PdfPTable tabla = tabla(5, 100);
         tabla.setWidths(new float[] { 1.2f, 3.4f, 0.8f, 1.6f, 1.6f });
         tabla.setSpacingBefore(16);
@@ -196,7 +210,7 @@ public class CotizacionPdfService {
     }
 
     // Bloque «Precios»: primero los traslados que aplican, luego el subtotal (equipos + traslados)
-    private PdfPTable totales(Cotizacion c) {
+    private static PdfPTable totales(Cotizacion c) {
         PdfPTable tabla = tabla(2, 45);
         tabla.setHorizontalAlignment(Element.ALIGN_RIGHT);
         tabla.setSpacingBefore(10);
@@ -227,7 +241,7 @@ public class CotizacionPdfService {
         return "Descuento";
     }
 
-    private void filaTotal(PdfPTable tabla, String concepto, String monto, Font fuenteConcepto, Font fuenteMonto) {
+    private static void filaTotal(PdfPTable tabla, String concepto, String monto, Font fuenteConcepto, Font fuenteMonto) {
         tabla.addCell(alineado(celda(new Phrase(concepto, fuenteConcepto)), Element.ALIGN_RIGHT));
         tabla.addCell(alineado(celda(new Phrase(monto, fuenteMonto)), Element.ALIGN_RIGHT));
     }
@@ -271,6 +285,34 @@ public class CotizacionPdfService {
         parrafo.add(new Phrase(titulo + ": ", NEGRITA));
         parrafo.add(new Phrase(texto, PEQUENA));
         return parrafo;
+    }
+
+    /** Texto en negrita sobre un recuadro de color, para lo que no se debe pasar por alto (el anticipo del contrato). */
+    public static PdfPTable recuadro(String texto) {
+        PdfPTable tabla = tabla(1, 100);
+        tabla.setSpacingBefore(16);
+        PdfPCell celda = new PdfPCell(new Phrase(texto, NEGRITA));
+        celda.setBorder(Rectangle.NO_BORDER);
+        celda.setBackgroundColor(FONDO_ENCABEZADO);
+        celda.setPadding(8);
+        tabla.addCell(celda);
+        return tabla;
+    }
+
+    /** Una etiqueta y debajo sus renglones con viñeta (la política del contrato). */
+    public static PdfPTable lista(String etiqueta, List<String> renglones) {
+        PdfPTable tabla = tabla(1, 100);
+        tabla.setSpacingBefore(14);
+        tabla.setKeepTogether(true);
+        PdfPCell celda = celda();
+        celda.addElement(new Paragraph(etiqueta, ETIQUETA));
+        for (String renglon : renglones) {
+            Paragraph parrafo = new Paragraph("• " + renglon, PEQUENA);
+            parrafo.setSpacingBefore(3);
+            celda.addElement(parrafo);
+        }
+        tabla.addCell(celda);
+        return tabla;
     }
 
     // ===== Piezas =====
@@ -329,7 +371,7 @@ public class CotizacionPdfService {
     // ===== Formatos =====
 
     // 9860 → "$9,860.00"
-    static String moneda(BigDecimal monto) {
+    public static String moneda(BigDecimal monto) {
         return NumberFormat.getCurrencyInstance(ES_MX).format(monto);
     }
 
